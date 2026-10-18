@@ -9,12 +9,19 @@ function initialState() {
       cover: { visible: false },
       announcement: { text: null },
     },
+    stage: { next: null, message: null },
   };
 }
 
 const HANDLERS = {
-  showSlide: (s, a) => ({ ...s, blackout: false, layers: { ...s.layers, content: { slide: a.slide } } }),
-  clear: (s) => ({ ...s, layers: { ...s.layers, content: { slide: null } } }),
+  showSlide: (s, a) => ({
+    ...s,
+    blackout: false,
+    layers: { ...s.layers, content: { slide: a.slide } },
+    stage: { ...s.stage, next: a.next || null },
+  }),
+  clear: (s) => ({ ...s, layers: { ...s.layers, content: { slide: null } }, stage: { ...s.stage, next: null } }),
+  setStageMessage: (s, a) => ({ ...s, stage: { ...s.stage, message: a.text || null } }),
   blackout: (s) => ({ ...s, blackout: !s.blackout }),
   toggleCover: (s) => ({ ...s, layers: { ...s.layers, cover: { visible: !s.layers.cover.visible } } }),
   setBackground: (s, a) => ({ ...s, layers: { ...s.layers, background: { ...a.background } } }),
@@ -39,7 +46,9 @@ function isValidBackground(bg) {
 }
 
 const REQUIRED_FIELD = {
-  showSlide: (a) => a.slide && typeof a.slide.text === 'string',
+  showSlide: (a) => a.slide && typeof a.slide.text === 'string'
+    && (a.next == null || typeof a.next.text === 'string'),
+  setStageMessage: (a) => typeof a.text === 'string',
   setBackground: (a) => isValidBackground(a.background),
 };
 

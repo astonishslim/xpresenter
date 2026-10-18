@@ -54,4 +54,31 @@ function createOutputWindows() {
   return targets.map((d) => open({ x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height }, true));
 }
 
-module.exports = { createOperatorWindow, createOutputWindows };
+function listDisplays() {
+  const primaryId = screen.getPrimaryDisplay().id;
+  return screen.getAllDisplays().map((d, i) => ({
+    id: d.id,
+    primary: d.id === primaryId,
+    label: `Monitor ${i + 1} (${d.bounds.width}x${d.bounds.height})${d.id === primaryId ? ' - principal' : ''}`,
+  }));
+}
+
+// Monitor de retorno: tela cheia no monitor escolhido, ou janela comum se não houver escolha.
+function createStageWindow(displayId) {
+  const display = screen.getAllDisplays().find((d) => d.id === displayId);
+  const win = new BrowserWindow({
+    ...(display
+      ? { x: display.bounds.x, y: display.bounds.y, width: display.bounds.width, height: display.bounds.height, fullscreen: true, frame: false }
+      : { width: 1024, height: 576 }),
+    title: 'Apresentador - Retorno de palco',
+    icon: ICON,
+    backgroundColor: '#000000',
+    autoHideMenuBar: true,
+    webPreferences: WINDOW_PREFS,
+  });
+  hardenWindow(win);
+  win.loadFile(path.join(__dirname, '..', 'remote', 'stage.html'));
+  return win;
+}
+
+module.exports = { createOperatorWindow, createOutputWindows, createStageWindow, listDisplays };

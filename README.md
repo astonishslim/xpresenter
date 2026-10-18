@@ -20,6 +20,16 @@ npm start
 5. **Culto** é a ordem do culto (músicas e versículos); reordene e remova.
 6. **Remoto** mostra um endereço para abrir no celular (mesma rede Wi-Fi). O endereço contém um token novo a cada execução.
 
+## Preview, Programa e retorno de palco
+
+- **Preview** (azul) mostra o slide selecionado antes de ir ao ar; **Programa** (verde) espelha exatamente a saída.
+  Clique seleciona, **duplo clique** / **Enter** / **Ao vivo ▶** envia. Setas e Espaço avançam ao vivo, e o Preview passa a
+  mostrar o próximo slide. Marque "Clique envia direto ao vivo" para o modo direto.
+- **Retorno de palco** (para banda e pregador): slide atual, próximo, relógio, aviso de tela preta e mensagem livre.
+  Abre em tela cheia no monitor escolhido ou em janela. Também funciona em tablet/celular: botão **Remoto** mostra o link.
+- **Painéis dinâmicos**: arraste os divisores entre os painéis (duplo clique restaura, setas ← → no divisor ajustam),
+  recolha seções e use **Restaurar layout**. O layout fica salvo.
+
 ## Camadas da projeção
 
 Fundo (cor/imagem) → Conteúdo (slide) → Capa → Aviso (rodapé) → Preto. Estado central em `src/core/state.js`.
@@ -29,8 +39,8 @@ Fundo (cor/imagem) → Conteúdo (slide) → Capa → Aviso (rodapé) → Preto.
 ```
 src/core/      lógica pura e testada (songParser, bible, state, store, library, remoteServer)
 src/main/      processo principal Electron (janelas, IPC, preload)
-src/renderer/  telas: operator/ (operador) e output/ (projeção)
-src/remote/    página do celular (HTTP + SSE, sem dependências)
+src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa)
+src/remote/    controle remoto e retorno de palco (HTTP + SSE, sem dependências)
 ```
 
 ## Testes

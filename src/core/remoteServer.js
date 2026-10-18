@@ -11,7 +11,8 @@ const MAX_FAILURES = 10;
 const BLOCK_MS = 60 * 1000;
 const HEARTBEAT_MS = 25 * 1000;
 // O celular só controla a projeção; fundo e outros ajustes ficam no operador.
-const REMOTE_ACTIONS = new Set(['showSlide', 'clear', 'blackout', 'toggleCover', 'setAnnouncement']);
+const REMOTE_ACTIONS = new Set(['showSlide', 'clear', 'blackout', 'toggleCover', 'setAnnouncement', 'setStageMessage']);
+const TEXT_ACTIONS = new Set(['setAnnouncement', 'setStageMessage']);
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 
 function send(res, status, body, type = 'application/json; charset=utf-8') {
@@ -86,7 +87,7 @@ function createRemoteServer({ token, staticDir, getState, dispatch, subscribe, g
     }
     if (!isValidAction(action)) return send(res, 400, { error: 'ação inválida' });
     if (!REMOTE_ACTIONS.has(action.type)) return send(res, 403, { error: 'ação não permitida no remoto' });
-    if (action.type === 'setAnnouncement'
+    if (TEXT_ACTIONS.has(action.type)
       && (typeof action.text !== 'string' || action.text.length > MAX_ANNOUNCEMENT_CHARS)) {
       return send(res, 400, { error: 'aviso inválido' });
     }

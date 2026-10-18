@@ -13,6 +13,18 @@ function h(tag, props = {}, ...children) {
   return el;
 }
 
+// Envia um slide ao vivo junto com o próximo (usado pelo monitor de retorno).
+function showByKey(key) {
+  const at = flat.findIndex((s) => s.key === key);
+  if (at < 0) return undefined;
+  const next = flat[at + 1];
+  return send({
+    type: 'showSlide',
+    slide: flat[at],
+    next: next ? { label: next.label, text: next.text } : null,
+  });
+}
+
 function send(action) {
   return fetch(withToken('/api/action'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(action) });
 }
@@ -25,7 +37,7 @@ function renderPlaylist() {
       const key = `${item.id}:${i}`;
       return h('div', {
         class: `slide${key === liveKey ? ' live' : ''}`,
-        onclick: () => send({ type: 'showSlide', slide: { ...slide, key } }),
+        onclick: () => showByKey(key),
       }, h('small', {}, slide.label || ''), slide.text);
     }))));
 }
@@ -48,8 +60,8 @@ async function loadPlaylist() {
 
 function step(delta) {
   const at = flat.findIndex((s) => s.key === liveKey);
-  const next = flat[at + delta];
-  if (next) send({ type: 'showSlide', slide: next });
+  const target = flat[at + delta];
+  if (target) showByKey(target.key);
 }
 
 function renderState(state) {
@@ -68,6 +80,7 @@ async function init() {
   $('clear').onclick = () => send({ type: 'clear' });
   $('black').onclick = () => send({ type: 'blackout' });
   $('cover').onclick = () => send({ type: 'toggleCover' });
+  $('stage-link').href = `/stage.html?t=${encodeURIComponent(token)}`;
 
   const events = new EventSource(withToken('/api/events'));
   events.onopen = () => { $('conn').classList.add('ok'); loadPlaylist(); };

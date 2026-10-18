@@ -76,3 +76,32 @@ test('setBackground valida formato: cor hex, ou URL file: sem host', () => {
   assert.equal(ok({ kind: 'video', value: 'http://x/y.mp4' }), false);
   assert.equal(ok({ kind: 'script', value: '#000000' }), false);
 });
+
+test('estado inicial tem a seção de retorno vazia', () => {
+  assert.deepEqual(initialState().stage, { next: null, message: null });
+});
+
+test('showSlide guarda o próximo slide para o monitor de retorno', () => {
+  const next = { label: 'Refrão', text: 'Aleluia' };
+  const s = reduce(initialState(), { type: 'showSlide', slide, next });
+  assert.deepEqual(s.stage.next, next);
+  assert.equal(reduce(s, { type: 'showSlide', slide }).stage.next, null);
+});
+
+test('clear zera o próximo slide', () => {
+  const s = reduce(initialState(), { type: 'showSlide', slide, next: { text: 'x' } });
+  assert.equal(reduce(s, { type: 'clear' }).stage.next, null);
+});
+
+test('setStageMessage define e limpa a mensagem do retorno', () => {
+  const s = reduce(initialState(), { type: 'setStageMessage', text: 'Acabar em 2 min' });
+  assert.equal(s.stage.message, 'Acabar em 2 min');
+  assert.equal(reduce(s, { type: 'setStageMessage', text: '' }).stage.message, null);
+});
+
+test('isValidAction valida next e setStageMessage', () => {
+  assert.equal(isValidAction({ type: 'showSlide', slide, next: { text: 'ok' } }), true);
+  assert.equal(isValidAction({ type: 'showSlide', slide, next: { text: 5 } }), false);
+  assert.equal(isValidAction({ type: 'setStageMessage', text: 'oi' }), true);
+  assert.equal(isValidAction({ type: 'setStageMessage' }), false);
+});

@@ -12,31 +12,65 @@ function h(tag, props = {}, ...children) {
   return el;
 }
 
-const ui = { songs: [], playlist: [], current: null, index: -1, state: null, filter: '' };
+const DIRECT_KEY = 'apresentador.direct';
+const ui = { songs: [], playlist: [], current: null, index: -1, selected: -1, state: null, filter: '', direct: false };
+let previewStage = null;
+let programStage = null;
+
+const slidesOf = () => (ui.current ? ui.current.slides : []);
+const slideInfo = (slide) => (slide ? { label: slide.label, text: slide.text } : null);
+
+// ---------- Preview / Programa ----------
+function renderPreview() {
+  if (!previewStage || !ui.state) return;
+  const slide = slidesOf()[ui.selected] || null;
+  const { layers } = ui.state;
+  previewStage.update({
+    ...ui.state,
+    blackout: false,
+    layers: { ...layers, content: { slide }, cover: { visible: false }, announcement: { text: null } },
+  });
+  $('btn-take').disabled = !slide;
+}
 
 // ---------- Slides ----------
 function setCurrent(item) {
   ui.current = item;
   ui.index = -1;
+  ui.selected = item && item.slides.length ? 0 : -1;
   $('slides-title').textContent = item ? item.title : 'Slides';
   $('btn-add-playlist').disabled = !item || item.fromPlaylist;
   $('btn-edit').disabled = !item || !item.songId;
   renderSlides();
+  renderPreview();
+}
+
+function selectSlide(index) {
+  if (index < 0 || index >= slidesOf().length) return;
+  ui.selected = index;
+  renderSlides();
+  renderPreview();
 }
 
 function goLive(index) {
-  const slides = ui.current ? ui.current.slides : [];
+  const slides = slidesOf();
   if (index < 0 || index >= slides.length) return;
   ui.index = index;
-  api.dispatch({ type: 'showSlide', slide: { ...slides[index], key: `${ui.current.key}:${index}` } });
+  ui.selected = Math.min(index + 1, slides.length - 1); // o Preview passa a mostrar o próximo
+  api.dispatch({
+    type: 'showSlide',
+    slide: { ...slides[index], key: `${ui.current.key}:${index}` },
+    next: slideInfo(slides[index + 1]),
+  });
   renderSlides();
+  renderPreview();
 }
 
 function renderSlides() {
-  const slides = ui.current ? ui.current.slides : [];
-  $('slides').replaceChildren(...slides.map((slide, i) => h('div', {
-    class: `slide${i === ui.index ? ' live' : ''}`,
-    onclick: () => goLive(i),
+  $('slides').replaceChildren(...slidesOf().map((slide, i) => h('div', {
+    class: `slide${i === ui.index ? ' live' : ''}${i === ui.selected ? ' selected' : ''}`,
+    onclick: () => (ui.direct ? goLive(i) : selectSlide(i)),
+    ondblclick: () => goLive(i),
   }, h('div', { class: 'tag' }, slide.label || ''), h('div', { class: 'body' }, slide.text))));
 }
 
@@ -62,7 +96,14 @@ async function refreshSongs() {
 // ---------- Culto (playlist) ----------
 function renderPlaylist() {
   $('playlist').replaceChildren(...ui.playlist.map((item, i) => h('li', {
-    onclick: () => setCurrent({ title: item.title, slides: item.slides, songId: item.kind === 'song' ? item.refId : null, song: ui.songs.find((s) => s.id === item.refId), fromPlaylist: true, key: item.id }),
+    onclick: () => setCurrent({
+      title: item.title,
+      slides: item.slides,
+      songId: item.kind === 'song' ? item.refId : null,
+      song: ui.songs.find((s) => s.id === item.refId),
+      fromPlaylist: true,
+      key: item.id,
+    }),
   },
   h('span', {}, item.title),
   h('button', { title: 'Subir', onclick: (e) => { e.stopPropagation(); movePlaylist(item.id, i - 1); } }, '↑'),
@@ -121,18 +162,25 @@ async function saveEditor() {
 // ---------- Estado ao vivo ----------
 function renderLive(state) {
   ui.state = state;
-  const slide = state.layers.content.slide;
-  $('monitor-label').textContent = slide ? slide.label || '' : '';
-  $('monitor-text').textContent = slide ? slide.text : '';
-  $('monitor').classList.toggle('black', state.blackout);
+  programStage.update(state);
+  renderPreview();
   $('btn-black').classList.toggle('primary', state.blackout);
   $('btn-cover').classList.toggle('primary', state.layers.cover.visible);
 }
 
-async function syncOutputButton() {
-  const open = await api.outputs.isOpen();
-  $('btn-output').classList.toggle('on', open);
-  $('btn-output').textContent = open ? 'Parar projeção' : 'Projetar';
+async function syncOutputButtons() {
+  const [output, stage] = await Promise.all([api.outputs.isOpen(), api.stage.isOpen()]);
+  $('btn-output').classList.toggle('on', output);
+  $('btn-output').textContent = output ? 'Parar projeção' : 'Projetar';
+  $('btn-stage').textContent = stage ? 'Fechar retorno' : 'Abrir retorno';
+}
+
+async function loadDisplays() {
+  const displays = await api.displays.list();
+  $('stage-display').replaceChildren(
+    h('option', { value: '' }, 'Em janela'),
+    ...displays.map((d) => h('option', { value: String(d.id) }, d.label)),
+  );
 }
 
 // ---------- Ligações ----------
@@ -153,6 +201,11 @@ function bindEvents() {
     refreshPlaylist();
   });
 
+  $('direct').addEventListener('change', (e) => {
+    ui.direct = e.target.checked;
+    try { localStorage.setItem(DIRECT_KEY, ui.direct ? '1' : '0'); } catch { /* sem persistência */ }
+  });
+
   $('ed-save').addEventListener('click', (e) => { if ($('ed-title').value.trim()) { e.preventDefault(); $('editor').close(); saveEditor(); } });
   $('ed-delete').addEventListener('click', async () => {
     await api.songs.remove($('editor').dataset.id);
@@ -162,13 +215,14 @@ function bindEvents() {
     refreshPlaylist();
   });
 
+  $('btn-take').addEventListener('click', () => goLive(ui.selected));
   $('btn-next').addEventListener('click', () => goLive(ui.index + 1));
   $('btn-prev').addEventListener('click', () => goLive(ui.index - 1));
   $('btn-clear').addEventListener('click', () => api.dispatch({ type: 'clear' }));
   $('btn-black').addEventListener('click', () => api.dispatch({ type: 'blackout' }));
   $('btn-cover').addEventListener('click', () => api.dispatch({ type: 'toggleCover' }));
   const announce = (text) => api.dispatch({ type: 'setAnnouncement', text });
-  $('btn-announce').addEventListener('click', () => { announce($('announce').value.trim()); });
+  $('btn-announce').addEventListener('click', () => announce($('announce').value.trim()));
   $('announce').addEventListener('keydown', (e) => e.key === 'Enter' && announce($('announce').value.trim()));
   $('bg-color').addEventListener('input', (e) => api.dispatch({ type: 'setBackground', background: { kind: 'color', value: e.target.value } }));
   $('btn-bg-image').addEventListener('click', async () => {
@@ -176,20 +230,33 @@ function bindEvents() {
     if (url) api.dispatch({ type: 'setBackground', background: { kind: 'image', value: url } });
   });
 
-  $('btn-output').addEventListener('click', async () => { await api.outputs.toggle(); syncOutputButton(); });
+  const stageMessage = (text) => api.dispatch({ type: 'setStageMessage', text });
+  $('btn-stage-msg').addEventListener('click', () => stageMessage($('stage-msg').value.trim()));
+  $('stage-msg').addEventListener('keydown', (e) => e.key === 'Enter' && stageMessage($('stage-msg').value.trim()));
+  $('btn-stage-clear').addEventListener('click', () => { $('stage-msg').value = ''; stageMessage(''); });
+  $('btn-stage').addEventListener('click', async () => {
+    const id = Number($('stage-display').value);
+    await api.stage.toggle(Number.isInteger(id) && id > 0 ? id : undefined);
+    syncOutputButtons();
+  });
+
+  $('btn-output').addEventListener('click', async () => { await api.outputs.toggle(); syncOutputButtons(); });
   $('btn-remote').addEventListener('click', async () => {
-    $('remote-url').textContent = (await api.remote.info()).url;
+    const info = await api.remote.info();
+    $('remote-url').textContent = info.url;
+    $('remote-stage-url').textContent = info.stageUrl;
     $('remote-dialog').showModal();
   });
   $('remote-close').addEventListener('click', () => $('remote-dialog').close());
 
   document.addEventListener('keydown', (e) => {
-    const typing = e.target instanceof Element && e.target.matches('input, textarea');
+    const typing = e.target instanceof Element && e.target.matches('input, textarea, select');
     if (typing || document.querySelector('dialog[open]')) return;
     const actions = {
       ArrowRight: () => goLive(ui.index + 1),
       ' ': () => goLive(ui.index + 1),
       ArrowLeft: () => goLive(ui.index - 1),
+      Enter: () => goLive(ui.selected),
       b: () => api.dispatch({ type: 'blackout' }),
       Escape: () => api.dispatch({ type: 'clear' }),
     };
@@ -199,11 +266,18 @@ function bindEvents() {
 }
 
 async function init() {
+  window.initLayout();
+  previewStage = window.createStage($('mon-preview'));
+  programStage = window.createStage($('mon-program'));
+  try { ui.direct = localStorage.getItem(DIRECT_KEY) === '1'; } catch { ui.direct = false; }
+  $('direct').checked = ui.direct;
+
   bindEvents();
   api.onState(renderLive);
-  window.addEventListener('focus', syncOutputButton);
+  window.addEventListener('focus', syncOutputButtons);
+  window.addEventListener('resize', () => ui.state && (programStage.update(ui.state), renderPreview()));
   renderLive(await api.getState());
-  await Promise.all([refreshSongs(), refreshPlaylist(), syncOutputButton()]);
+  await Promise.all([refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
 }
 
 init();

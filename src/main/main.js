@@ -5,7 +5,7 @@ const { randomBytes } = require('node:crypto');
 const { createStore } = require('../core/store');
 const { createLibrary } = require('../core/library');
 const { createRemoteServer } = require('../core/remoteServer');
-const { createOperatorWindow, createOutputWindows } = require('./windows');
+const { createOperatorWindow, createOutputWindows, createStageWindow } = require('./windows');
 const { registerIpc } = require('./ipc');
 
 const REMOTE_PORT = 5151;
@@ -39,11 +39,29 @@ function createOutputManager(store) {
   };
 }
 
+function createStageManager() {
+  let win = null;
+  return {
+    isOpen: () => Boolean(win) && !win.isDestroyed(),
+    toggle(displayId) {
+      if (win && !win.isDestroyed()) {
+        win.close();
+        win = null;
+        return false;
+      }
+      win = createStageWindow(displayId);
+      win.on('closed', () => { win = null; });
+      return true;
+    },
+  };
+}
+
 async function start() {
   const userDataDir = app.getPath('userData');
   const store = createStore();
   const library = createLibrary(path.join(userDataDir, 'library.json'));
   const outputs = createOutputManager(store);
+  const stageMonitor = createStageManager();
 
   const token = randomBytes(16).toString('hex');
   const remote = createRemoteServer({
@@ -68,10 +86,14 @@ async function start() {
     store,
     library,
     outputs,
+    stageMonitor,
     userDataDir,
     sampleBible: SAMPLE_BIBLE,
     getWindow: () => operator,
-    remoteInfo: () => ({ url: `http://${lanAddress()}:${port}/?t=${token}` }),
+    remoteInfo: () => {
+      const base = `http://${lanAddress()}:${port}`;
+      return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}` };
+    },
   });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());

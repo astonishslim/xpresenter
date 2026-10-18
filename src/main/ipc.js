@@ -5,6 +5,7 @@ const { pathToFileURL } = require('node:url');
 const { isValidAction } = require('../core/state');
 const { parseSong, toSlides } = require('../core/songParser');
 const { lookup } = require('../core/bible');
+const { listDisplays } = require('./windows');
 
 const MAX_BIBLE_BYTES = 20 * 1024 * 1024;
 const IMAGE_FILTERS = [{ name: 'Imagens', extensions: ['jpg', 'jpeg', 'png', 'webp'] }];
@@ -28,7 +29,7 @@ function loadBible(userFile, sampleFile) {
   return { name: 'vazia', books: [] };
 }
 
-function registerIpc({ store, library, outputs, remoteInfo, userDataDir, sampleBible, getWindow }) {
+function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, userDataDir, sampleBible, getWindow }) {
   const userBibleFile = path.join(userDataDir, 'bible.json');
   let bible = loadBible(userBibleFile, sampleBible);
 
@@ -79,6 +80,9 @@ function registerIpc({ store, library, outputs, remoteInfo, userDataDir, sampleB
   ipcMain.handle('outputs:toggle', () => outputs.toggle());
   ipcMain.handle('outputs:isOpen', () => outputs.isOpen());
   ipcMain.handle('remote:info', () => remoteInfo());
+  ipcMain.handle('displays:list', () => listDisplays());
+  ipcMain.handle('stage:toggle', (_e, displayId) => stageMonitor.toggle(Number.isInteger(displayId) ? displayId : undefined));
+  ipcMain.handle('stage:isOpen', () => stageMonitor.isOpen());
 
   ipcMain.handle('background:pickImage', async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog(getWindow(), {

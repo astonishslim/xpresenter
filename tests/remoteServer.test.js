@@ -175,3 +175,12 @@ test('muitas tentativas com token errado levam a 429', async () => {
     assert.equal((await request(port, 'GET', '/api/state?t=segredo')).status, 429);
   } finally { await s.close(); }
 });
+
+test('remoto aceita setStageMessage curta e recusa a longa', async () => {
+  const s = setup();
+  const port = await s.listen(0);
+  try {
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setStageMessage', text: 'Bis' })).status, 200);
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setStageMessage', text: 'x'.repeat(500) })).status, 400);
+  } finally { await s.close(); }
+});

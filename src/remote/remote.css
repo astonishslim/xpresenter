@@ -1,6 +1,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: #14161a; color: #e8eaee; font: 16px system-ui, sans-serif; padding: env(safe-area-inset-top) 12px 24px; }
 header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+header a { color: #4f8cff; margin-left: auto; margin-right: 12px; text-decoration: none; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: #e5484d; }
 .dot.ok { background: #2fb36d; }
 #live { background: #000; border-radius: 10px; padding: 14px; min-height: 110px; text-align: center; display: flex; flex-direction: column; justify-content: center; }

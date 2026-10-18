@@ -28,5 +28,7 @@ contextBridge.exposeInMainWorld('apresentador', {
   },
   outputs: { toggle: () => invoke('outputs:toggle'), isOpen: () => invoke('outputs:isOpen') },
   remote: { info: () => invoke('remote:info') },
+  displays: { list: () => invoke('displays:list') },
+  stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },
   background: { pickImage: () => invoke('background:pickImage') },
 });

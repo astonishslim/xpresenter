@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'self'; style-src 'self'; script-src 'self'" />
+  <title>Retorno de palco</title>
+  <link rel="stylesheet" href="stage.css" />
+</head>
+<body>
+  <header>
+    <span id="clock">--:--:--</span>
+    <span id="status"></span>
+  </header>
+  <main>
+    <section id="now">
+      <small id="now-label">AGORA</small>
+      <div id="now-text">—</div>
+    </section>
+    <section id="next">
+      <small id="next-label">PRÓXIMO</small>
+      <div id="next-text">—</div>
+    </section>
+  </main>
+  <footer id="message"></footer>
+  <script src="stage.js"></script>
+</body>
+</html>

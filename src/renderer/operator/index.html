@@ -2,66 +2,104 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file: data:; style-src 'self'; script-src 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; img-src file: data:; media-src file:; style-src 'self'; script-src 'self'" />
   <title>Apresentador</title>
+  <link rel="stylesheet" href="../shared/stage.css" />
   <link rel="stylesheet" href="operator.css" />
 </head>
 <body>
   <header>
     <h1>Apresentador</h1>
     <div class="spacer"></div>
-    <button id="btn-remote" title="Controle remoto pelo celular">Remoto</button>
+    <button id="btn-reset-layout" title="Restaurar tamanho e seções dos painéis">Restaurar layout</button>
+    <button id="btn-remote" title="Controle remoto e retorno pelo celular/tablet">Remoto</button>
     <button id="btn-output" class="primary">Projetar</button>
   </header>
 
-  <main>
+  <main id="layout">
     <section id="library" class="panel">
-      <h2>Biblioteca</h2>
-      <div class="row">
-        <input id="search" type="search" placeholder="Buscar música…" />
-        <button id="btn-new">+ Música</button>
-      </div>
-      <ul id="songs" class="list"></ul>
-
-      <h2>Bíblia</h2>
-      <div class="row">
-        <input id="verse-ref" placeholder="Ex.: João 3:16-17" />
-        <button id="btn-verse">Buscar</button>
-      </div>
-      <button id="btn-import-bible" class="link">Importar versão da Bíblia (JSON)</button>
-      <p id="verse-msg" class="muted"></p>
+      <details class="fold" data-key="songs" open>
+        <summary>Músicas</summary>
+        <div class="row">
+          <input id="search" type="search" placeholder="Buscar música…" />
+          <button id="btn-new">+ Música</button>
+        </div>
+        <ul id="songs" class="list"></ul>
+      </details>
+      <details class="fold" data-key="bible" open>
+        <summary>Bíblia</summary>
+        <div class="row">
+          <input id="verse-ref" placeholder="Ex.: João 3:16-17" />
+          <button id="btn-verse">Buscar</button>
+        </div>
+        <button id="btn-import-bible" class="link">Importar versão da Bíblia (JSON)</button>
+        <p id="verse-msg" class="muted"></p>
+      </details>
     </section>
+
+    <div class="splitter" id="split-left" role="separator" aria-orientation="vertical" tabindex="0" title="Arraste para redimensionar (duplo clique restaura)"></div>
 
     <section id="slides-panel" class="panel">
       <h2 id="slides-title">Slides</h2>
       <div class="row">
         <button id="btn-add-playlist" disabled>Adicionar ao culto</button>
         <button id="btn-edit" disabled>Editar</button>
+        <label class="check"><input id="direct" type="checkbox" /> Clique envia direto ao vivo</label>
       </div>
       <div id="slides" class="grid"></div>
     </section>
 
-    <section class="panel">
-      <h2>Ao vivo</h2>
-      <div id="monitor"><div id="monitor-label"></div><div id="monitor-text"></div></div>
-      <div class="row wrap">
-        <button id="btn-prev">◀ Anterior</button>
-        <button id="btn-next">Próximo ▶</button>
-        <button id="btn-clear">Limpar (Esc)</button>
-        <button id="btn-black">Preto (B)</button>
-        <button id="btn-cover">Capa</button>
-      </div>
-      <div class="row">
-        <input id="announce" placeholder="Aviso na parte inferior…" />
-        <button id="btn-announce">Enviar</button>
-      </div>
-      <div class="row wrap">
-        <label>Fundo <input id="bg-color" type="color" value="#000000" /></label>
-        <button id="btn-bg-image">Imagem…</button>
+    <div class="splitter" id="split-right" role="separator" aria-orientation="vertical" tabindex="0" title="Arraste para redimensionar (duplo clique restaura)"></div>
+
+    <section id="right" class="panel">
+      <div class="monitors">
+        <figure>
+          <figcaption><span>Preview</span><button id="btn-take" class="primary" disabled>Ao vivo ▶ (Enter)</button></figcaption>
+          <div id="mon-preview" class="monitor"></div>
+        </figure>
+        <figure>
+          <figcaption><span class="live-tag">Programa (ao vivo)</span></figcaption>
+          <div id="mon-program" class="monitor"></div>
+        </figure>
       </div>
 
-      <h2>Culto</h2>
-      <ol id="playlist" class="list"></ol>
+      <details class="fold" data-key="controls" open>
+        <summary>Controles</summary>
+        <div class="row wrap">
+          <button id="btn-prev">◀ Anterior</button>
+          <button id="btn-next">Próximo ▶</button>
+          <button id="btn-clear">Limpar (Esc)</button>
+          <button id="btn-black">Preto (B)</button>
+          <button id="btn-cover">Capa</button>
+        </div>
+        <div class="row">
+          <input id="announce" placeholder="Aviso na parte inferior…" />
+          <button id="btn-announce">Enviar</button>
+        </div>
+        <div class="row wrap">
+          <label>Fundo <input id="bg-color" type="color" value="#000000" /></label>
+          <button id="btn-bg-image">Imagem…</button>
+        </div>
+      </details>
+
+      <details class="fold" data-key="stage" open>
+        <summary>Retorno de palco</summary>
+        <div class="row">
+          <select id="stage-display" aria-label="Monitor do retorno"></select>
+          <button id="btn-stage">Abrir retorno</button>
+        </div>
+        <div class="row">
+          <input id="stage-msg" placeholder="Mensagem para o palco…" />
+          <button id="btn-stage-msg">Enviar</button>
+          <button id="btn-stage-clear" title="Limpar mensagem">✕</button>
+        </div>
+        <p class="muted">Mostra agora, próximo, relógio e mensagem. Também abre em tablet/celular pelo botão Remoto.</p>
+      </details>
+
+      <details class="fold" data-key="playlist" open>
+        <summary>Culto</summary>
+        <ol id="playlist" class="list"></ol>
+      </details>
     </section>
   </main>
 
@@ -80,12 +118,17 @@
   </dialog>
 
   <dialog id="remote-dialog">
-    <h3>Controle remoto</h3>
-    <p>Abra no celular (mesma rede Wi-Fi):</p>
+    <h3>Controle remoto e retorno</h3>
+    <p>Abra no celular ou tablet (mesma rede Wi-Fi):</p>
+    <p class="muted">Controle remoto</p>
     <code id="remote-url"></code>
+    <p class="muted">Monitor de retorno (palco)</p>
+    <code id="remote-stage-url"></code>
     <div class="row end"><button id="remote-close">Fechar</button></div>
   </dialog>
 
+  <script src="../shared/stage.js"></script>
+  <script src="layout.js"></script>
   <script src="operator.js"></script>
 </body>
 </html>
