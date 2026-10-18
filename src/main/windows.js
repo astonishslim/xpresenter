@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const PRELOAD = path.join(__dirname, 'preload.js');
 const RENDERER = path.join(__dirname, '..', 'renderer');
+const ICON = path.join(__dirname, '..', 'assets', 'icon.png');
 const WINDOW_PREFS = { preload: PRELOAD, contextIsolation: true, nodeIntegration: false, sandbox: true };
 
 function hardenWindow(win) {
@@ -17,6 +18,7 @@ function createOperatorWindow() {
     minWidth: 1000,
     minHeight: 640,
     title: 'Apresentador',
+    icon: ICON,
     backgroundColor: '#14161a',
     webPreferences: WINDOW_PREFS,
   });
@@ -38,6 +40,7 @@ function createOutputWindows() {
       fullscreen,
       frame: !fullscreen,
       title: 'Apresentador - Saída',
+      icon: ICON,
       backgroundColor: '#000000',
       autoHideMenuBar: true,
       webPreferences: WINDOW_PREFS,
