@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self'; style-src 'self'; script-src 'self'" />
+  <title>Apresentador Remoto</title>
+  <link rel="stylesheet" href="remote.css" />
+</head>
+<body>
+  <header><strong>Apresentador</strong><span id="conn" class="dot"></span></header>
+  <div id="live"><small id="live-label"></small><div id="live-text">—</div></div>
+  <div class="bar">
+    <button id="prev">◀</button>
+    <button id="next" class="primary">Próximo ▶</button>
+  </div>
+  <div class="bar">
+    <button id="clear">Limpar</button>
+    <button id="black">Preto</button>
+    <button id="cover">Capa</button>
+  </div>
+  <div id="playlist"></div>
+  <script src="remote.js"></script>
+</body>
+</html>

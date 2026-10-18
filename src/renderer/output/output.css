@@ -1,0 +1,21 @@
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; cursor: none; }
+#stage { position: relative; width: 100vw; height: 100vh; font-family: 'Segoe UI', system-ui, sans-serif; }
+.layer { position: absolute; inset: 0; }
+
+#background { background-size: cover; background-position: center; transition: background-color .3s; }
+#background video { width: 100%; height: 100%; object-fit: cover; }
+
+#content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6vh 7vw; color: #fff; text-align: center; transition: opacity .25s; }
+#content.hidden { opacity: 0; }
+#label { font-size: 2.2vh; letter-spacing: .15em; text-transform: uppercase; opacity: .6; margin-bottom: 2vh; }
+#text { font-weight: 700; line-height: 1.25; white-space: pre-wrap; text-shadow: 0 .2vh 1vh rgba(0, 0, 0, .7); max-width: 100%; }
+
+#cover { background: #0b0d12 center / 28vh no-repeat; opacity: 0; pointer-events: none; transition: opacity .3s; }
+#cover.visible { opacity: 1; }
+
+#announcement { top: auto; padding: 2.2vh 4vw; background: rgba(0, 0, 0, .78); color: #ffd479; font-size: 4vh; font-weight: 600; text-align: center; transform: translateY(100%); transition: transform .3s; }
+#announcement.visible { transform: translateY(0); }
+
+#blackout { background: #000; opacity: 0; pointer-events: none; transition: opacity .2s; }
+#blackout.visible { opacity: 1; }

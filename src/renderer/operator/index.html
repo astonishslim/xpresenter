@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file: data:; style-src 'self'; script-src 'self'" />
+  <title>Apresentador</title>
+  <link rel="stylesheet" href="operator.css" />
+</head>
+<body>
+  <header>
+    <h1>Apresentador</h1>
+    <div class="spacer"></div>
+    <button id="btn-remote" title="Controle remoto pelo celular">Remoto</button>
+    <button id="btn-output" class="primary">Projetar</button>
+  </header>
+
+  <main>
+    <section id="library" class="panel">
+      <h2>Biblioteca</h2>
+      <div class="row">
+        <input id="search" type="search" placeholder="Buscar música…" />
+        <button id="btn-new">+ Música</button>
+      </div>
+      <ul id="songs" class="list"></ul>
+
+      <h2>Bíblia</h2>
+      <div class="row">
+        <input id="verse-ref" placeholder="Ex.: João 3:16-17" />
+        <button id="btn-verse">Buscar</button>
+      </div>
+      <button id="btn-import-bible" class="link">Importar versão da Bíblia (JSON)</button>
+      <p id="verse-msg" class="muted"></p>
+    </section>
+
+    <section id="slides-panel" class="panel">
+      <h2 id="slides-title">Slides</h2>
+      <div class="row">
+        <button id="btn-add-playlist" disabled>Adicionar ao culto</button>
+        <button id="btn-edit" disabled>Editar</button>
+      </div>
+      <div id="slides" class="grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Ao vivo</h2>
+      <div id="monitor"><div id="monitor-label"></div><div id="monitor-text"></div></div>
+      <div class="row wrap">
+        <button id="btn-prev">◀ Anterior</button>
+        <button id="btn-next">Próximo ▶</button>
+        <button id="btn-clear">Limpar (Esc)</button>
+        <button id="btn-black">Preto (B)</button>
+        <button id="btn-cover">Capa</button>
+      </div>
+      <div class="row">
+        <input id="announce" placeholder="Aviso na parte inferior…" />
+        <button id="btn-announce">Enviar</button>
+      </div>
+      <div class="row wrap">
+        <label>Fundo <input id="bg-color" type="color" value="#000000" /></label>
+        <button id="btn-bg-image">Imagem…</button>
+      </div>
+
+      <h2>Culto</h2>
+      <ol id="playlist" class="list"></ol>
+    </section>
+  </main>
+
+  <dialog id="editor">
+    <form method="dialog">
+      <h3>Música</h3>
+      <input id="ed-title" placeholder="Título" required />
+      <textarea id="ed-text" rows="16" placeholder="[Verso 1]&#10;Linha 1&#10;Linha 2&#10;&#10;[Refrão]&#10;…"></textarea>
+      <p class="muted">Use [Verso], [Refrão], [Ponte] para marcar seções. Linha em branco separa slides. Acordes como [Am] são ignorados na projeção.</p>
+      <div class="row end">
+        <button id="ed-delete" type="button" class="danger">Excluir</button>
+        <button value="cancel">Cancelar</button>
+        <button id="ed-save" value="save" class="primary">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="remote-dialog">
+    <h3>Controle remoto</h3>
+    <p>Abra no celular (mesma rede Wi-Fi):</p>
+    <code id="remote-url"></code>
+    <div class="row end"><button id="remote-close">Fechar</button></div>
+  </dialog>
+
+  <script src="operator.js"></script>
+</body>
+</html>
