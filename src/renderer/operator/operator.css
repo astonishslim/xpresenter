@@ -99,6 +99,21 @@ ol.list li::before { counter-increment: n; content: counter(n); color: var(--mut
 label.field { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--muted); font-size: 12px; }
 label.field select { flex: 1; }
 
+/* Biblioteca de mídia: miniaturas 16:9; clique usa como fundo; ações aparecem por cima. */
+details.fold.drop-target { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+.media-card { position: relative; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: #0e1014; }
+.media-card.is-missing { opacity: .55; }
+.media-pick { display: block; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; text-align: left; }
+.media-pick .thumb { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+.media-pick .thumb.missing { display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--danger); }
+.media-name { display: flex; align-items: center; gap: 3px; padding: 3px 5px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media-actions { position: absolute; top: 3px; right: 3px; display: flex; gap: 2px; opacity: 0; transition: opacity .15s; }
+.media-card:hover .media-actions, .media-card:focus-within .media-actions { opacity: 1; }
+.media-actions .mini { width: 22px; height: 22px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: rgba(20, 22, 26, .85); }
+.media-bar { margin-top: 6px; }
+.media-bar progress { flex: 1; height: 6px; accent-color: var(--live); }
+
 /* Cronômetro na seção Retorno de palco */
 .timer-readout { flex: 1; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .timer-readout.over { color: var(--danger); }

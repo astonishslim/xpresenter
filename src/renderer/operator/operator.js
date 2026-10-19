@@ -24,6 +24,7 @@ let previewStage = null;
 let programStage = null;
 let themePanel = null;
 let lyricsPanel = null;
+let mediaPanel = null;
 const DIM_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80];
 
 const slidesOf = () => (ui.current ? ui.current.slides : []);
@@ -34,10 +35,12 @@ function renderPreview() {
   if (!previewStage || !ui.state) return;
   const slide = slidesOf()[ui.selected] || null;
   const { layers } = ui.state;
+  // Slide de mídia aparece parado no Preview (sem tocar); slide comum esconde a mídia ao vivo.
+  const media = slide && slide.media ? { ...slide.media, playing: false, seq: 0 } : null;
   previewStage.update({
     ...ui.state,
     blackout: false,
-    layers: { ...layers, content: { slide }, cover: { visible: false }, announcement: { text: null } },
+    layers: { ...layers, media, content: { slide: media ? null : slide }, cover: { visible: false }, announcement: { text: null } },
   });
   $('btn-take').disabled = !slide;
 }
@@ -91,6 +94,10 @@ async function goLive(index) {
   renderPreview();
   await applyItemTheme(item);
   if (seq !== liveSeq) return; // outro avanço aconteceu enquanto o tema era aplicado: ele manda o slide certo
+  if (slides[index].media) {
+    api.dispatch({ type: 'showMedia', media: slides[index].media });
+    return;
+  }
   api.dispatch({
     type: 'showSlide',
     slide: { ...slides[index], title: item.title, key: `${item.key}:${index}` },
@@ -244,6 +251,7 @@ function renderLive(state) {
   programStage.update(state);
   renderPreview();
   themePanel.render(state);
+  mediaPanel.renderLive(state);
   if (state.layers.background.kind === 'color' && document.activeElement !== $('bg-color')) $('bg-color').value = state.layers.background.value;
   $('btn-black').classList.toggle('primary', state.blackout);
   $('btn-cover').classList.toggle('primary', state.layers.cover.visible);
@@ -427,6 +435,11 @@ async function init() {
   programStage = window.createStage($('mon-program'));
   themePanel = window.initThemePanel({ api });
   lyricsPanel = window.initLyricsPanel({ api, openEditor });
+  mediaPanel = window.initMediaPanel({
+    api,
+    addToPlaylist: async (item) => { await api.playlist.add(item); refreshPlaylist(); },
+    getProgramVideo: () => programStage.mediaVideo(),
+  });
   try { ui.direct = localStorage.getItem(DIRECT_KEY) === '1'; } catch { ui.direct = false; }
   $('direct').checked = ui.direct;
 
@@ -436,7 +449,7 @@ async function init() {
   window.addEventListener('focus', syncOutputButtons);
   window.addEventListener('resize', () => ui.state && (programStage.update(ui.state), renderPreview()));
   renderLive(await api.getState());
-  await Promise.all([window.initBiblePanel({ api, showVerses }), themePanel.load(), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
+  await Promise.all([window.initBiblePanel({ api, showVerses }), themePanel.load(), mediaPanel.refresh(), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
 }
 
 init();

@@ -9,14 +9,14 @@ const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 const REMOTE = path.join(__dirname, '..', 'src', 'remote');
 const html = read('operator', 'index.html');
 const remoteHtml = ['index.html', 'stage.html'].map((f) => fs.readFileSync(path.join(REMOTE, f), 'utf8')).join('\n');
-const scripts = ['operator.js', 'presets.js', 'layout.js', 'bible-panel.js', 'theme-panel.js', 'lyrics-panel.js'].map((f) => read('operator', f)).join('\n');
+const scripts = ['operator.js', 'presets.js', 'layout.js', 'bible-panel.js', 'theme-panel.js', 'lyrics-panel.js', 'media-panel.js'].map((f) => read('operator', f)).join('\n');
 
 // data-on/data-off: ícones que um botão de liga/desliga alterna (ex.: camadas no cabeçalho).
 const usedInHtml = [...(html + remoteHtml).matchAll(/data-(?:icon|on|off)="([a-z0-9-]+)"/g)].map((m) => m[1]);
 // Formas usadas no JS: icon('x'), miniButton('x', ...), setIcon(el, 'x') e setIcon(el, cond ? 'x' : 'y').
 const usedInJs = [
   ...[...scripts.matchAll(/\bicon\(\s*'([a-z0-9-]+)'/g)].map((m) => m[1]),
-  ...[...scripts.matchAll(/\bminiButton\(\s*'([a-z0-9-]+)'/g)].map((m) => m[1]),
+  ...[...scripts.matchAll(/\b(?:miniButton|iconButton|create)\(\s*'([a-z0-9-]+)'/g)].map((m) => m[1]),
   ...[...scripts.matchAll(/setIcon\(\s*\w+\s*,\s*(?:[\w.]+\s*\?\s*)?'([a-z0-9-]+)'(?:\s*:\s*'([a-z0-9-]+)')?/g)].flatMap((m) => [m[1], m[2]].filter(Boolean)),
 ];
 

@@ -23,9 +23,11 @@ function show(id, slide, empty) {
 }
 
 function render(state) {
-  const { content } = state.layers;
-  $('now-label').textContent = content.slide && content.slide.label ? `AGORA · ${content.slide.label.toUpperCase()}` : 'AGORA';
-  show('now-text', content.slide, '—');
+  const { content, media } = state.layers;
+  // Vídeo/imagem no ar ocupa o lugar da letra: o palco vê o que está passando.
+  const now = media ? { label: media.kind === 'video' ? 'VÍDEO' : 'IMAGEM', text: media.title || '—' } : content.slide;
+  $('now-label').textContent = now && now.label ? `AGORA · ${now.label.toUpperCase()}` : 'AGORA';
+  show('now-text', now, '—');
   const next = state.stage.next;
   $('next-label').textContent = next && next.label ? `PRÓXIMO · ${next.label.toUpperCase()}` : 'PRÓXIMO';
   show('next-text', next, '—');

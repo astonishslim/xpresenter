@@ -9,10 +9,15 @@ const { createRemoteServer } = require('../core/remoteServer');
 const { createOperatorWindow, createOutputWindows, createStageWindow } = require('./windows');
 const { createBibleLibrary } = require('../core/bibleLibrary');
 const { createThemeLibrary, persistCurrentLook } = require('../core/themeLibrary');
+const { createMediaLibrary } = require('../core/mediaLibrary');
 const { initialState } = require('../core/state');
 const { registerIpc } = require('./ipc');
 
 const REMOTE_PORT = 5151;
+
+// Projeção não pode economizar energia: o Chromium pausa vídeo sem som e atrasa relógios em janela
+// "em segundo plano" (operador minimizado, saída encoberta). Precisa vir antes do app ficar pronto.
+app.commandLine.appendSwitch('disable-background-media-suspend');
 const BUILTIN_BIBLES = path.join(__dirname, '..', '..', 'data', 'bibles');
 
 function lanAddress() {
@@ -109,6 +114,7 @@ async function start() {
     stageMonitor,
     bibles,
     themes,
+    media: createMediaLibrary(path.join(userDataDir, 'media.json')),
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;

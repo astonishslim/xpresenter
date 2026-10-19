@@ -6,6 +6,7 @@ const { listDisplays } = require('./windows');
 const { registerBibleIpc } = require('./bibleIpc');
 
 const { registerThemeIpc } = require('./themeIpc');
+const { registerMediaIpc } = require('./mediaIpc');
 const { searchSongs } = require('../core/songSearch');
 const { createLyricsClient } = require('../core/lyricsOnline');
 
@@ -17,7 +18,7 @@ const BACKGROUND_PICKERS = {
   video: { title: 'Escolher vídeo de fundo', filters: [{ name: 'Vídeos', extensions: ['mp4', 'webm', 'm4v', 'ogv'] }] },
 };
 
-function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles, themes, getWindow }) {
+function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles, themes, media, getWindow }) {
   const slidesFor = ({ title, text }) => toSlides(parseSong(title, text));
 
   ipcMain.handle('state:get', () => store.getState());
@@ -49,6 +50,7 @@ function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles
 
   registerBibleIpc({ bibles, getWindow });
   registerThemeIpc({ store, themes });
+  registerMediaIpc({ media, getWindow });
 
   ipcMain.handle('outputs:toggle', () => outputs.toggle());
   ipcMain.handle('outputs:isOpen', () => outputs.isOpen());

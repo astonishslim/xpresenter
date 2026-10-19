@@ -76,10 +76,35 @@
 
   // Monta as camadas dentro de `container` e devolve { update(state) }.
   // `now` permite usar o relógio do servidor (retorno em outro aparelho); na projeção é o relógio local.
-  function createStage(container, { now = () => Date.now() } = {}) {
+  // Vídeo/imagem como item do culto. Recria só quando muda o arquivo ou o pedido de reinício (seq).
+  function renderMedia(layer, media, audio, last) {
+    const key = media ? `${media.kind}|${media.value}|${media.seq}` : '';
+    if (key !== last.key) {
+      last.key = key;
+      layer.replaceChildren();
+      layer.style.backgroundImage = '';
+      if (media && media.kind === 'image') layer.style.backgroundImage = `url("${media.value}")`;
+      if (media && media.kind === 'video') {
+        const video = document.createElement('video');
+        Object.assign(video, { src: media.value, loop: media.loop, muted: !audio, playsInline: true });
+        layer.appendChild(video);
+      }
+    }
+    layer.classList.toggle('visible', Boolean(media));
+    const video = layer.querySelector('video');
+    if (!video) return;
+    if (media.playing && video.paused && !video.ended) {
+      video.play().catch((err) => console.warn(`[mídia] não foi possível tocar ${media.title || media.value}: ${err.message}`));
+    }
+    if (!media.playing && !video.paused) video.pause();
+  }
+
+  function createStage(container, { now = () => Date.now(), audio = false } = {}) {
     const stage = el('div', 'stage');
+    const mediaState = { key: '' };
     const layers = {
       bg: el('div', 'layer bg'),
+      media: el('div', 'layer media'),
       content: el('div', 'layer content hidden'),
       caption: el('div', 'layer caption'),
       cover: el('div', 'layer cover'),
@@ -143,6 +168,7 @@
         }
         layers.bg.classList.toggle('off', Boolean(background.hidden));
         layers.bg.style.setProperty('--bg-dim', String((background.dim || 0) / 100));
+        renderMedia(layers.media, state.layers.media || null, audio, mediaState);
 
         const style = state.textStyle || FALLBACK_STYLE;
         const styleKey = JSON.stringify(style);
@@ -178,6 +204,8 @@
         lastState = state;
         renderLive();
       },
+      // Para a barra de progresso do operador (o Programa toca o mesmo vídeo, sem som).
+      mediaVideo: () => layers.media.querySelector('video'),
     };
   }
 

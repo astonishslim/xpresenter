@@ -74,6 +74,14 @@
           <p id="verse-msg" class="muted" role="status"></p>
           <ul id="bible-results" class="list results"></ul>
         </details>
+        <details class="fold" data-key="media" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="images"></span>Mídia</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Mídia" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <div class="row">
+            <button id="btn-media-add" class="ib" type="button" data-icon="file-up" title="Adicionar imagens e vídeos (ou arraste os arquivos para cá)" aria-label="Adicionar imagens e vídeos"></button>
+            <span id="media-msg" class="muted" role="status">Clique para usar de fundo. Arraste arquivos para cá.</span>
+          </div>
+          <div id="media-grid" class="media-grid"></div>
+        </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
@@ -95,6 +103,12 @@
         <details class="fold" data-key="program" open>
           <summary><span class="fold-title live-tag"><span class="ico" data-icon="radio"></span>Programa (ao vivo)</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Programa" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div id="mon-program" class="monitor"></div>
+          <div id="media-bar" class="row media-bar" hidden>
+            <button id="btn-media-play" class="ib" type="button" data-icon="pause" title="Pausar vídeo" aria-label="Pausar vídeo"></button>
+            <button id="btn-media-restart" class="ib" type="button" data-icon="rotate-ccw" title="Voltar ao início" aria-label="Voltar o vídeo ao início"></button>
+            <progress id="media-progress" max="1" value="0" aria-label="Progresso do vídeo"></progress>
+            <span id="media-time" class="muted">0:00</span>
+          </div>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
@@ -335,6 +349,7 @@
   <script src="bible-panel.js"></script>
   <script src="theme-panel.js"></script>
   <script src="lyrics-panel.js"></script>
+  <script src="media-panel.js"></script>
   <script src="operator.js"></script>
 </body>
 </html>

@@ -4,7 +4,8 @@ const path = require('node:path');
 const PRELOAD = path.join(__dirname, 'preload.js');
 const RENDERER = path.join(__dirname, '..', 'renderer');
 const ICON = path.join(__dirname, '..', 'assets', 'icon.png');
-const WINDOW_PREFS = { preload: PRELOAD, contextIsolation: true, nodeIntegration: false, sandbox: true };
+// backgroundThrottling: false mantém cronômetro, legenda e vídeo em dia mesmo com a janela encoberta.
+const WINDOW_PREFS = { preload: PRELOAD, contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false };
 
 function hardenWindow(win) {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -34,7 +35,8 @@ function createOutputWindows() {
   const primaryId = screen.getPrimaryDisplay().id;
   const targets = displays.filter((d) => d.id !== primaryId);
 
-  const open = (bounds, fullscreen) => {
+  // Só a primeira saída toca o som dos vídeos (várias janelas com áudio dariam eco).
+  const open = (bounds, fullscreen, audio) => {
     const win = new BrowserWindow({
       ...bounds,
       fullscreen,
@@ -46,12 +48,12 @@ function createOutputWindows() {
       webPreferences: WINDOW_PREFS,
     });
     hardenWindow(win);
-    win.loadFile(path.join(RENDERER, 'output', 'output.html'));
+    win.loadFile(path.join(RENDERER, 'output', 'output.html'), { query: { audio: audio ? '1' : '0' } });
     return win;
   };
 
-  if (!targets.length) return [open({ width: 960, height: 540 }, false)];
-  return targets.map((d) => open({ x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height }, true));
+  if (!targets.length) return [open({ width: 960, height: 540 }, false, true)];
+  return targets.map((d, i) => open({ x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height }, true, i === 0));
 }
 
 function listDisplays() {

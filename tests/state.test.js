@@ -4,9 +4,9 @@ const { initialState, reduce, isValidAction } = require('../src/core/state');
 
 const slide = { label: 'Verso', text: 'Olá' };
 
-test('estado inicial tem as 4 camadas e não está em blackout', () => {
+test('estado inicial tem as 5 camadas e não está em blackout', () => {
   const s = initialState();
-  assert.deepEqual(Object.keys(s.layers), ['background', 'content', 'cover', 'announcement']);
+  assert.deepEqual(Object.keys(s.layers), ['background', 'media', 'content', 'cover', 'announcement']);
   assert.equal(s.blackout, false);
 });
 
@@ -226,6 +226,42 @@ test('showSlide trunca título e rótulo longos em vez de recusar o slide', () =
   assert.equal(s.layers.content.slide.label.length, 200);
   assert.equal(long.slide.title.length, 5000, 'não muta a ação');
   assert.equal(isValidAction({ type: 'showSlide', slide: { text: 'x', label: 5 } }), false);
+});
+
+test('showMedia coloca vídeo/imagem na camada de mídia e tira o slide; showSlide e clear tiram a mídia', () => {
+  const media = { kind: 'video', value: 'file:///C:/v/anuncio.mp4', title: 'Anúncio', loop: false };
+  let s = reduce(initialState(), { type: 'showSlide', slide });
+  s = reduce(s, { type: 'showMedia', media });
+  assert.equal(s.layers.media.value, media.value);
+  assert.equal(s.layers.media.playing, true);
+  assert.equal(s.layers.content.slide, null);
+  assert.equal(reduce(s, { type: 'showSlide', slide }).layers.media, null);
+  assert.equal(reduce(s, { type: 'clear' }).layers.media, null);
+  assert.equal(initialState().layers.media, null);
+});
+
+test('mediaControl pausa, toca e reinicia (reinício muda o contador para as telas voltarem ao começo)', () => {
+  let s = reduce(initialState(), { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4' } });
+  const seq = s.layers.media.seq;
+  s = reduce(s, { type: 'mediaControl', command: 'pause' });
+  assert.equal(s.layers.media.playing, false);
+  s = reduce(s, { type: 'mediaControl', command: 'play' });
+  assert.equal(s.layers.media.playing, true);
+  s = reduce(s, { type: 'mediaControl', command: 'restart' });
+  assert.equal(s.layers.media.seq, seq + 1);
+  assert.equal(s.layers.media.playing, true);
+  const none = initialState();
+  assert.equal(reduce(none, { type: 'mediaControl', command: 'play' }), none, 'sem mídia não muda nada');
+});
+
+test('isValidAction valida showMedia e mediaControl', () => {
+  assert.equal(isValidAction({ type: 'showMedia', media: { kind: 'image', value: 'file:///C:/a.png' } }), true);
+  assert.equal(isValidAction({ type: 'showMedia', media: { kind: 'video', value: 'file:////host/s/a.mp4' } }), false);
+  assert.equal(isValidAction({ type: 'showMedia', media: { kind: 'audio', value: 'file:///C:/a.mp3' } }), false);
+  assert.equal(isValidAction({ type: 'showMedia', media: { kind: 'video', value: 'file:///C:/a.mp4', title: 5 } }), false);
+  assert.equal(isValidAction({ type: 'showMedia', media: { kind: 'video', value: 'file:///C:/a.mp4', loop: 'sim' } }), false);
+  assert.equal(isValidAction({ type: 'mediaControl', command: 'pause' }), true);
+  assert.equal(isValidAction({ type: 'mediaControl', command: 'seek' }), false);
 });
 
 test('setBackground aceita vídeo local', () => {

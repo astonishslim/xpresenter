@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 const invoke = (channel, payload) => ipcRenderer.invoke(channel, payload);
 
@@ -36,6 +36,13 @@ contextBridge.exposeInMainWorld('apresentador', {
   remote: { info: () => invoke('remote:info') },
   displays: { list: () => invoke('displays:list') },
   stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },
+  media: {
+    list: () => invoke('media:list'),
+    add: () => invoke('media:add'),
+    // Arquivos arrastados: o caminho só existe aqui no preload (webUtils); a validação é no processo principal.
+    addFiles: (files) => invoke('media:addPaths', [...files].map((f) => webUtils.getPathForFile(f)).filter(Boolean)),
+    remove: (id) => invoke('media:remove', id),
+  },
   background: { pickImage: () => invoke('background:pickImage'), pickVideo: () => invoke('background:pickVideo') },
   themes: {
     list: () => invoke('themes:list'),

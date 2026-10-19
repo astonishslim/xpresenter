@@ -109,6 +109,18 @@ Nas seções **Aviso e fundo** (cor, imagem, vídeo) e **Tema e texto** (estilo,
 - O controle remoto do celular não altera fundo nem estilo. Os valores do estilo são fechados (listas, cor hex e números),
   então um `themes.json` editado à mão não consegue injetar CSS: campos inválidos voltam ao padrão.
 
+## Biblioteca de mídia
+
+Seção **Mídia** (no bloco da biblioteca): imagens (JPG, PNG, WebP, GIF) e vídeos (MP4, WebM, M4V, OGV) com miniaturas.
+- **Adicionar**: botão de importar (vários de uma vez) ou **arraste os arquivos** para a seção. O app guarda só a referência
+  (não copia vídeos grandes); se o arquivo for movido ou apagado, o cartão aparece como "arquivo não encontrado".
+- **Clique** na miniatura: vira o **fundo** (imagem ou vídeo em loop, sem som).
+- **▶ (tela cheia)**: mostra a imagem ou o **vídeo com som** no lugar da letra. Sob o Programa aparecem pausar/tocar,
+  voltar ao início e a barra de progresso. Mandar um slide ou limpar (Esc) encerra o vídeo.
+- **Adicionar ao culto**: o vídeo/imagem vira um item do culto, enviado ao vivo como qualquer slide.
+- Só a primeira janela de projeção toca o som; Preview e Programa ficam mudos. O retorno de palco mostra "AGORA · VÍDEO".
+- O app desliga a economia de energia do Chromium para vídeo e relógios não pararem com a janela encoberta.
+
 ## Transições, legenda e tema automático
 
 - **Transição** (em "Tema e texto"): corte seco ou fade (rápido, normal, lento, muito lento). No fade, o slide

@@ -30,6 +30,7 @@ function initialState(look = {}) {
     blackout: false,
     layers: {
       background: { ...(look.background || DEFAULT_BACKGROUND) },
+      media: null, // vídeo/imagem em tela cheia como item do culto (acima do fundo, no lugar da letra)
       content: { slide: null },
       cover: { visible: false },
       announcement: { text: null },
@@ -66,10 +67,36 @@ const HANDLERS = {
   showSlide: (s, a) => ({
     ...s,
     blackout: false,
-    layers: { ...s.layers, content: { slide: clampSlideMeta(a.slide), hidden: false } }, // slide novo volta a mostrar a letra
+    // Slide novo volta a mostrar a letra e encerra o vídeo/imagem que estava no ar.
+    layers: { ...s.layers, media: null, content: { slide: clampSlideMeta(a.slide), hidden: false } },
     stage: { ...s.stage, next: a.next || null },
   }),
-  clear: (s) => ({ ...s, layers: { ...s.layers, content: { slide: null } }, stage: { ...s.stage, next: null } }),
+  clear: (s) => ({ ...s, layers: { ...s.layers, media: null, content: { slide: null } }, stage: { ...s.stage, next: null } }),
+  showMedia: (s, a) => ({
+    ...s,
+    blackout: false,
+    layers: {
+      ...s.layers,
+      content: { slide: null },
+      media: {
+        kind: a.media.kind,
+        value: a.media.value,
+        title: (a.media.title || '').slice(0, MAX_SLIDE_META_CHARS),
+        loop: Boolean(a.media.loop),
+        playing: true,
+        seq: ((s.layers.media && s.layers.media.seq) || 0) + 1,
+      },
+    },
+    stage: { ...s.stage, next: null },
+  }),
+  mediaControl: (s, a) => {
+    const media = s.layers.media;
+    if (!media) return s;
+    const next = a.command === 'restart'
+      ? { ...media, playing: true, seq: media.seq + 1 }
+      : { ...media, playing: a.command === 'play' };
+    return { ...s, layers: { ...s.layers, media: next } };
+  },
   setStageMessage: (s, a) => ({ ...s, stage: { ...s.stage, message: a.text || null } }),
   blackout: (s) => ({ ...s, blackout: !s.blackout }),
   toggleCover: (s) => ({ ...s, layers: { ...s.layers, cover: { visible: !s.layers.cover.visible } } }),
@@ -111,11 +138,15 @@ function isValidBackground(bg) {
 }
 
 const isOptionalText = (v) => v == null || typeof v === 'string';
+const MEDIA_COMMANDS = ['play', 'pause', 'restart'];
 
 const REQUIRED_FIELD = {
   showSlide: (a) => a.slide && typeof a.slide.text === 'string'
     && isOptionalText(a.slide.title) && isOptionalText(a.slide.label)
     && (a.next == null || typeof a.next.text === 'string'),
+  showMedia: (a) => a.media && isValidBackground(a.media) && isOptionalText(a.media.title)
+    && (a.media.loop == null || typeof a.media.loop === 'boolean'),
+  mediaControl: (a) => MEDIA_COMMANDS.includes(a.command),
   timerSet: (a) => TIMER_MODES.includes(a.mode) && Number.isInteger(a.seconds) && a.seconds >= 0 && a.seconds <= TIMER_MAX_SECONDS,
   setStageMessage: (a) => typeof a.text === 'string',
   setBackground: (a) => isValidBackground(a.background),
