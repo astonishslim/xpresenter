@@ -16,7 +16,8 @@ npm start
 1. **+ Música** cria uma música. Use `[Verso 1]`, `[Refrão]`, `[Ponte]` para marcar seções; linha em branco separa slides.
    Acordes inline como `[Am]` são ignorados na projeção.
 2. **Projetar** abre a saída: em tela cheia no monitor externo, ou em janela se houver um só monitor.
-3. Clique num slide para colocá-lo ao vivo. Atalhos: `→`/`Espaço` próximo, `←` anterior, `B` preto, `Esc` limpar.
+3. Clique num slide para colocá-lo ao vivo. Atalhos: `→`/`Espaço` próximo, `←` anterior, `B` preto, `Esc` limpar,
+   `1`–`9`/`C`/`E`/`P`/`I`/`F` seção, `F2` editar slide, `Ctrl+Z` desfazer.
 4. **Bíblia**: escolha a versão e digite uma referência (`João 3:16-17`, `1 Co 13:4-7`, `Salmo 23`) **ou palavras**
    (`amou o mundo`, `"assim amou Deus"` para frase exata). A busca ignora acentos e maiúsculas. Clique num resultado para
    abrir a passagem; cada verso vira um slide com a versão no rótulo (`João 3:16 · TB`).
@@ -27,6 +28,36 @@ npm start
    - ARA, ARC, NVI, NAA, NTLH e outras são de editoras: **não vêm no app**. Importe somente arquivos que você tenha o direito de usar.
 5. **Culto** é a ordem do culto (músicas e versículos); reordene e remova.
 6. **Remoto** mostra um endereço para abrir no celular (mesma rede Wi-Fi). O endereço contém um token novo a cada execução.
+
+## Arranjos e teclas de seção
+
+- **Arranjo** é a ordem das seções de uma música. Escreva cada seção **uma vez só** na letra (o refrão uma vez) e, no editor
+  da música, em **Arranjos**, dê um nome e a ordem: `V1 C V2 C P C C`. Siglas: `V1`, `V2`… versos, `C` (ou `R`) refrão,
+  `PC` pré-refrão, `P` (ou `B`) ponte, `I` intro, `F` final; ou os nomes inteiros separados por vírgula
+  (`Verso 1, Refrão, Coda`). O editor mostra as siglas da letra e avisa o que o arranjo pede e não existe.
+- Uma música pode ter até 12 arranjos (ex.: "Culto", "Acústico"). O **primeiro é o padrão** ao abrir e ao adicionar ao culto.
+- Nos **Slides**, o seletor de arranjo troca a ordem na hora. Num item do **culto**, a troca fica salva no culto (o celular
+  também passa a seguir esse arranjo). "Ordem da letra" volta à ordem em que a letra foi escrita.
+- **Cores e teclas por seção**: cada slide tem a cor do tipo (verso azul, refrão vermelho, pré-refrão âmbar, ponte roxo,
+  intro verde, final cinza) e o começo de cada seção mostra a tecla. `1`–`9` vão ao verso, `C` ao refrão, `E` ao pré-refrão,
+  `P` à ponte, `I` à intro e `F` ao final, **ao vivo**, na próxima vez que a seção aparece depois do slide no ar (no fim,
+  volta à primeira). Os botões `V1 C V2 C P…` acima dos slides fazem o mesmo com o mouse; o da seção no ar fica verde.
+
+## Edição rápida, mensagens e desfazer
+
+- **Editar slide**: botão direito no slide (ou `F2` no selecionado) abre só aquele texto. Numa música, a correção vai para a
+  **letra** (vale para todas as repetições do trecho e para o culto) e as linhas que não mudaram mantêm os acordes. Num item
+  do culto que não é música (versículo, PowerPoint), corrige o slide no culto. Se o trecho está no ar, ele é reenviado
+  corrigido. `Ctrl+Enter` salva.
+- **Mensagens** (seção no bloco "Aviso e fundo"): modelos com campos entre chaves, como
+  `Pais de {criança}, por favor compareçam ao berçário.` Escolha o modelo, preencha os campos e **Mostrar** (ou Enter). Cada
+  modelo diz **onde** aparece (tela, retorno de palco, ou os dois) e **por quanto tempo** (10 s a 5 min, ou até tirar). Ao
+  esgotar o tempo, só sai se a mensagem no ar ainda for aquela (um aviso que você trocou fica). O app já vem com três
+  exemplos (berçário, veículo, tempo para o pregador); até 30 modelos, em `messages.json`.
+- **Desfazer** (`Ctrl+Z` ou o botão ↶ no cabeçalho) volta o que estava no ar: slide, tela preta, capa, camadas, fundo,
+  e estilo. `Ctrl+Shift+Z` (ou `Ctrl+Y`) refaz. Ações em sequência rápida (tema automático + slide) são um passo só.
+  Cronômetro, controle de vídeo, aviso e mensagem do palco não entram no desfazer e ficam como estão (um aviso que já saiu
+  do ar não volta). Guarda os últimos 50 passos, só na memória.
 
 ## Preview, Programa e retorno de palco
 
@@ -211,9 +242,9 @@ Fundo (cor/imagem/vídeo) → Conteúdo (slide) → Legenda → Capa → Cronôm
 ## Arquitetura
 
 ```
-src/core/      lógica pura e testada (songParser, songSearch, lyricsOnline, bible, state, textStyle, themeLibrary, store, library, remoteServer)
+src/core/      lógica pura e testada (songParser, songEdit, songSearch, lyricsOnline, bible, state, textStyle, themeLibrary, store, library, messages, remoteServer)
 src/main/      processo principal Electron (janelas, IPC, preload)
-src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa; layoutModel.js com o modelo puro da grade bento)
+src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa; layoutModel.js com o modelo puro da grade bento; sections.js com tipos, teclas e siglas das seções)
 src/remote/    controle remoto, retorno de palco e página de transmissão (HTTP + SSE, sem dependências)
 ```
 

@@ -17,7 +17,7 @@
     preview: ['preview'],
     program: ['program'],
     slides: ['slides'],
-    controls: ['controls', 'look'],
+    controls: ['controls', 'messages', 'look'],
     stage: ['stage', 'timer'],
     playlist: ['playlist'],
   };

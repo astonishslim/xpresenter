@@ -25,10 +25,15 @@ let programStage = null;
 let themePanel = null;
 let lyricsPanel = null;
 let mediaPanel = null;
+let messagesPanel = null;
 const DIM_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80];
 
 const slidesOf = () => (ui.current ? ui.current.slides : []);
 const slideInfo = (slide) => (slide ? { label: slide.label, text: slide.text } : null);
+// Mensagem de erro do IPC sem o prefixo técnico do Electron.
+const cleanError = (err) => String(err && err.message).replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+// O primeiro arranjo da música é o padrão; sem arranjo, a ordem da letra ('').
+const defaultArrangement = (song) => (song && Array.isArray(song.arrangements) && song.arrangements[0] ? song.arrangements[0].name : '');
 
 // ---------- Preview / Programa ----------
 function renderPreview() {
@@ -46,21 +51,89 @@ function renderPreview() {
 }
 
 // ---------- Slides ----------
-function setCurrent(item) {
+// keepPosition: o mesmo item foi recarregado (arranjo trocado, slide editado); mantém o ao vivo e a seleção.
+function setCurrent(item, { keepPosition = false } = {}) {
+  const sameItem = Boolean(item && ui.current && item.key === ui.current.key);
   // Abrir outro item só para ver não pode colocá-lo no ar pelo avanço automático.
-  if (autoTimer && (!item || !ui.current || item.key !== ui.current.key)) {
+  if (autoTimer && !sameItem) {
     stopAuto();
     $('auto-advance').value = '0';
     setSlidesMessage('Avanço automático desligado: outro item foi aberto.');
   }
   ui.current = item;
-  ui.index = -1;
-  ui.selected = item && item.slides.length ? 0 : -1;
+  const count = item ? item.slides.length : 0;
+  if (keepPosition && sameItem) {
+    ui.index = Math.min(ui.index, count - 1);
+    ui.selected = count ? Math.min(Math.max(ui.selected, 0), count - 1) : -1;
+  } else {
+    ui.index = -1;
+    ui.selected = count ? 0 : -1;
+  }
   $('slides-title').textContent = item ? item.title : 'Slides';
   $('btn-add-playlist').disabled = !item || item.fromPlaylist;
   $('btn-edit').disabled = !item || !item.songId;
+  renderArrangement();
   renderSlides();
   renderPreview();
+}
+
+// ---------- Arranjos ----------
+// Seletor só aparece para música com arranjos. Arranjo que foi excluído continua visível, marcado.
+function renderArrangement() {
+  const cur = ui.current;
+  const list = cur && cur.song && Array.isArray(cur.song.arrangements) ? cur.song.arrangements : [];
+  $('arrangement-box').hidden = !list.length;
+  if (!list.length) return;
+  const options = [h('option', { value: '' }, 'Ordem da letra'), ...list.map((a) => h('option', { value: a.name }, a.name))];
+  if (cur.arrangement && !list.some((a) => a.name === cur.arrangement)) {
+    options.push(h('option', { value: cur.arrangement }, `${cur.arrangement} (excluído)`));
+  }
+  $('arrangement').replaceChildren(...options);
+  $('arrangement').value = cur.arrangement || '';
+}
+
+// Trocar o arranjo de um item do culto vale para o culto salvo (e o celular); na biblioteca, só para o que está aberto.
+async function changeArrangement(name) {
+  const cur = ui.current;
+  if (!cur || !cur.song) return;
+  try {
+    if (cur.fromPlaylist) {
+      const item = await api.playlist.setArrangement(cur.key, name);
+      await refreshPlaylist();
+      setCurrent(currentFromPlaylist(item), { keepPosition: true });
+    } else {
+      const slides = await api.songs.slides(cur.song, name);
+      setCurrent({ ...cur, slides, arrangement: name }, { keepPosition: true });
+    }
+    setSlidesMessage('');
+  } catch (err) {
+    setSlidesMessage(cleanError(err));
+    renderArrangement();
+  }
+}
+
+// ---------- Seções: atalhos e cores ----------
+// Botões das seções (V1, C, V2, P…) acima dos slides; clique põe o começo da seção ao vivo.
+function renderGroups(slides) {
+  const starts = window.sections.groupStarts(slides);
+  const groups = starts.filter((g) => g.kind !== 'other');
+  const endOf = (g) => (starts.find((x) => x.index > g.index) || { index: slides.length }).index;
+  $('slide-groups').hidden = !groups.length;
+  $('slide-groups').replaceChildren(...groups.map((g) => {
+    const label = `Ao vivo: ${g.label}${g.hotkey ? ` (tecla ${g.hotkey.toUpperCase()})` : ''}`;
+    const live = ui.index >= g.index && ui.index < endOf(g);
+    return h('button', {
+      class: `group-chip kind-${g.kind}${live ? ' live' : ''}`, type: 'button', title: label, 'aria-label': label, onclick: () => goLive(g.index),
+    }, g.abbr);
+  }));
+}
+
+// Tecla de seção (1–9 verso, C refrão, E pré-refrão, P ponte, I intro, F final): próxima ocorrência ao vivo.
+function jumpToGroup(key) {
+  const index = window.sections.findGroupStart(slidesOf(), key, ui.index);
+  if (index < 0) return false;
+  goLive(index);
+  return true;
 }
 
 function selectSlide(index) {
@@ -137,7 +210,7 @@ async function goLive(index, { auto = false } = {}) {
     setSlidesMessage('');
   } catch (err) {
     // ex.: vídeo ou página de PDF cujo arquivo foi movido/apagado: avisa em vez de projetar tela vazia
-    setSlidesMessage(err.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
+    setSlidesMessage(cleanError(err));
   }
 }
 
@@ -145,14 +218,89 @@ function setSlidesMessage(text) {
   $('slides-msg').textContent = text;
 }
 
+// Cada slide leva a cor do tipo da seção; o começo de cada seção mostra a tecla de atalho.
 function renderSlides() {
-  $('slides').replaceChildren(...slidesOf().map((slide, i) => h('div', {
-    class: `slide${i === ui.index ? ' live' : ''}${i === ui.selected ? ' selected' : ''}`,
-    onclick: () => (ui.direct ? goLive(i) : selectSlide(i)),
-    ondblclick: () => goLive(i),
-  }, h('div', { class: 'tag' }, slide.label || ''),
-  slide.image ? h('img', { class: 'slide-thumb', src: slide.image, alt: slide.label || '', loading: 'lazy' }) : h('div', { class: 'body' }, slide.text))));
+  const slides = slidesOf();
+  const starts = new Map(window.sections.groupStarts(slides).map((g) => [g.index, g]));
+  $('slides').replaceChildren(...slides.map((slide, i) => {
+    const hotkey = starts.has(i) ? starts.get(i).hotkey : null;
+    const tag = h('div', { class: 'tag' },
+      ...(hotkey ? [h('span', { class: 'hotkey', title: `Tecla ${hotkey.toUpperCase()}` }, hotkey.toUpperCase())] : []),
+      slide.label || '');
+    return h('div', {
+      class: `slide kind-${window.sections.kindOf(slide.label)}${i === ui.index ? ' live' : ''}${i === ui.selected ? ' selected' : ''}`,
+      title: isEditable(slide) ? 'Clique: Preview · duplo clique: ao vivo · botão direito (ou F2): editar' : '',
+      onclick: () => (ui.direct ? goLive(i) : selectSlide(i)),
+      ondblclick: () => goLive(i),
+      oncontextmenu: (e) => { e.preventDefault(); openQuickEdit(i); },
+    }, tag,
+    slide.image ? h('img', { class: 'slide-thumb', src: slide.image, alt: slide.label || '', loading: 'lazy' }) : h('div', { class: 'body' }, slide.text));
+  }));
+  renderGroups(slides);
 }
+
+// ---------- Edição rápida (botão direito ou F2 no slide) ----------
+const isEditable = (slide) => Boolean(slide) && !slide.image && !slide.media && typeof slide.text === 'string';
+let quickIndex = -1;
+
+function openQuickEdit(index) {
+  const slide = slidesOf()[index];
+  if (!isEditable(slide)) return;
+  quickIndex = index;
+  const cur = ui.current;
+  $('quick-text').value = slide.text;
+  $('quick-error').textContent = '';
+  $('quick-hint').textContent = cur.songId
+    ? 'Corrige a letra da música: vale para todas as vezes que este trecho aparece, inclusive no culto.'
+    : (cur.fromPlaylist ? 'Corrige este slide no culto.' : 'Corrige só o que está aberto (não fica salvo). Adicione ao culto para guardar.');
+  $('quick-edit').showModal();
+  $('quick-text').focus();
+}
+
+// Recarrega o item aberto com os dados novos, sem perder o slide ao vivo nem a seleção.
+async function reloadCurrent() {
+  const cur = ui.current;
+  await refreshSongs();
+  await refreshPlaylist();
+  if (cur.fromPlaylist) {
+    const item = ui.playlist.find((i) => i.id === cur.key);
+    if (item) setCurrent(currentFromPlaylist(item), { keepPosition: true });
+    return;
+  }
+  const song = cur.songId && ui.songs.find((s) => s.id === cur.songId);
+  if (song) await openSong(song, cur.arrangement, { keepPosition: true });
+}
+
+async function saveQuickEdit() {
+  const cur = ui.current;
+  const index = quickIndex;
+  const slide = cur && slidesOf()[index];
+  const text = $('quick-text').value.trim();
+  if (!slide || !text) return;
+  if (text === slide.text) { $('quick-edit').close(); return; }
+  try {
+    if (cur.songId) await api.songs.editSlide(cur.songId, slide.label, slide.text, text);
+    else if (cur.fromPlaylist) await api.playlist.editSlide(cur.key, index, text);
+    else ui.current = { ...cur, slides: cur.slides.map((s, i) => (i === index ? { ...s, text } : s)) };
+  } catch (err) {
+    $('quick-error').textContent = cleanError(err);
+    return;
+  }
+  $('quick-edit').close();
+  // O slide no ar tem o texto antigo (este slide ou outra repetição do mesmo trecho): reenvia corrigido.
+  const liveIndex = ui.index;
+  const liveSlide = slidesOf()[liveIndex];
+  const resend = liveKey() === `${cur.key}:${liveIndex}` && liveSlide && liveSlide.text === slide.text;
+  if (cur.songId || cur.fromPlaylist) await reloadCurrent();
+  else setCurrent(ui.current, { keepPosition: true });
+  if (resend) goLive(liveIndex);
+}
+
+const liveKey = () => {
+  if (!ui.state) return null;
+  const { content, media } = ui.state.layers;
+  return media ? media.key : content.slide && content.slide.key;
+};
 
 // ---------- Biblioteca ----------
 // Busca por título ou trecho da letra (no processo principal, sem acentos). Quem acha pela letra mostra a linha.
@@ -195,9 +343,9 @@ async function renderSongs() {
   $('songs').replaceChildren(...items);
 }
 
-async function openSong(song) {
-  const slides = await api.songs.slides(song);
-  setCurrent({ title: song.title, slides, songId: song.id, song, key: `lib-${song.id}` });
+async function openSong(song, arrangement = defaultArrangement(song), options = {}) {
+  const slides = await api.songs.slides(song, arrangement);
+  setCurrent({ title: song.title, slides, songId: song.id, song, arrangement, key: `lib-${song.id}` }, options);
 }
 
 async function refreshSongs() {
@@ -206,19 +354,25 @@ async function refreshSongs() {
 }
 
 // ---------- Culto (playlist) ----------
+// Item do culto como "item aberto" nos Slides.
+function currentFromPlaylist(item) {
+  return {
+    title: item.title,
+    slides: item.slides,
+    songId: item.kind === 'song' ? item.refId : null,
+    song: ui.songs.find((s) => s.id === item.refId),
+    arrangement: item.arrangement || '',
+    verse: item.kind === 'verse',
+    fromPlaylist: true,
+    key: item.id,
+  };
+}
+
 function renderPlaylist() {
   $('playlist').replaceChildren(...ui.playlist.map((item, i) => h('li', {
-    onclick: () => setCurrent({
-      title: item.title,
-      slides: item.slides,
-      songId: item.kind === 'song' ? item.refId : null,
-      song: ui.songs.find((s) => s.id === item.refId),
-      verse: item.kind === 'verse',
-      fromPlaylist: true,
-      key: item.id,
-    }),
+    onclick: () => setCurrent(currentFromPlaylist(item)),
   },
-  h('span', {}, item.title),
+  h('span', { title: item.arrangement ? `Arranjo: ${item.arrangement}` : '' }, item.arrangement ? `${item.title} · ${item.arrangement}` : item.title),
   miniButton('arrow-up', 'Subir no culto', (e) => { e.stopPropagation(); movePlaylist(item.id, i - 1); }),
   miniButton('x', 'Remover do culto', (e) => { e.stopPropagation(); removePlaylist(item.id); }))));
 }
@@ -228,9 +382,9 @@ async function refreshPlaylist() {
   renderPlaylist();
 }
 
-async function addSongToPlaylist(song) {
-  const slides = await api.songs.slides(song);
-  await api.playlist.add({ kind: 'song', refId: song.id, title: song.title, slides });
+async function addSongToPlaylist(song, arrangement = defaultArrangement(song)) {
+  const slides = await api.songs.slides(song, arrangement);
+  await api.playlist.add({ kind: 'song', refId: song.id, title: song.title, slides, ...(arrangement ? { arrangement } : {}) });
   refreshPlaylist();
 }
 
@@ -272,19 +426,66 @@ function openEditor(song) {
   $('ed-theme').value = editing.theme || '';
   $('ed-delete').hidden = !(song && song.id); // letra vinda da internet ainda não existe na biblioteca
   $('editor').dataset.id = editing.id || '';
+  $('ed-arrangements').replaceChildren(...(editing.arrangements || []).map(arrangementRow));
   $('editor').showModal();
+  renderSectionHint();
+}
+
+// Uma linha do editor de arranjos: nome + ordem ("V1 C V2 C").
+function arrangementRow(arrangement = { name: '', order: [] }) {
+  const row = h('div', { class: 'row arr-row' },
+    h('input', { class: 'arr-name', placeholder: 'Nome (ex.: Culto)', maxlength: '40', 'aria-label': 'Nome do arranjo', autocomplete: 'off' }),
+    h('input', { class: 'arr-order', placeholder: 'V1 C V2 C P C C', maxlength: '400', 'aria-label': 'Ordem das seções', autocomplete: 'off' }),
+    miniButton('x', 'Remover arranjo', () => { row.remove(); renderSectionHint(); }));
+  row.querySelector('.arr-name').value = arrangement.name;
+  row.querySelector('.arr-order').value = window.sections.formatOrder(arrangement.order || []);
+  return row;
+}
+
+const readArrangements = () => [...$('ed-arrangements').querySelectorAll('.arr-row')]
+  .map((row) => ({ name: row.querySelector('.arr-name').value.trim(), order: row.querySelector('.arr-order').value }))
+  .filter((a) => a.name || a.order.trim());
+
+// Mostra as siglas das seções desta letra e avisa o que cada arranjo pede e não existe.
+let hintSeq = 0;
+let hintTimer = null;
+const HINT_DELAY_MS = 250;
+const scheduleSectionHint = () => { clearTimeout(hintTimer); hintTimer = setTimeout(renderSectionHint, HINT_DELAY_MS); };
+
+async function renderSectionHint() {
+  const seq = ++hintSeq;
+  const slides = await api.songs.slides({ title: 'x', text: $('ed-text').value });
+  if (seq !== hintSeq) return;
+  const labels = [...new Set(slides.map((s) => s.label))];
+  $('ed-sections').textContent = labels.length
+    ? `Seções desta letra: ${labels.map((l) => `${window.sections.abbrOf(l)} (${l})`).join(' · ')}`
+    : '';
+  const problems = readArrangements().flatMap((a) => {
+    const order = window.sections.parseOrder(a.order);
+    if (!a.name) return ['Arranjo sem nome não é salvo.'];
+    if (!order.length) return [`"${a.name}" sem ordem não é salvo.`];
+    const missing = [...new Set(order.filter((t) => !labels.some((l) => window.sections.matchesToken(l, t))))];
+    return missing.length ? [`"${a.name}": não achei ${missing.join(', ')} (será ignorado).`] : [];
+  });
+  $('ed-arr-warn').textContent = problems.join(' ');
 }
 
 async function saveEditor() {
+  // Mantém o arranjo que estava aberto; se a música ainda não tinha arranjos, abre no padrão (o primeiro).
+  const cur = ui.current;
+  const hadArrangements = cur && cur.song && Array.isArray(cur.song.arrangements) && cur.song.arrangements.length > 0;
+  const keep = hadArrangements && cur.songId === $('editor').dataset.id ? cur.arrangement : undefined;
   const saved = await api.songs.save({
     id: $('editor').dataset.id || undefined,
     title: $('ed-title').value,
     text: $('ed-text').value,
     theme: $('ed-theme').value,
+    arrangements: readArrangements(),
   });
   await refreshSongs();
   await refreshPlaylist();
-  openSong(saved);
+  const stillThere = keep === '' || (saved.arrangements || []).some((a) => a.name === keep);
+  openSong(saved, stillThere ? keep : defaultArrangement(saved));
 }
 
 // ---------- Estado ao vivo ----------
@@ -309,6 +510,7 @@ function renderLive(state) {
   renderPreview();
   themePanel.render(state);
   mediaPanel.renderLive(state);
+  messagesPanel.render(state);
   if (state.layers.background.kind === 'color' && document.activeElement !== $('bg-color')) $('bg-color').value = state.layers.background.value;
   $('btn-black').classList.toggle('primary', state.blackout);
   $('btn-cover').classList.toggle('primary', state.layers.cover.visible);
@@ -431,9 +633,27 @@ function bindEvents() {
   $('btn-add-playlist').addEventListener('click', async () => {
     const cur = ui.current;
     if (!cur) return;
-    await api.playlist.add({ kind: cur.verse ? 'verse' : 'song', refId: cur.songId, title: cur.title, slides: cur.slides });
+    const arrangement = cur.songId && cur.arrangement ? { arrangement: cur.arrangement } : {};
+    await api.playlist.add({ kind: cur.verse ? 'verse' : 'song', refId: cur.songId, title: cur.title, slides: cur.slides, ...arrangement });
     refreshPlaylist();
   });
+  $('arrangement').addEventListener('change', (e) => changeArrangement(e.target.value));
+
+  // Editor: arranjos e siglas das seções
+  $('ed-arr-add').addEventListener('click', () => { $('ed-arrangements').append(arrangementRow()); $('ed-arrangements').lastElementChild.querySelector('input').focus(); });
+  $('ed-text').addEventListener('input', scheduleSectionHint);
+  $('ed-arrangements').addEventListener('input', scheduleSectionHint);
+  // Enter num campo de arranjo enviaria o formulário pelo primeiro botão (Cancelar): não faz nada.
+  $('ed-arrangements').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+
+  // Edição rápida
+  $('quick-form').addEventListener('submit', (e) => { e.preventDefault(); saveQuickEdit(); });
+  $('quick-cancel').addEventListener('click', () => $('quick-edit').close());
+  $('quick-text').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); saveQuickEdit(); } });
+
+  // Desfazer/refazer o que foi ao ar
+  $('btn-undo').addEventListener('click', () => api.undo());
+  $('btn-redo').addEventListener('click', () => api.redo());
 
   $('auto-advance').addEventListener('change', restartAuto);
   $('direct').addEventListener('change', (e) => {
@@ -494,6 +714,16 @@ function bindEvents() {
     const onGrip = target && target.closest('.grip, .resize-handle');
     const activatesControl = target && target.closest('button, summary, a') && (e.key === ' ' || e.key === 'Enter');
     if (typing || onGrip || activatesControl || e.defaultPrevented || document.querySelector('dialog[open]')) return;
+    // Ctrl+Z desfaz o que foi ao ar; Ctrl+Shift+Z ou Ctrl+Y refaz.
+    if (e.ctrlKey && !e.altKey && ['z', 'y'].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+      if (e.key.toLowerCase() === 'y' || e.shiftKey) api.redo(); else api.undo();
+      return;
+    }
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (e.key === 'F2') { e.preventDefault(); openQuickEdit(ui.selected); return; }
+    // Teclas de seção (1–9, C, E, P, I, F): só quando o item aberto tem essa seção.
+    if (/^[1-9cepif]$/i.test(e.key) && jumpToGroup(e.key)) { e.preventDefault(); return; }
     const actions = {
       ArrowRight: () => goLive(ui.index + 1),
       ' ': () => goLive(ui.index + 1),
@@ -522,6 +752,7 @@ async function init() {
   });
   window.initOutputsPanel({ api });
   window.initAutomationPanel({ api });
+  messagesPanel = window.initMessagesPanel({ api });
   bindUpdate();
   // OSC: avançar/voltar precisam do contexto de slides daqui.
   api.automation.onCommand((command) => {
@@ -540,7 +771,7 @@ async function init() {
   window.addEventListener('focus', syncOutputButtons);
   window.addEventListener('resize', () => ui.state && (programStage.update(ui.state), renderPreview()));
   renderLive(await api.getState());
-  await Promise.all([window.initBiblePanel({ api, showVerses }), themePanel.load(), mediaPanel.refresh(), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
+  await Promise.all([window.initBiblePanel({ api, showVerses }), themePanel.load(), messagesPanel.load(), mediaPanel.refresh(), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
 }
 
 init();

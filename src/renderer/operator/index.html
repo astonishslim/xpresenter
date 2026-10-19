@@ -17,6 +17,8 @@
       <button id="btn-clear" class="ib" type="button" data-icon="eraser" title="Limpar o conteúdo (Esc)" aria-label="Limpar conteúdo"></button>
       <button id="btn-black" class="ib" type="button" data-icon="eye-off" title="Tela preta (B)" aria-label="Tela preta"></button>
       <button id="btn-cover" class="ib" type="button" data-icon="layers" title="Capa" aria-label="Capa"></button>
+      <button id="btn-undo" class="ib" type="button" data-icon="undo-2" title="Desfazer o que foi ao ar (Ctrl+Z)" aria-label="Desfazer o que foi ao ar"></button>
+      <button id="btn-redo" class="ib" type="button" data-icon="redo-2" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer"></button>
     </div>
 
     <!-- Camadas: ocultar sem perder o conteúdo (a letra volta no mesmo ponto). -->
@@ -126,6 +128,10 @@
           <div class="row wrap">
             <button id="btn-add-playlist" class="ib" type="button" data-icon="list-plus" disabled title="Adicionar ao culto" aria-label="Adicionar ao culto"></button>
             <button id="btn-edit" class="ib" type="button" data-icon="pencil" disabled title="Editar música" aria-label="Editar música"></button>
+            <label id="arrangement-box" class="preset-box dim-box" title="Arranjo: a ordem das seções desta música" hidden>
+              <span class="ico" data-icon="list-ordered"></span>
+              <select id="arrangement" aria-label="Arranjo da música"></select>
+            </label>
             <label class="preset-box dim-box" title="Avanço automático dos slides (avisos em loop, contagem antes do culto)">
               <span class="ico" data-icon="timer"></span>
               <select id="auto-advance" aria-label="Avanço automático">
@@ -139,6 +145,7 @@
             <label class="check" title="Clique envia direto ao vivo (sem passar pelo Preview)"><input id="direct" type="checkbox" aria-label="Clique envia direto ao vivo" /><span class="ico" data-icon="zap"></span>Direto</label>
           </div>
           <p id="slides-msg" class="muted error-soft" role="status"></p>
+          <div id="slide-groups" class="row wrap group-chips" role="toolbar" aria-label="Seções da música" hidden></div>
           <div id="slides" class="grid"></div>
         </details>
       </div>
@@ -163,6 +170,23 @@
               <select id="bg-dim" aria-label="Escurecer o fundo"></select>
             </label>
           </div>
+        </details>
+        <details class="fold" data-key="messages" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="message-square-text"></span>Mensagens</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Mensagens" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <div class="row">
+            <select id="msg-template" aria-label="Modelo de mensagem"></select>
+            <button id="btn-msg-new" class="ib" type="button" data-icon="message-square-plus" title="Novo modelo de mensagem" aria-label="Novo modelo de mensagem"></button>
+            <button id="btn-msg-edit" class="ib" type="button" data-icon="pencil" title="Editar o modelo" aria-label="Editar modelo de mensagem"></button>
+            <button id="btn-msg-delete" class="ib danger" type="button" data-icon="trash" hidden title="Excluir o modelo selecionado" aria-label="Excluir modelo"></button>
+          </div>
+          <div id="msg-fields"></div>
+          <p id="msg-preview" class="muted msg-preview"></p>
+          <div class="row">
+            <button id="btn-msg-show" class="primary" type="button" data-icon="send">Mostrar</button>
+            <button id="btn-msg-clear" class="ib" type="button" data-icon="x" title="Tirar a mensagem do modelo" aria-label="Tirar a mensagem"></button>
+            <span id="msg-target" class="muted"></span>
+          </div>
+          <p id="msg-status" class="muted" role="status"></p>
         </details>
         <details class="fold" data-key="look" open>
           <summary><span class="fold-title"><span class="ico" data-icon="swatch-book"></span>Tema e texto</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Tema e texto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
@@ -285,11 +309,55 @@
       <input id="ed-title" placeholder="Título" required />
       <label class="field">Tema desta música <select id="ed-theme" aria-label="Tema desta música"></select></label>
       <textarea id="ed-text" rows="16" placeholder="[Verso 1]&#10;Linha 1&#10;Linha 2&#10;&#10;[Refrão]&#10;…"></textarea>
-      <p class="muted">Use [Verso], [Refrão], [Ponte] para marcar seções. Linha em branco separa slides. Acordes como [Am] são ignorados na projeção.</p>
+      <p class="muted">Use [Verso 1], [Refrão], [Ponte] para marcar seções. Linha em branco separa slides. Acordes como [Am] são ignorados na projeção.
+        Escreva o refrão uma vez só: a repetição fica no arranjo.</p>
+      <h4>Arranjos</h4>
+      <p class="muted">A ordem das seções, por sigla (<b>V1 C V2 C P C C</b>: V1/V2 versos, C refrão, PC pré-refrão, P ponte, I intro,
+        F final) ou pelos nomes separados por vírgula. O primeiro arranjo é o padrão ao abrir e ao adicionar ao culto.</p>
+      <p id="ed-sections" class="muted"></p>
+      <div id="ed-arrangements"></div>
+      <p id="ed-arr-warn" class="muted error-soft" role="status"></p>
+      <button id="ed-arr-add" type="button" data-icon="plus">Adicionar arranjo</button>
       <div class="row end">
         <button id="ed-delete" type="button" class="danger">Excluir</button>
         <button value="cancel">Cancelar</button>
         <button id="ed-save" value="save" class="primary">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="quick-edit">
+    <form id="quick-form" method="dialog">
+      <h3>Editar slide</h3>
+      <textarea id="quick-text" rows="6" aria-label="Texto do slide"></textarea>
+      <p id="quick-hint" class="muted"></p>
+      <p id="quick-error" class="error" role="alert"></p>
+      <div class="row end">
+        <span class="muted">Ctrl+Enter salva</span>
+        <button id="quick-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="message-dialog">
+    <form id="msg-ed-form" method="dialog">
+      <h3>Modelo de mensagem</h3>
+      <input id="msg-ed-name" placeholder="Nome (ex.: Berçário)" maxlength="40" autocomplete="off" aria-label="Nome do modelo" />
+      <textarea id="msg-ed-text" rows="3" maxlength="200" placeholder="Pais de {criança}, por favor compareçam ao berçário." aria-label="Texto da mensagem"></textarea>
+      <p class="muted">Escreva os campos entre chaves, como <b>{criança}</b> ou <b>{placa}</b>: ao usar o modelo, o app pede o valor de cada um.</p>
+      <div class="row">
+        <select id="msg-ed-target" aria-label="Onde mostrar">
+          <option value="screen">Na tela (aviso)</option>
+          <option value="stage">No retorno de palco</option>
+          <option value="both">Na tela e no retorno</option>
+        </select>
+        <select id="msg-ed-seconds" aria-label="Por quanto tempo"></select>
+      </div>
+      <p id="msg-ed-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="msg-ed-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
       </div>
     </form>
   </dialog>
@@ -412,6 +480,7 @@
   <script src="../shared/icons.js"></script>
   <script src="../shared/liveInfo.js"></script>
   <script src="../shared/stage.js"></script>
+  <script src="../shared/sections.js"></script>
   <script src="../shared/layoutModel.js"></script>
   <script src="../shared/layoutPresets.js"></script>
   <script src="layout.js"></script>
@@ -422,6 +491,7 @@
   <script src="media-panel.js"></script>
   <script src="outputs-panel.js"></script>
   <script src="automation-panel.js"></script>
+  <script src="messages-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>
 </body>

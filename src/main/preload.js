@@ -1,10 +1,12 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
-const invoke = (channel, payload) => ipcRenderer.invoke(channel, payload);
+const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args);
 
 contextBridge.exposeInMainWorld('apresentador', {
   getState: () => invoke('state:get'),
   dispatch: (action) => invoke('state:dispatch', action),
+  undo: () => invoke('state:undo'),
+  redo: () => invoke('state:redo'),
   onState(callback) {
     const handler = (_event, state) => callback(state);
     ipcRenderer.on('state:changed', handler);
@@ -14,8 +16,16 @@ contextBridge.exposeInMainWorld('apresentador', {
     list: () => invoke('songs:list'),
     save: (song) => invoke('songs:save', song),
     remove: (id) => invoke('songs:remove', id),
-    slides: (song) => invoke('songs:slides', song),
+    slides: (song, arrangement) => invoke('songs:slides', song, arrangement || ''),
     search: (query) => invoke('songs:search', query),
+    editSlide: (songId, label, oldText, newText) => invoke('songs:editSlide', { songId, label, oldText, newText }),
+  },
+  messages: {
+    list: () => invoke('messages:list'),
+    save: (template) => invoke('messages:save', template),
+    remove: (id) => invoke('messages:remove', id),
+    show: (id, values) => invoke('messages:show', { id, values }),
+    clear: () => invoke('messages:clear'),
   },
   lyrics: { search: (title, artist) => invoke('lyrics:search', { title, artist }) },
   playlist: {
@@ -23,6 +33,8 @@ contextBridge.exposeInMainWorld('apresentador', {
     add: (item) => invoke('playlist:add', item),
     remove: (id) => invoke('playlist:remove', id),
     move: (id, index) => invoke('playlist:move', { id, index }),
+    setArrangement: (id, arrangement) => invoke('playlist:setArrangement', { id, arrangement }),
+    editSlide: (id, index, text) => invoke('playlist:editSlide', { id, index, text }),
   },
   bible: {
     versions: () => invoke('bible:versions'),

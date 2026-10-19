@@ -17,6 +17,8 @@ const { createImportStore } = require('../core/importStore');
 const { initialState, liveKeyOf, isValidAction } = require('../core/state');
 const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
+const { registerMessageIpc } = require('./messageIpc');
+const { createMessageLibrary, createMessageRunner } = require('../core/messages');
 const { setupUpdater } = require('./updater');
 const { resolveUserDataDir } = require('./userDataDir');
 
@@ -202,10 +204,12 @@ async function start() {
     getWindow: () => operator,
     step: (delta) => stepLive({ store, library, themes }, delta),
   });
+  const messageRunner = createMessageRunner({ dispatch: store.dispatch, getState: store.getState });
+  registerMessageIpc({ messages: createMessageLibrary(path.join(userDataDir, 'messages.json')), runner: messageRunner });
   setupUpdater({ getWindow: () => operator });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());
-  app.on('before-quit', () => { flushLook(); automation.stop(); remote.close(); });
+  app.on('before-quit', () => { flushLook(); automation.stop(); messageRunner.stop(); remote.close(); });
 }
 
 app.whenReady().then(start).catch((err) => {

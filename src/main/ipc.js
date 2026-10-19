@@ -2,7 +2,8 @@ const { ipcMain, dialog } = require('electron');
 const { pathToFileURL } = require('node:url');
 const { isValidAction, stampAction } = require('../core/state');
 const { missingFileOf } = require('../core/fileCheck');
-const { parseSong, toSlides } = require('../core/songParser');
+const { slidesForSong } = require('../core/songParser');
+const { replaceSlideText } = require('../core/songEdit');
 const { listDisplays } = require('./windows');
 const { registerBibleIpc } = require('./bibleIpc');
 
@@ -21,9 +22,20 @@ const BACKGROUND_PICKERS = {
 };
 
 function registerIpc({ store, library, outputs, outputSettings, stageMonitor, remoteInfo, bibles, themes, media, imports, getWindow }) {
-  const slidesFor = ({ title, text }) => toSlides(parseSong(title, text));
+  const isRecord = (v) => Boolean(v) && typeof v === 'object';
+  const songById = (id) => library.listSongs().find((s) => s.id === id);
+  // Depois de salvar a música, os itens dela no culto seguem cada um no seu arranjo.
+  const saveSongAndRefresh = (input) => {
+    const saved = library.saveSong(input);
+    const names = (saved.arrangements || []).map((a) => a.name);
+    library.refreshSongSlides(saved.id, saved.title, (item) => slidesForSong(saved, item.arrangement), names);
+    return saved;
+  };
 
   ipcMain.handle('state:get', () => store.getState());
+  // Desfazer/refazer o que foi ao ar (slide, camadas, fundo, estilo).
+  ipcMain.handle('state:undo', () => store.undo());
+  ipcMain.handle('state:redo', () => store.redo());
   ipcMain.handle('state:dispatch', (_e, action) => {
     if (!isValidAction(action)) throw new Error('Ação inválida.');
     const missing = missingFileOf(action);
@@ -32,13 +44,19 @@ function registerIpc({ store, library, outputs, outputSettings, stageMonitor, re
   });
 
   ipcMain.handle('songs:list', () => library.listSongs());
-  ipcMain.handle('songs:save', (_e, song) => {
-    const saved = library.saveSong(song);
-    library.refreshSongSlides(saved.id, saved.title, slidesFor(saved));
-    return saved;
-  });
+  ipcMain.handle('songs:save', (_e, song) => saveSongAndRefresh(isRecord(song) ? song : {}));
   ipcMain.handle('songs:remove', (_e, id) => library.deleteSong(id));
-  ipcMain.handle('songs:slides', (_e, song) => slidesFor(song));
+  ipcMain.handle('songs:slides', (_e, song, arrangement) => (
+    isRecord(song) ? slidesForSong(song, typeof arrangement === 'string' ? arrangement : '') : []));
+  // Edição rápida de um slide de música: corrige o trecho na letra (vale para todas as repetições).
+  ipcMain.handle('songs:editSlide', (_e, { songId, label, oldText, newText } = {}) => {
+    const song = songById(songId);
+    if (!song) throw new Error('Música não encontrada.');
+    const valid = typeof oldText === 'string' && typeof newText === 'string' && (label == null || typeof label === 'string');
+    const text = valid ? replaceSlideText(song.text, oldText, newText, { label }) : null;
+    if (text === null) throw new Error('Não achei esse trecho na letra. Use o editor da música.');
+    return saveSongAndRefresh({ ...song, text });
+  });
   ipcMain.handle('songs:search', (_e, query) => searchSongs(library.listSongs(), query));
 
   // Busca na internet (LRCLIB). O resultado só vira música depois que o operador revisa e salva no editor.
@@ -58,6 +76,21 @@ function registerIpc({ store, library, outputs, outputSettings, stageMonitor, re
     pruneUnused(); // páginas de PDF que ninguém mais usa
   });
   ipcMain.handle('playlist:move', (_e, { id, index }) => library.movePlaylistItem(id, index));
+  // Arranjo de uma música no culto ('' = ordem da letra). Só vale arranjo que existe na música.
+  ipcMain.handle('playlist:setArrangement', (_e, { id, arrangement } = {}) => {
+    const item = library.getPlaylist().find((i) => i.id === id);
+    const song = item && item.kind === 'song' ? songById(item.refId) : null;
+    if (!song) throw new Error('Música do culto não encontrada.');
+    const name = typeof arrangement === 'string' ? arrangement : '';
+    if (name && !(song.arrangements || []).some((a) => a.name === name)) throw new Error('Arranjo não encontrado.');
+    return library.setItemArrangement(id, name, slidesForSong(song, name));
+  });
+  // Edição rápida de um slide de texto do culto que não é música (versículo, PowerPoint).
+  ipcMain.handle('playlist:editSlide', (_e, { id, index, text } = {}) => {
+    const item = library.editPlaylistSlide(id, index, typeof text === 'string' ? text.trim() : text);
+    if (!item) throw new Error('Não foi possível editar este slide.');
+    return item;
+  });
 
   registerBibleIpc({ bibles, getWindow });
   registerThemeIpc({ store, themes });
