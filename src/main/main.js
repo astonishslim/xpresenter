@@ -6,7 +6,8 @@ const { randomBytes } = require('node:crypto');
 const { createStore } = require('../core/store');
 const { createLibrary } = require('../core/library');
 const { createRemoteServer } = require('../core/remoteServer');
-const { createOperatorWindow, createOutputWindows, createStageWindow } = require('./windows');
+const { createOperatorWindow, createOutputWindows, createStageWindow, getDisplays } = require('./windows');
+const { sanitizeConfig, planOutputs } = require('../core/outputConfig');
 const { createBibleLibrary } = require('../core/bibleLibrary');
 const { createThemeLibrary, persistCurrentLook } = require('../core/themeLibrary');
 const { createMediaLibrary } = require('../core/mediaLibrary');
@@ -29,22 +30,54 @@ function lanAddress() {
   return '127.0.0.1';
 }
 
-function createOutputManager(store) {
+// Configuração das saídas (perfis, panorâmico). Validada de novo a cada uso, porque os monitores mudam.
+function createOutputSettings(file) {
+  let raw = null;
+  try {
+    raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error(`[saídas] não foi possível ler ${file}: ${err.message}`);
+  }
+  return {
+    get: () => sanitizeConfig(raw, getDisplays()),
+    set(next) {
+      raw = sanitizeConfig(next, getDisplays());
+      fs.writeFileSync(file, JSON.stringify(raw, null, 2));
+      return raw;
+    },
+  };
+}
+
+function createOutputManager(store, settings) {
   let windows = [];
   const broadcast = (state) => BrowserWindow.getAllWindows().forEach((w) => !w.isDestroyed() && w.webContents.send('state:changed', state));
   store.subscribe(broadcast);
+
+  const close = () => {
+    windows.forEach((w) => !w.isDestroyed() && w.close());
+    windows = [];
+  };
+  const open = () => {
+    const displays = getDisplays();
+    windows = createOutputWindows(planOutputs(settings.get(), displays));
+    windows.forEach((w) => w.on('closed', () => { windows = windows.filter((x) => x !== w); }));
+  };
 
   return {
     isOpen: () => windows.length > 0,
     toggle() {
       if (windows.length) {
-        windows.forEach((w) => !w.isDestroyed() && w.close());
-        windows = [];
+        close();
         return false;
       }
-      windows = createOutputWindows();
-      windows.forEach((w) => w.on('closed', () => { windows = windows.filter((x) => x !== w); }));
+      open();
       return true;
+    },
+    // Configuração mudou com a projeção aberta: reabre as janelas no novo arranjo.
+    reopen() {
+      if (!windows.length) return;
+      close();
+      open();
     },
   };
 }
@@ -86,7 +119,8 @@ async function start() {
   const library = createLibrary(path.join(userDataDir, 'library.json'));
   const bibles = createBibleLibrary({ builtinDir: BUILTIN_BIBLES, userDir: path.join(userDataDir, 'bibles') });
   migrateLegacyBible(bibles, userDataDir);
-  const outputs = createOutputManager(store);
+  const outputSettings = createOutputSettings(path.join(userDataDir, 'outputs.json'));
+  const outputs = createOutputManager(store, outputSettings);
   const stageMonitor = createStageManager();
 
   const token = randomBytes(16).toString('hex');
@@ -117,6 +151,7 @@ async function start() {
     themes,
     media: createMediaLibrary(path.join(userDataDir, 'media.json')),
     imports: createImportStore(path.join(userDataDir, 'imports')),
+    outputSettings,
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;

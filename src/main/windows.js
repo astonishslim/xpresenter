@@ -29,41 +29,49 @@ function createOperatorWindow() {
   return win;
 }
 
-// Uma janela de projeção por monitor externo; com um só monitor, abre em janela.
-function createOutputWindows() {
-  const displays = screen.getAllDisplays();
-  const primaryId = screen.getPrimaryDisplay().id;
-  const targets = displays.filter((d) => d.id !== primaryId);
+const WINDOWED = { width: 960, height: 540 };
 
-  // Só a primeira saída toca o som dos vídeos (várias janelas com áudio dariam eco).
-  const open = (bounds, fullscreen, audio) => {
+// Uma janela por item do plano (veja outputConfig.planOutputs): tela cheia no monitor, ou janela comum.
+// Perfil, recorte do panorâmico, rampas de blending e som vão pela URL para a página de saída.
+function createOutputWindows(plan) {
+  return plan.map((p, i) => {
+    const fullscreen = Boolean(p.bounds);
     const win = new BrowserWindow({
-      ...bounds,
+      ...(fullscreen ? { x: p.bounds.x, y: p.bounds.y, width: p.bounds.width, height: p.bounds.height } : WINDOWED),
       fullscreen,
       frame: !fullscreen,
-      title: 'Apresentador - Saída',
+      title: `Apresentador - Saída ${i + 1}`,
       icon: ICON,
       backgroundColor: '#000000',
       autoHideMenuBar: true,
       webPreferences: WINDOW_PREFS,
     });
     hardenWindow(win);
-    win.loadFile(path.join(RENDERER, 'output', 'output.html'), { query: { audio: audio ? '1' : '0' } });
+    win.loadFile(path.join(RENDERER, 'output', 'output.html'), {
+      query: {
+        profile: p.profile,
+        audio: p.audio ? '1' : '0',
+        rx: String(p.region.x),
+        rw: String(p.region.w),
+        bl: String(p.blend.left),
+        br: String(p.blend.right),
+      },
+    });
     return win;
-  };
-
-  if (!targets.length) return [open({ width: 960, height: 540 }, false, true)];
-  return targets.map((d, i) => open({ x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height }, true, i === 0));
+  });
 }
 
-function listDisplays() {
+function getDisplays() {
   const primaryId = screen.getPrimaryDisplay().id;
   return screen.getAllDisplays().map((d, i) => ({
     id: d.id,
     primary: d.id === primaryId,
+    bounds: { x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height },
     label: `Monitor ${i + 1} (${d.bounds.width}x${d.bounds.height})${d.id === primaryId ? ' - principal' : ''}`,
   }));
 }
+
+const listDisplays = () => getDisplays().map(({ id, primary, label }) => ({ id, primary, label }));
 
 // Monitor de retorno: tela cheia no monitor escolhido, ou janela comum se não houver escolha.
 function createStageWindow(displayId) {
@@ -83,4 +91,4 @@ function createStageWindow(displayId) {
   return win;
 }
 
-module.exports = { createOperatorWindow, createOutputWindows, createStageWindow, listDisplays };
+module.exports = { createOperatorWindow, createOutputWindows, createStageWindow, listDisplays, getDisplays };

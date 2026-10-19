@@ -32,7 +32,12 @@ contextBridge.exposeInMainWorld('apresentador', {
     importText: (content, fileName) => invoke('bible:importText', { content, fileName }),
     remove: (code) => invoke('bible:remove', code),
   },
-  outputs: { toggle: () => invoke('outputs:toggle'), isOpen: () => invoke('outputs:isOpen') },
+  outputs: {
+    toggle: () => invoke('outputs:toggle'),
+    isOpen: () => invoke('outputs:isOpen'),
+    getConfig: () => invoke('outputs:getConfig'),
+    setConfig: (config) => invoke('outputs:setConfig', config),
+  },
   remote: { info: () => invoke('remote:info') },
   displays: { list: () => invoke('displays:list') },
   stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },

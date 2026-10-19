@@ -19,7 +19,7 @@ const BACKGROUND_PICKERS = {
   video: { title: 'Escolher vídeo de fundo', filters: [{ name: 'Vídeos', extensions: ['mp4', 'webm', 'm4v', 'ogv'] }] },
 };
 
-function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles, themes, media, imports, getWindow }) {
+function registerIpc({ store, library, outputs, outputSettings, stageMonitor, remoteInfo, bibles, themes, media, imports, getWindow }) {
   const slidesFor = ({ title, text }) => toSlides(parseSong(title, text));
 
   ipcMain.handle('state:get', () => store.getState());
@@ -59,6 +59,12 @@ function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles
 
   ipcMain.handle('outputs:toggle', () => outputs.toggle());
   ipcMain.handle('outputs:isOpen', () => outputs.isOpen());
+  ipcMain.handle('outputs:getConfig', () => ({ config: outputSettings.get(), displays: listDisplays() }));
+  ipcMain.handle('outputs:setConfig', (_e, config) => {
+    const saved = outputSettings.set(config);
+    outputs.reopen();
+    return saved;
+  });
   ipcMain.handle('remote:info', () => remoteInfo());
   ipcMain.handle('displays:list', () => listDisplays());
   ipcMain.handle('stage:toggle', (_e, displayId) => stageMonitor.toggle(Number.isInteger(displayId) ? displayId : undefined));

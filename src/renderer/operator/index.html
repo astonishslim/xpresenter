@@ -40,6 +40,7 @@
     </div>
 
     <div class="toolbar" role="toolbar" aria-label="Saída">
+      <button id="btn-outputs-config" class="ib" type="button" data-icon="monitor-cog" title="Configurar saídas: o que cada monitor mostra, panorâmico e edge blending" aria-label="Configurar saídas"></button>
       <button id="btn-remote" class="ib" type="button" data-icon="smartphone" title="Controle remoto e retorno pelo celular/tablet" aria-label="Controle remoto"></button>
       <button id="btn-output" class="primary" type="button" data-icon="monitor-play"><span class="label">Projetar</span></button>
     </div>
@@ -315,6 +316,35 @@
     </form>
   </dialog>
 
+  <dialog id="outputs-dialog" class="wide">
+    <form id="outputs-form" method="dialog">
+      <h3>Saídas de projeção</h3>
+      <p class="muted">Marque os monitores que projetam e o que cada um mostra. Sem nenhum marcado, cada monitor externo mostra tudo.</p>
+      <table class="outputs-table">
+        <thead><tr><th>Usar</th><th>Monitor</th><th>Mostra</th><th>Panorâmico</th></tr></thead>
+        <tbody id="outputs-rows"></tbody>
+      </table>
+      <div class="row">
+        <label class="field">Panorâmico com
+          <select id="outputs-span-count" aria-label="Quantidade de telas do panorâmico">
+            <option value="2">2 telas</option><option value="3">3 telas</option><option value="4">4 telas</option>
+          </select>
+        </label>
+        <label class="field">sobreposição
+          <select id="outputs-overlap" aria-label="Sobreposição entre projetores (edge blending)"></select>
+        </label>
+      </div>
+      <p class="muted">Panorâmico: uma imagem larga dividida entre as telas, na ordem 1, 2, 3… <b>Sem sobreposição</b> serve para
+        painéis de LED lado a lado. <b>Com sobreposição</b> (projetores cruzando a imagem), as bordas ganham <b>edge blending</b>
+        para a emenda não aparecer: ajuste a porcentagem até a faixa sobreposta ficar com o mesmo brilho do resto.</p>
+      <p id="outputs-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="outputs-cancel" type="button">Cancelar</button>
+        <button id="outputs-save" class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="theme-dialog">
     <form id="theme-form" method="dialog">
       <h3>Salvar tema</h3>
@@ -351,6 +381,7 @@
   <script src="theme-panel.js"></script>
   <script src="lyrics-panel.js"></script>
   <script src="media-panel.js"></script>
+  <script src="outputs-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>
 </body>

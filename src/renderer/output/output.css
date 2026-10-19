@@ -1,2 +1,8 @@
 * { box-sizing: border-box; margin: 0; }
-html, body, #root { width: 100%; height: 100%; overflow: hidden; background: #000; cursor: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; cursor: none; }
+/* #root é o quadro virtual inteiro (no panorâmico, mais largo que esta tela); output.js posiciona a parte desta tela. */
+#root { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+/* Rampas de edge blending (máscara preta) nas bordas que se sobrepõem a outro projetor. */
+.blend { position: absolute; top: 0; bottom: 0; pointer-events: none; z-index: 10; }
+.blend.left { left: 0; }
+.blend.right { right: 0; }

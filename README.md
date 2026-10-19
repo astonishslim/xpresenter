@@ -121,6 +121,18 @@ Seção **Mídia** (no bloco da biblioteca): imagens (JPG, PNG, WebP, GIF) e ví
 - Só a primeira janela de projeção toca o som; Preview e Programa ficam mudos. O retorno de palco mostra "AGORA · VÍDEO".
 - O app desliga a economia de energia do Chromium para vídeo e relógios não pararem com a janela encoberta.
 
+## Várias saídas, panorâmico e edge blending
+
+Botão **Configurar saídas** (ícone de monitor com engrenagem, no grupo Saída):
+- Marque os monitores que projetam e **o que cada um mostra**: **Tudo**, **Só letra** (sobre preto: telas laterais, tela da
+  banda, captura) ou **Só fundo e mídia** (tela de ambiente). Sem nenhum marcado, cada monitor externo mostra tudo, como antes.
+- **Panorâmico** (2 a 4 telas): uma imagem larga dividida entre os monitores, na posição 1, 2, 3… de cada um.
+  - **Sem sobreposição**: recorte simples, para **painéis de LED** lado a lado.
+  - **Com sobreposição** (5% a 30%): para projetores que cruzam a imagem. As bordas internas ganham **edge blending**
+    (rampa corrigida por gama 2,2) para a emenda não aparecer. Ajuste a porcentagem até a faixa sobreposta ficar com o mesmo
+    brilho do resto.
+- Salvar com a projeção aberta reabre as janelas no novo arranjo. O som dos vídeos sai só pela primeira saída que mostra mídia.
+
 ## Importar apresentação (PDF e PowerPoint)
 
 Botão de apresentação na seção **Culto**:

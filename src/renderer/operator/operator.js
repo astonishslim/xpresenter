@@ -441,6 +441,7 @@ async function init() {
     addToPlaylist: async (item) => { await api.playlist.add(item); refreshPlaylist(); },
     getProgramVideo: () => programStage.mediaVideo(),
   });
+  window.initOutputsPanel({ api });
   // O import-panel é um módulo (carrega depois): liga quando ele estiver pronto.
   const bindImport = () => window.bindImport({ api, onImported: async (item) => { await api.playlist.add(item); refreshPlaylist(); } });
   if (window.bindImport) bindImport(); else window.addEventListener('import-panel-ready', bindImport, { once: true });
