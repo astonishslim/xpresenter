@@ -87,6 +87,26 @@
           </div>
           <div id="media-grid" class="media-grid"></div>
         </details>
+        <details class="fold" data-key="audio" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="speaker"></span>Áudio</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Áudio" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <div class="row">
+            <button id="btn-audio-add" class="ib" type="button" data-icon="file-up" title="Adicionar músicas de fundo (ou arraste os arquivos para cá)" aria-label="Adicionar músicas de fundo"></button>
+            <button id="btn-audio-prev" class="ib" type="button" data-icon="skip-back" title="Faixa anterior" aria-label="Faixa anterior"></button>
+            <button id="btn-audio-toggle" class="ib primary" type="button" data-icon="play" title="Tocar" aria-label="Tocar música de fundo"></button>
+            <button id="btn-audio-next" class="ib" type="button" data-icon="skip-forward" title="Próxima faixa" aria-label="Próxima faixa"></button>
+            <button id="btn-audio-fade" class="ib" type="button" data-icon="volume-x" disabled title="Baixar o som e parar (fade-out)" aria-label="Baixar o som e parar"></button>
+          </div>
+          <div class="row">
+            <span class="ico muted" data-icon="volume-2" title="Volume"></span>
+            <input id="audio-volume" type="range" min="0" max="100" step="5" aria-label="Volume da música de fundo" />
+          </div>
+          <div class="row wrap">
+            <label class="check" title="Baixa a música sozinha quando o primeiro slide ou vídeo entra ao vivo"><input id="audio-fade-auto" type="checkbox" aria-label="Fade-out ao entrar o culto" />Fade ao entrar o culto</label>
+            <label class="check" title="Volta à primeira faixa no fim da lista"><input id="audio-loop" type="checkbox" aria-label="Repetir a lista" />Repetir</label>
+          </div>
+          <p id="audio-status" class="muted error-soft" role="status"></p>
+          <ol id="audio-list" class="list audio-list"></ol>
+        </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
@@ -165,6 +185,7 @@
             <label class="color-box" title="Cor de fundo"><span class="ico" data-icon="palette"></span><input id="bg-color" type="color" value="#000000" aria-label="Cor de fundo" /></label>
             <button id="btn-bg-image" class="ib" type="button" data-icon="image" title="Imagem de fundo…" aria-label="Imagem de fundo"></button>
             <button id="btn-bg-video" class="ib" type="button" data-icon="video" title="Vídeo de fundo (em loop, sem som)…" aria-label="Vídeo de fundo"></button>
+            <button id="btn-bg-camera" class="ib" type="button" data-icon="camera" title="Câmera ou placa de captura…" aria-label="Câmera ou placa de captura"></button>
             <label class="preset-box dim-box" title="Escurecer o fundo para a letra ler melhor">
               <span class="ico" data-icon="sun-dim"></span>
               <select id="bg-dim" aria-label="Escurecer o fundo"></select>
@@ -388,6 +409,22 @@
     </form>
   </dialog>
 
+  <dialog id="camera-dialog">
+    <form id="camera-form" method="dialog">
+      <h3>Câmera ou captura</h3>
+      <select id="cam-device" aria-label="Dispositivo de vídeo"></select>
+      <video id="cam-preview" class="cam-preview" autoplay muted playsinline></video>
+      <p id="cam-status" class="muted error-soft" role="status"></p>
+      <p class="muted">Só imagem, sem som. Serve câmera USB, placa de captura (HDMI) ou a câmera virtual do OBS. Como <b>fundo</b>, a letra aparece por cima;
+        em <b>tela cheia</b>, a câmera ocupa o lugar da letra (Esc limpa).</p>
+      <div class="row end">
+        <button id="cam-close" type="button">Fechar</button>
+        <button id="cam-full" type="button" data-icon="tv" disabled>Tela cheia</button>
+        <button id="cam-bg" type="button" class="primary" data-icon="image" disabled>Usar como fundo</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="prop-dialog">
     <form id="prop-form" method="dialog">
       <h3>Prop</h3>
@@ -582,9 +619,12 @@
   <script src="outputs-panel.js"></script>
   <script src="automation-panel.js"></script>
   <script src="../shared/macroSteps.js"></script>
+  <script src="../shared/audioPlayer.js"></script>
   <script src="messages-panel.js"></script>
   <script src="props-panel.js"></script>
   <script src="macros-panel.js"></script>
+  <script src="audio-panel.js"></script>
+  <script src="camera-panel.js"></script>
   <script src="usage-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>

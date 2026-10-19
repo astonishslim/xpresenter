@@ -13,7 +13,7 @@
 
   const TILE_IDS = ['library', 'preview', 'program', 'slides', 'controls', 'stage', 'playlist'];
   const SECTIONS = {
-    library: ['songs', 'bible', 'media'],
+    library: ['songs', 'bible', 'media', 'audio'],
     preview: ['preview'],
     program: ['program'],
     slides: ['slides'],

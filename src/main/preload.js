@@ -99,6 +99,14 @@ contextBridge.exposeInMainWorld('apresentador', {
     addFiles: (files) => invoke('media:addPaths', [...files].map((f) => webUtils.getPathForFile(f)).filter(Boolean)),
     remove: (id) => invoke('media:remove', id),
   },
+  audio: {
+    list: () => invoke('audio:list'),
+    add: () => invoke('audio:add'),
+    // Arquivos arrastados: o caminho só existe aqui no preload (webUtils); a validação é no processo principal.
+    addFiles: (files) => invoke('audio:addPaths', [...files].map((f) => webUtils.getPathForFile(f)).filter(Boolean)),
+    move: (id, index) => invoke('audio:move', { id, index }),
+    remove: (id) => invoke('audio:remove', id),
+  },
   background: { pickImage: () => invoke('background:pickImage'), pickVideo: () => invoke('background:pickVideo') },
   themes: {
     list: () => invoke('themes:list'),

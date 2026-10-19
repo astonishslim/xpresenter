@@ -21,6 +21,10 @@ const PREFIXES = [PREFIX, '/apresentador'];
 const INPUT_MAP = {
   next: { kind: 'operator', command: 'next' },
   prev: { kind: 'operator', command: 'prev' },
+  // Áudio de fundo: quem toca é a janela do operador (o computador do culto), então vão para ela.
+  'audio/toggle': { kind: 'operator', command: 'audio/toggle' },
+  'audio/next': { kind: 'operator', command: 'audio/next' },
+  'audio/fade': { kind: 'operator', command: 'audio/fade' },
   clear: { kind: 'action', action: { type: 'clear' } },
   black: { kind: 'action', action: { type: 'blackout' } },
   cover: { kind: 'action', action: { type: 'toggleCover' } },

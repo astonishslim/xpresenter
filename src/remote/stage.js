@@ -26,7 +26,7 @@ function show(id, slide, empty) {
 function render(state) {
   const { content, media } = state.layers;
   // Vídeo/imagem no ar ocupa o lugar da letra: o palco vê o que está passando.
-  const now = media ? { label: media.kind === 'video' ? 'VÍDEO' : 'IMAGEM', text: media.title || '—' } : content.slide;
+  const now = media ? { label: { video: 'VÍDEO', camera: 'CÂMERA' }[media.kind] || 'IMAGEM', text: media.title || '—' } : content.slide;
   $('now-label').textContent = now && now.label ? `AGORA · ${now.label.toUpperCase()}` : 'AGORA';
   show('now-text', now, '—');
   const next = state.stage.next;

@@ -59,6 +59,34 @@ npm start
   Cronômetro, controle de vídeo, aviso e mensagem do palco não entram no desfazer e ficam como estão (um aviso que já saiu
   do ar não volta). Guarda os últimos 50 passos, só na memória.
 
+## Câmera e placa de captura
+
+Câmera USB, **placa de captura (HDMI)** ou a câmera virtual do OBS como imagem ao vivo. Botão de câmera em **Aviso e fundo**:
+
+- Abre um diálogo com a lista de dispositivos e um **preview**. **Usar como fundo** (a letra aparece por cima) ou **Tela cheia**
+  (a câmera ocupa o lugar da letra; `Esc` limpa). **Só imagem, sem som.**
+- Cada janela de projeção abre o seu próprio fluxo e **solta a câmera ao trocar de fundo ou limpar** (a luz da câmera apaga).
+  Se o dispositivo não abrir (em uso por outro programa, desconectado), a tela fica com o fundo preto em vez de travar.
+- O fundo de câmera entra nos **temas** como qualquer fundo. O celular e o retorno de palco não mostram a imagem (só o rótulo
+  "CÂMERA"), como acontece com imagens e vídeos de fundo.
+- A câmera fica aberta enquanto estiver no fundo ou em tela cheia, mesmo com o fundo oculto, a capa ou a tela preta ligados
+  (para voltar na hora). Cada projeção, o Preview e o Programa abrem o seu próprio fluxo do mesmo dispositivo: **algumas placas
+  de captura só aceitam uma abertura**; se a imagem ficar preta, teste com uma projeção só e confira no hardware real.
+- **Segurança:** o app só libera a **câmera (vídeo)** e **só para as próprias janelas**. Microfone, localização, notificações e
+  qualquer outro pedido do navegador embutido são negados.
+
+## Áudio de fundo
+
+Música para **antes do culto**, tocada pelo computador do operador (a saída de som dele). Seção **Áudio** no bloco da biblioteca.
+
+- Adicione faixas pelo botão ou **arrastando** os arquivos (MP3, M4A, AAC, OGG, OPUS, WAV, FLAC; até 100). Reordene com a seta,
+  remova com o **x**; faixa cujo arquivo sumiu aparece marcada. Só guarda a referência (não copia arquivos).
+- Tocar/pausar, anterior, próxima, **volume** e **Repetir** (volta à primeira no fim da lista).
+- **Fade ao entrar o culto** (ligado por padrão): quando o primeiro slide ou vídeo entra ao vivo, a música **baixa em 3 s e para**.
+  O botão do alto-falante riscado faz o mesmo na hora. Volume, repetir e fade ficam salvos neste computador.
+- **OSC** (Companion, Stream Deck): `/xpresenter/audio/toggle` (tocar/pausar), `/xpresenter/audio/next` e `/xpresenter/audio/fade`.
+- O som de **vídeos** continua saindo pela primeira projeção que mostra mídia; o áudio de fundo é separado e não passa pela projeção.
+
 ## Props
 
 Elementos **fixos sobre a projeção** que você liga e desliga com um clique, enquanto os slides passam: logo da igreja, QR

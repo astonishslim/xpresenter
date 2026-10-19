@@ -17,7 +17,8 @@ function registerAutomationIpc({ store, file, getWindow, step, runMacro }) {
     runMacro,
     sendToOperator: (command) => {
       // Se o que está no ar veio do culto, avança/volta por ele aqui; senão, o operador decide pelos Slides abertos.
-      if (step(command === 'next' ? 1 : -1)) return;
+      // Avançar/voltar tenta seguir o culto aqui mesmo; os demais comandos (áudio) só o operador sabe fazer.
+      if ((command === 'next' || command === 'prev') && step(command === 'next' ? 1 : -1)) return;
       const win = getWindow();
       if (win && !win.isDestroyed()) win.webContents.send('automation:command', command);
     },

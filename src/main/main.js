@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, session } = require('electron');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -19,6 +19,9 @@ const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
 const { registerMessageIpc } = require('./messageIpc');
 const { registerPropIpc } = require('./propIpc');
+const { registerAudioIpc } = require('./audioIpc');
+const { createAudioLibrary } = require('../core/audioLibrary');
+const { isMediaPermissionAllowed } = require('../core/permissions');
 const { registerMacroIpc } = require('./macroIpc');
 const { createPropLibrary } = require('../core/propLibrary');
 const { createMacroLibrary, createMacroRunner } = require('../core/macros');
@@ -164,7 +167,19 @@ function migrateLegacyBible(bibles, userDataDir) {
   }
 }
 
+// Só a câmera (vídeo, sem microfone) e só para as janelas do app; todo o resto é negado.
+function restrictPermissions() {
+  const appDir = path.join(__dirname, '..');
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    callback(isMediaPermissionAllowed({ kind: 'request', permission, url: webContents.getURL(), mediaTypes: details.mediaTypes, appDir }));
+  });
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, _origin, details) => isMediaPermissionAllowed({
+    kind: 'check', permission, url: webContents ? webContents.getURL() : '', mediaType: details.mediaType, appDir,
+  }));
+}
+
 async function start() {
+  restrictPermissions();
   const userDataDir = app.getPath('userData');
   const themes = createThemeLibrary(path.join(userDataDir, 'themes.json'));
   const store = createStore(initialState(themes.getCurrent()));
@@ -219,6 +234,7 @@ async function start() {
   // Props (logo, QR, faixa) e macros (um botão que faz várias coisas).
   const props = createPropLibrary(path.join(userDataDir, 'props.json'));
   registerPropIpc({ props });
+  registerAudioIpc({ audio: createAudioLibrary(path.join(userDataDir, 'audio.json')), getWindow: () => operator });
   const macros = createMacroLibrary(path.join(userDataDir, 'macros.json'));
   const macroRunner = createMacroRunner({
     dispatch: store.dispatch,

@@ -80,7 +80,7 @@ function renderState(state) {
   const { content, media } = state.layers;
   const slide = content.slide;
   liveKey = media ? media.key || null : (slide ? slide.key || null : null); // vídeo do culto também marca a posição
-  $('live-label').textContent = media ? (media.kind === 'video' ? 'VÍDEO' : 'IMAGEM') : (slide ? slide.label || '' : '');
+  $('live-label').textContent = media ? ({ video: 'VÍDEO', camera: 'CÂMERA' }[media.kind] || 'IMAGEM') : (slide ? slide.label || '' : '');
   $('live-text').textContent = media ? media.title || '—' : (slide ? slide.text || slide.label || '—' : '—');
   $('black').classList.toggle('on', state.blackout);
   $('cover').classList.toggle('on', state.layers.cover.visible);

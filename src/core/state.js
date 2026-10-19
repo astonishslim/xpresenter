@@ -152,15 +152,12 @@ const UNSAFE_URL_CHARS = /["')\\\s]/;
 // Caminho que o Windows trataria como compartilhamento de rede: //host, \\host, /\host (também codificados).
 const NETWORK_PATH = /^[/\\]{2}/;
 
-// Cor hex, ou URL file: local sem host (impede SMB/NTLM e carga remota).
+// URL file: local sem host (impede SMB/NTLM e carga remota). Serve para imagem, vídeo e áudio.
 // `file:////host/x` tem host vazio, mas o caminho começa com // e o Chromium abre \\host: por isso o teste do caminho.
-function isValidBackground(bg) {
-  if (!bg || typeof bg.value !== 'string') return false;
-  if (bg.kind === 'color') return HEX_COLOR.test(bg.value);
-  if (bg.kind !== 'image' && bg.kind !== 'video') return false;
-  if (UNSAFE_URL_CHARS.test(bg.value)) return false;
+function isLocalFileUrl(value) {
+  if (typeof value !== 'string' || UNSAFE_URL_CHARS.test(value)) return false;
   try {
-    const url = new URL(bg.value);
+    const url = new URL(value);
     if (url.protocol !== 'file:' || url.host !== '') return false;
     return !NETWORK_PATH.test(decodeURIComponent(url.pathname));
   } catch {
@@ -168,9 +165,21 @@ function isValidBackground(bg) {
   }
 }
 
+// Id de dispositivo de câmera/captura (vem do navegador, só vai para getUserMedia): letras, números e + / = . _ -
+const CAMERA_ID_RE = /^[A-Za-z0-9+/=._-]{1,200}$/;
+
+// Cor hex, câmera (id do dispositivo), ou arquivo local (imagem/vídeo).
+function isValidBackground(bg) {
+  if (!bg || typeof bg.value !== 'string') return false;
+  if (bg.kind === 'color') return HEX_COLOR.test(bg.value);
+  if (bg.kind === 'camera') return CAMERA_ID_RE.test(bg.value);
+  if (bg.kind !== 'image' && bg.kind !== 'video') return false;
+  return isLocalFileUrl(bg.value);
+}
+
 const isOptionalText = (v) => v == null || typeof v === 'string';
 // Prop: campos fechados; a imagem precisa ser um arquivo local sem host (mesma regra do fundo).
-const isValidProp = (prop) => isValidPropFields(prop) && (prop.kind !== 'image' || isValidBackground({ kind: 'image', value: prop.value }));
+const isValidProp = (prop) => isValidPropFields(prop) && (prop.kind !== 'image' || isLocalFileUrl(prop.value));
 const MEDIA_COMMANDS = ['play', 'pause', 'restart'];
 
 const REQUIRED_FIELD = {
@@ -210,4 +219,4 @@ function reduce(state, action) {
   return handler ? handler(state, action) : state;
 }
 
-module.exports = { initialState, reduce, isValidAction, isValidBackground, isValidProp, stampAction, liveKeyOf, DEFAULT_BACKGROUND };
+module.exports = { initialState, reduce, isValidAction, isValidBackground, isValidProp, isLocalFileUrl, stampAction, liveKeyOf, DEFAULT_BACKGROUND };

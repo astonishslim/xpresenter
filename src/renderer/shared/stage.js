@@ -27,8 +27,35 @@
     textEl.style.fontSize = `${lo}cqh`;
   }
 
+  // Tira o conteúdo de uma camada. Fecha o fluxo da câmera de qualquer <video> que sai de cena
+  // (sem isso a câmera continuaria ligada, com a luz acesa, mesmo sem aparecer na tela).
+  function releaseHost(host) {
+    host.querySelectorAll('video').forEach((video) => {
+      if (video.srcObject) video.srcObject.getTracks().forEach((track) => track.stop());
+      video.srcObject = null;
+    });
+    host.replaceChildren();
+  }
+
+  // Câmera ou placa de captura (sem som): cada janela abre o seu fluxo e o solta ao sair de cena.
+  function attachCamera(host, deviceId) {
+    const video = document.createElement('video');
+    Object.assign(video, { autoplay: true, muted: true, playsInline: true });
+    host.appendChild(video);
+    if (!navigator.mediaDevices) return;
+    navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } }, audio: false })
+      .then((stream) => {
+        if (!video.isConnected) {
+          stream.getTracks().forEach((track) => track.stop()); // saiu de cena antes de abrir
+          return;
+        }
+        video.srcObject = stream;
+      })
+      .catch((err) => console.warn(`[câmera] não foi possível abrir o dispositivo: ${err.message}`));
+  }
+
   function setBackground(bgEl, bg) {
-    bgEl.replaceChildren();
+    releaseHost(bgEl);
     bgEl.style.backgroundImage = '';
     bgEl.style.backgroundColor = '#000';
     if (bg.kind === 'image') {
@@ -37,6 +64,8 @@
       const video = document.createElement('video');
       Object.assign(video, { src: bg.value, autoplay: true, loop: true, muted: true });
       bgEl.appendChild(video);
+    } else if (bg.kind === 'camera') {
+      attachCamera(bgEl, bg.value);
     } else {
       bgEl.style.backgroundColor = bg.value;
     }
@@ -87,8 +116,9 @@
     const key = media ? `${media.kind}|${media.value}|${media.seq}` : '';
     if (key !== last.key) {
       last.key = key;
-      layer.replaceChildren();
+      releaseHost(layer);
       layer.style.backgroundImage = '';
+      if (media && media.kind === 'camera') attachCamera(layer, media.value);
       if (media && media.kind === 'image') layer.style.backgroundImage = `url("${media.value}")`;
       if (media && media.kind === 'video') {
         const video = document.createElement('video');
