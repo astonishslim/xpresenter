@@ -16,7 +16,8 @@ npm start
 1. **+ Música** cria uma música. Use `[Verso 1]`, `[Refrão]`, `[Ponte]` para marcar seções; linha em branco separa slides.
    Acordes inline como `[Am]` são ignorados na projeção.
 2. **Projetar** abre a saída: em tela cheia no monitor externo, ou em janela se houver um só monitor.
-3. Clique num slide para colocá-lo ao vivo. Atalhos: `→`/`Espaço` próximo, `←` anterior, `B` preto, `Esc` limpar.
+3. Clique num slide para colocá-lo ao vivo. Atalhos: `→`/`Espaço` próximo, `←` anterior, `B` preto, `Esc` limpa **uma camada por vez, da mais alta para a mais baixa** (preto, aviso, cronômetro, capa, props, letra/vídeo; o fundo fica),
+   `1`–`9`/`C`/`E`/`P`/`I`/`F` seção, `F2` editar slide, `Ctrl+Z` desfazer.
 4. **Bíblia**: escolha a versão e digite uma referência (`João 3:16-17`, `1 Co 13:4-7`, `Salmo 23`) **ou palavras**
    (`amou o mundo`, `"assim amou Deus"` para frase exata). A busca ignora acentos e maiúsculas. Clique num resultado para
    abrir a passagem; cada verso vira um slide com a versão no rótulo (`João 3:16 · TB`).
@@ -26,7 +27,160 @@ npm start
      um arquivo por livro como o `damarals/biblias`, ou o formato do app) e **Zefania XML**. Versões importadas podem ser removidas.
    - ARA, ARC, NVI, NAA, NTLH e outras são de editoras: **não vêm no app**. Importe somente arquivos que você tenha o direito de usar.
 5. **Culto** é a ordem do culto (músicas e versículos); reordene e remova.
-6. **Remoto** mostra um endereço para abrir no celular (mesma rede Wi-Fi). O endereço contém um token novo a cada execução.
+6. **Remoto** mostra um endereço para abrir no celular (mesma rede Wi-Fi), com **QR code**: aponte a câmera do celular e o controle remoto abre (o do retorno de palco também tem QR). O endereço contém um token novo a cada execução.
+
+## Arranjos e teclas de seção
+
+- **Arranjo** é a ordem das seções de uma música. Escreva cada seção **uma vez só** na letra (o refrão uma vez) e, no editor
+  da música, em **Arranjos**, dê um nome e a ordem: `V1 C V2 C P C C`. Siglas: `V1`, `V2`… versos, `C` (ou `R`) refrão,
+  `PC` pré-refrão, `P` (ou `B`) ponte, `I` intro, `F` final; ou os nomes inteiros separados por vírgula
+  (`Verso 1, Refrão, Coda`). O editor mostra as siglas da letra e avisa o que o arranjo pede e não existe.
+- Uma música pode ter até 12 arranjos (ex.: "Culto", "Acústico"). O **primeiro é o padrão** ao abrir e ao adicionar ao culto.
+- Nos **Slides**, o seletor de arranjo troca a ordem na hora. Num item do **culto**, a troca fica salva no culto (o celular
+  também passa a seguir esse arranjo). "Ordem da letra" volta à ordem em que a letra foi escrita.
+- **Cores e teclas por seção**: cada slide tem a cor do tipo (verso azul, refrão vermelho, pré-refrão âmbar, ponte roxo,
+  intro verde, final cinza) e o começo de cada seção mostra a tecla. `1`–`9` vão ao verso, `C` ao refrão, `E` ao pré-refrão,
+  `P` à ponte, `I` à intro e `F` ao final, **ao vivo**, na próxima vez que a seção aparece depois do slide no ar (no fim,
+  volta à primeira). Os botões `V1 C V2 C P…` acima dos slides fazem o mesmo com o mouse; o da seção no ar fica verde.
+
+## Edição rápida, mensagens e desfazer
+
+- **Editar slide**: botão direito no slide (ou `F2` no selecionado) abre só aquele texto. Numa música, a correção vai para a
+  **letra** (vale para todas as repetições do trecho e para o culto) e as linhas que não mudaram mantêm os acordes. Num item
+  do culto que não é música (versículo, PowerPoint), corrige o slide no culto. Se o trecho está no ar, ele é reenviado
+  corrigido. `Ctrl+Enter` salva.
+- **Mensagens** (seção no bloco "Aviso e fundo"): modelos com campos entre chaves, como
+  `Pais de {criança}, por favor compareçam ao berçário.` Escolha o modelo, preencha os campos e **Mostrar** (ou Enter). Cada
+  modelo diz **onde** aparece (tela, retorno de palco, ou os dois) e **por quanto tempo** (10 s a 5 min, ou até tirar). Ao
+  esgotar o tempo, só sai se a mensagem no ar ainda for aquela (um aviso que você trocou fica). O app já vem com três
+  exemplos (berçário, veículo, tempo para o pregador); até 30 modelos, em `messages.json`.
+- **Desfazer** (`Ctrl+Z` ou o botão ↶ no cabeçalho) volta o que estava no ar: slide, tela preta, capa, camadas, fundo,
+  e estilo. `Ctrl+Shift+Z` (ou `Ctrl+Y`) refaz. Ações em sequência rápida (tema automático + slide) são um passo só.
+  Cronômetro, controle de vídeo, aviso e mensagem do palco não entram no desfazer e ficam como estão (um aviso que já saiu
+  do ar não volta). Guarda os últimos 50 passos, só na memória.
+
+## Acordes e layouts do retorno de palco
+
+- Os acordes escritos na letra como `[Am]`, `[C#m7]`, `[G/B]` continuam **ocultos na projeção**, mas agora o app guarda a
+  **coluna** de cada um e os leva até o retorno de palco. Ex.: `[G]Grande é o [D]Senhor` põe G sobre o "G" e D sobre o "S".
+- O retorno tem **três layouts**, no seletor ao lado do monitor (fica salvo) ou pelo parâmetro `&layout=` do endereço (tablet):
+  - **Letra** (padrão): agora e próximo, com relógio e cronômetro.
+  - **Banda** (`&layout=banda`): a letra com os **acordes em amarelo sobre as sílabas**, em fonte de largura fixa; o texto
+    encolhe sozinho até caber. Slides sem acordes aparecem como texto normal.
+  - **Pregador** (`&layout=pregador`): o **cronômetro grande** no centro e o relógio; sem letra. A mensagem do palco continua.
+- Só o retorno mostra acordes; a projeção, o Preview e o Programa seguem só com a letra.
+
+## Importar letras de outros programas
+
+Botão de importar (seta para cima) na seção **Músicas**, ou **arraste os arquivos** para a seção. Aceita vários de uma vez:
+
+- **OpenLyrics** (`.xml`, o formato do OpenLP): título, autores, CCLI, versos, **acordes** (`<chord/>`) e a ordem (`verseOrder`).
+- **OpenSong** (arquivo sem extensão ou `.xml`): título, autor, CCLI, seções `[V1] [C] [B] [P] [T]`, **linhas de acordes**
+  (`.Am    F` sobre a letra, que viram acordes na coluna certa), versos numerados e a **ordem de apresentação**.
+- **ChordPro** (`.cho`, `.crd`, `.chordpro`): `{title}`, `{artist}`, `{ccli}`, `{soc}…{eoc}` (refrão), `{comment: Ponte}`,
+  blocos viram versos numerados; tablatura (`{sot}…{eot}`) é ignorada.
+- **Texto simples** (`.txt`): usa o nome do arquivo como título; marcadores `[Verso 1]` e acordes `[Am]` são mantidos.
+- A ordem de apresentação do arquivo vira o arranjo **"Original"** (o padrão da música). Músicas com o mesmo título (sem
+  diferenciar acento e maiúsculas) **não são duplicadas**. O app diz quantas entraram e, para cada arquivo recusado, o motivo.
+- Limites: até 50 arquivos por vez, 1 MB cada; caminho de rede não é aceito. Os formatos **Holyrics** e **ProPresenter (.pro)**
+  não são suportados (são proprietários): exporte para texto ou OpenLyrics.
+
+## Seguir outro computador (espelho e redundância)
+
+Botão de setas circulares no cabeçalho. Um segundo xpresenter **espelha** o primeiro: projeção, retorno de palco, controle do
+celular e tela do operador mostram o mesmo que lá. Serve de **reserva** (se o primeiro cair, a projeção do segundo continua
+como estava) ou de **sala de transmissão** separada.
+
+1. No computador principal, abra o botão do celular (controle remoto) e copie o endereço do **Controle remoto**.
+2. No segundo, abra **Seguir outro computador**, cole o endereço e clique em **Seguir**. A faixa laranja **SEGUINDO** aparece no cabeçalho.
+3. **Parar de seguir** devolve o controle (e mantém o que estava no ar).
+
+- Enquanto segue, os **controles deste computador ficam bloqueados** (slides, tela preta, desfazer, macros e OSC entram no
+  bloqueio). Se o principal sumir, a faixa vira **SEM SINAL**, a projeção fica como estava e o app tenta reconectar sozinho.
+- O estado recebido é **validado campo a campo** (fundo, slide, acordes, props, estilo, cronômetro…) antes de entrar: um
+  computador ou rede com problema não consegue pôr arquivo de rede nem texto malformado na sua projeção. O próprio endereço
+  é recusado (evita um laço), e o endereço só vale com o token (que muda a cada vez que o principal abre).
+- **O cronômetro bate** mesmo com os relógios dos dois computadores diferentes.
+- **Arquivos** (fundos, imagens, vídeos, PDFs, props) precisam estar **nos mesmos caminhos** nos dois computadores, ou numa
+  pasta sincronizada; senão o segundo mostra o fundo preto no lugar. Câmera e áudio de fundo são locais de cada computador.
+- As **regras de saída OSC** do segundo também disparam (ele "vê" as mudanças): desligue-as lá se o principal já as envia.
+- Use só em **rede confiável** (HTTP simples, como o controle remoto).
+
+## Câmera e placa de captura
+
+Câmera USB, **placa de captura (HDMI)** ou a câmera virtual do OBS como imagem ao vivo. Botão de câmera em **Aviso e fundo**:
+
+- Abre um diálogo com a lista de dispositivos e um **preview**. **Usar como fundo** (a letra aparece por cima) ou **Tela cheia**
+  (a câmera ocupa o lugar da letra; `Esc` limpa). **Só imagem, sem som.**
+- Cada janela de projeção abre o seu próprio fluxo e **solta a câmera ao trocar de fundo ou limpar** (a luz da câmera apaga).
+  Se o dispositivo não abrir (em uso por outro programa, desconectado), a tela fica com o fundo preto em vez de travar.
+- O fundo de câmera entra nos **temas** como qualquer fundo. O celular e o retorno de palco não mostram a imagem (só o rótulo
+  "CÂMERA"), como acontece com imagens e vídeos de fundo.
+- A câmera fica aberta enquanto estiver no fundo ou em tela cheia, mesmo com o fundo oculto, a capa ou a tela preta ligados
+  (para voltar na hora). Cada projeção, o Preview e o Programa abrem o seu próprio fluxo do mesmo dispositivo: **algumas placas
+  de captura só aceitam uma abertura**; se a imagem ficar preta, teste com uma projeção só e confira no hardware real.
+- **Segurança:** o app só libera a **câmera (vídeo)** e **só para as próprias janelas**. Microfone, localização, notificações e
+  qualquer outro pedido do navegador embutido são negados.
+
+## Áudio de fundo
+
+Música para **antes do culto**, tocada pelo computador do operador (a saída de som dele). Seção **Áudio** no bloco da biblioteca.
+
+- Adicione faixas pelo botão ou **arrastando** os arquivos (MP3, M4A, AAC, OGG, OPUS, WAV, FLAC; até 100). Reordene com a seta,
+  remova com o **x**; faixa cujo arquivo sumiu aparece marcada. Só guarda a referência (não copia arquivos).
+- Tocar/pausar, anterior, próxima, **volume** e **Repetir** (volta à primeira no fim da lista).
+- **Fade ao entrar o culto** (ligado por padrão): quando o primeiro slide ou vídeo entra ao vivo, a música **baixa em 3 s e para**.
+  O botão do alto-falante riscado faz o mesmo na hora. Volume, repetir e fade ficam salvos neste computador.
+- **OSC** (Companion, Stream Deck): `/xpresenter/audio/toggle` (tocar/pausar), `/xpresenter/audio/next` e `/xpresenter/audio/fade`.
+- O som de **vídeos** continua saindo pela primeira projeção que mostra mídia; o áudio de fundo é separado e não passa pela projeção.
+
+## Props
+
+Elementos **fixos sobre a projeção** que você liga e desliga com um clique, enquanto os slides passam: logo da igreja, QR
+do Pix ou das ofertas, faixa com o nome do pregador. Seção **Props** (por padrão no bloco "Culto"; use **+** para criar).
+
+- Cada prop é **imagem** (arquivo local: PNG com fundo transparente funciona bem) ou **texto** de uma linha (até 80
+  caracteres), com **posição** (quatro cantos, centro ou faixa inferior) e **tamanho**. Até 30 props salvos em `props.json`
+  e até 6 no ar ao mesmo tempo (o mais antigo sai quando entra o sétimo).
+- O botão do prop fica aceso enquanto ele está no ar. Se a imagem foi movida ou apagada, o app avisa em vez de projetar vazio.
+  Editar um prop que está no ar atualiza o ao vivo.
+- Ficam acima da legenda e **abaixo da capa e da tela preta**; **não aparecem nas saídas "só letra"** (telas da banda).
+  Não entram no desfazer: `Ctrl+Z` volta o slide, não tira nem traz de volta um prop.
+- Imagem só de arquivo local, e texto só como texto (nunca HTML nem CSS), então um `props.json` editado à mão não injeta nada.
+
+## Macros
+
+Um botão que **faz várias coisas de uma vez**. Seção **Macros** (no bloco "Culto"; **+** cria). O app vem com dois exemplos
+(**Zerar a tela** e **Contagem para as 19h**).
+
+- **Passos** (lista fechada, na ordem em que você montar): aplicar tema; ligar ou desligar um prop (ou todos); mostrar uma
+  mensagem (modelo **sem campos**) ou tirá-la; capa e tela preta (ligar/desligar); limpar o conteúdo; cronômetro (regressiva
+  em minutos, até um horário, zerar, iniciar, pausar, mostrar ou esconder na tela). Até 20 passos por macro e 30 macros.
+- **Como executar**: clique no botão do macro, `Alt+1` a `Alt+9` (a ordem da lista) ou **OSC** `/xpresenter/macro/N` (N de 1 a 99,
+  a posição do macro na lista), para Companion, Stream Deck ou mesa de luz.
+- Passos que ligam/desligam (capa, preto, cronômetro) só agem se ainda não estiverem como pedido, então rodar o macro duas
+  vezes não inverte nada. Se um passo falha (tema ou prop que não existe mais, imagem sumida), os outros continuam e o app
+  diz **quais** falharam.
+- O macro inteiro é **um passo só no desfazer** (`Ctrl+Z` desfaz tudo o que ele fez, menos cronômetro, aviso e props, que ficam
+  fora do desfazer). Cada passo passa pela mesma validação do resto do app: um `macros.json` editado à mão não faz nada que
+  você não faria pela tela.
+
+## Relatório de uso (CCLI)
+
+- Cada música que entra **ao vivo** é registrada **uma vez por dia** (título, autor, número CCLI, data e hora) em `usage.jsonl`
+  na pasta de dados. Versículos, mídia e PDF não contam. Passar de slide, voltar ao item ou desfazer não duplica.
+- Cadastre o **autor** e o **nº CCLI** no editor da música (o número só aceita dígitos).
+- O botão de planilha na seção **Culto** abre o relatório: escolha o período (começa no mês corrente), confira a lista e
+  **Exportar CSV…**. O arquivo usa `;` e abre direto no Excel em português; textos que começariam com `=`, `+`, `-` ou `@`
+  ganham um apóstrofo, para uma planilha nunca executá-los como fórmula.
+
+## Cronômetro até um horário e efeitos de texto
+
+- No **Cronômetro**, o tipo **Até o horário** conta até um horário do relógio do computador (hoje, ou amanhã se já passou):
+  ótimo antes do culto, com a legenda `Começa em {cronometro}`. Não pausa (só **Zerar**, que volta à regressiva de 5 min) e
+  fica vermelho e negativo depois do horário. O retorno de palco e o celular acompanham.
+- Em **Tema e texto**: **contorno** da letra (fino ou grosso), **caixa escura** atrás do texto (10–80%, para ler sobre vídeo
+  claro) e **desfoque** do fundo (imagem ou vídeo). Entram nos temas; temas antigos abrem sem efeitos.
 
 ## Preview, Programa e retorno de palco
 
@@ -36,8 +190,10 @@ npm start
 - **Retorno de palco** (para banda e pregador): slide atual, próximo, relógio, aviso de tela preta e mensagem livre.
   Abre em tela cheia no monitor escolhido ou em janela. Também funciona em tablet/celular: botão **Remoto** mostra o link.
 - **Grade bento**: a tela do operador é uma grade de 12 colunas com blocos de tamanhos variados.
-  - **Mover bloco**: arraste a alça ⠿ do bloco sobre outro (ele toma o lugar do alvo), ou foque a alça e use as setas.
-  - **Redimensionar**: arraste o canto ◢ (encaixa nas células da grade), ou foque o canto e use as setas; duplo clique restaura.
+  - **Mover bloco**: arraste a alça ⠿ do bloco sobre outro (ele toma o lugar do alvo; uma **linha azul suave** na borda do alvo mostra onde ele vai encaixar: à esquerda, antes; à direita, depois), ou foque a alça e use as setas.
+  - **Redimensionar**: arraste a **borda direita** (só a largura), a **borda de baixo** (só a altura) ou o **canto** ◢ (as duas); tudo encaixa nas células da grade.
+    Perto do máximo o bloco **encaixa no tamanho cheio**. **Duplo clique** numa borda (ou **Home** com o foco nela) alterna entre largura/altura total e o tamanho anterior;
+    no canto, duplo clique restaura o padrão. Pelo teclado, foque a alça e use as setas.
   - **Mover seção**: cada seção (Músicas, Bíblia, Preview, Programa, Slides, Controles, Retorno, Culto) tem a alça ⋮⋮.
     Arraste para outro bloco, antes/depois de outra seção, ou para um bloco vazio. Pelo teclado: ↑ ↓ reordena dentro do
     bloco e ← → manda para o bloco anterior/seguinte. Seções também recolhem.
@@ -211,9 +367,9 @@ Fundo (cor/imagem/vídeo) → Conteúdo (slide) → Legenda → Capa → Cronôm
 ## Arquitetura
 
 ```
-src/core/      lógica pura e testada (songParser, songSearch, lyricsOnline, bible, state, textStyle, themeLibrary, store, library, remoteServer)
+src/core/      lógica pura e testada (songParser, songEdit, songSearch, lyricsOnline, bible, state, textStyle, themeLibrary, store, library, messages, remoteServer)
 src/main/      processo principal Electron (janelas, IPC, preload)
-src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa; layoutModel.js com o modelo puro da grade bento)
+src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa; layoutModel.js com o modelo puro da grade bento; sections.js com tipos, teclas e siglas das seções)
 src/remote/    controle remoto, retorno de palco e página de transmissão (HTTP + SSE, sem dependências)
 ```
 
@@ -251,7 +407,7 @@ permitidas. Use apenas em Wi-Fi confiável.
 ## Licença
 
 Código sob a licença [MIT](LICENSE). Componentes de terceiros mantêm as próprias licenças (pasta `licenses/` e
-`data/bibles/SOURCES.md`): ícones Lucide (ISC), pdf.js (Apache-2.0), fflate (MIT) e Bíblia Livre (CC BY 3.0 BR, com
+`data/bibles/SOURCES.md`): ícones Lucide (ISC), pdf.js (Apache-2.0), fflate (MIT), qrcode-generator (MIT) e Bíblia Livre (CC BY 3.0 BR, com
 atribuição exibida no app). TB e Almeida 1911 são de domínio público.
 
 ## Próximos passos sugeridos

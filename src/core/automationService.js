@@ -7,7 +7,7 @@ const { isValidAction, stampAction } = require('./state');
 
 const MAX_MESSAGES_PER_SECOND = 100;
 
-function createAutomationService({ store, sendToOperator }) {
+function createAutomationService({ store, sendToOperator, runMacro = () => {} }) {
   let inSocket = null;
   let outSocket = null;
   let rules = [];
@@ -28,6 +28,7 @@ function createAutomationService({ store, sendToOperator }) {
       const cmd = commandFor(msg.address);
       if (!cmd) continue;
       if (cmd.kind === 'operator') sendToOperator(cmd.command);
+      else if (cmd.kind === 'macro') runMacro(cmd.index);
       else if (isValidAction(cmd.action)) store.dispatch(stampAction(cmd.action, Date.now()));
     }
   };

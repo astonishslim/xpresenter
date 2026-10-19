@@ -67,8 +67,9 @@ function renderTimer() {
   const { timerValueMs, formatTimer } = window.liveInfo;
   const ms = timerValueMs(timer, Date.now() + clockOffsetMs);
   $('timer-text').textContent = formatTimer(ms);
-  $('timer-text').classList.toggle('over', timer.mode === 'countdown' && ms <= 0 && timer.startedAt != null);
+  $('timer-text').classList.toggle('over', window.liveInfo.isCountdown(timer) && ms <= 0 && (timer.startedAt != null || timer.mode === 'until'));
   const running = timer.startedAt != null;
+  $('timer-toggle').disabled = timer.mode === 'until'; // até o horário não pausa: só zerar
   $('timer-toggle').querySelector('.label').textContent = running ? 'Pausar' : 'Iniciar';
   window.icons.setIcon($('timer-toggle'), running ? 'pause' : 'play', 22);
 }
@@ -79,7 +80,7 @@ function renderState(state) {
   const { content, media } = state.layers;
   const slide = content.slide;
   liveKey = media ? media.key || null : (slide ? slide.key || null : null); // vídeo do culto também marca a posição
-  $('live-label').textContent = media ? (media.kind === 'video' ? 'VÍDEO' : 'IMAGEM') : (slide ? slide.label || '' : '');
+  $('live-label').textContent = media ? ({ video: 'VÍDEO', camera: 'CÂMERA' }[media.kind] || 'IMAGEM') : (slide ? slide.label || '' : '');
   $('live-text').textContent = media ? media.title || '—' : (slide ? slide.text || slide.label || '—' : '—');
   $('black').classList.toggle('on', state.blackout);
   $('cover').classList.toggle('on', state.layers.cover.visible);

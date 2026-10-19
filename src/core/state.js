@@ -1,13 +1,25 @@
 const { DEFAULT_TEXT_STYLE, isValidStylePatch, mergeStyle } = require('./textStyle');
 const { timerValueMs } = require('../renderer/shared/liveInfo');
+const { isValidPropFields, itemOf, MAX_ACTIVE_PROPS } = require('./propModel');
+const { isChord, MAX_CHORD_LINES, MAX_CHORDS_PER_LINE, MAX_CHORD_COLUMN } = require('./chords');
 
 const TIMER_MODES = ['countdown', 'stopwatch'];
 const TIMER_MAX_SECONDS = 24 * 60 * 60;
 const DEFAULT_TIMER_SECONDS = 5 * 60;
 // Ações que dependem do relógio: quem despacha (IPC/remoto) carimba `now`, e o reducer continua puro.
-const TIMED_ACTIONS = new Set(['timerToggle']);
+const TIMED_ACTIONS = new Set(['timerToggle', 'timerUntil']);
+const CLOCK_TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-const timerAtStart = (mode, setMs) => ({ mode, setMs, baseMs: mode === 'countdown' ? setMs : 0, startedAt: null });
+const timerAtStart = (mode, setMs) => ({ mode, setMs, baseMs: mode === 'countdown' ? setMs : 0, startedAt: null, targetAt: null });
+
+// Próxima vez que o relógio local marca HH:MM (hoje, ou amanhã se já passou). Fica em ms para todos os aparelhos.
+function nextClockTime(time, now) {
+  const [, hours, minutes] = CLOCK_TIME_RE.exec(time);
+  const today = new Date(now);
+  const target = new Date(today.getFullYear(), today.getMonth(), today.getDate(), Number(hours), Number(minutes), 0, 0);
+  if (target.getTime() > now) return target.getTime();
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, Number(hours), Number(minutes), 0, 0).getTime();
+}
 
 function stampAction(action, now) {
   return action && TIMED_ACTIONS.has(action.type) ? { ...action, now } : action;
@@ -34,6 +46,7 @@ function initialState(look = {}) {
       content: { slide: null },
       cover: { visible: false },
       announcement: { text: null },
+      props: { items: [] }, // logo, QR, faixa: ficam fixos sobre os slides até serem desligados
     },
     textStyle: { ...(look.style || DEFAULT_TEXT_STYLE) },
     stage: { next: null, message: null },
@@ -54,12 +67,18 @@ const clampSlideMeta = (slide) => ({
 const TIMER_HANDLERS = {
   timerSet: (s, a) => withTimer(s, timerAtStart(a.mode, a.mode === 'countdown' ? a.seconds * 1000 : 0)),
   // Liga/pausa: ao pausar, guarda o valor do instante; ao ligar, marca o início.
+  timerUntil: (s, a) => (Number.isFinite(a.now)
+    ? withTimer(s, { mode: 'until', setMs: 0, baseMs: 0, startedAt: null, targetAt: nextClockTime(a.time, a.now) })
+    : s),
   timerToggle: (s, a) => {
-    if (!Number.isFinite(a.now)) return s;
+    if (!Number.isFinite(a.now) || s.timer.mode === 'until') return s; // até o horário não pausa
     if (s.timer.startedAt == null) return withTimer(s, { startedAt: a.now });
     return withTimer(s, { baseMs: timerValueMs(s.timer, a.now), startedAt: null });
   },
-  timerReset: (s) => withTimer(s, timerAtStart(s.timer.mode, s.timer.setMs)),
+  // Zerar tira do modo "até o horário" e volta à regressiva padrão.
+  timerReset: (s) => withTimer(s, s.timer.mode === 'until'
+    ? timerAtStart('countdown', DEFAULT_TIMER_SECONDS * 1000)
+    : timerAtStart(s.timer.mode, s.timer.setMs)),
   timerVisible: (s) => withTimer(s, { visible: !s.timer.visible }),
 };
 
@@ -72,6 +91,17 @@ const HANDLERS = {
     stage: { ...s.stage, next: a.next || null },
   }),
   clear: (s) => ({ ...s, layers: { ...s.layers, media: null, content: { slide: null } }, stage: { ...s.stage, next: null } }),
+  // ESC: tira só a camada mais alta que está no ar (preto, aviso, cronômetro, capa, props, letra/vídeo), de cima
+  // para baixo. O fundo fica: é o visual do culto, não algo "no ar".
+  clearTop: (s) => {
+    if (s.blackout) return { ...s, blackout: false };
+    if (s.layers.announcement.text) return HANDLERS.setAnnouncement(s, { text: null });
+    if (s.timer.visible) return withTimer(s, { visible: false });
+    if (s.layers.cover.visible) return { ...s, layers: { ...s.layers, cover: { visible: false } } };
+    if (s.layers.props.items.length) return HANDLERS.clearProps(s);
+    if (s.layers.media || s.layers.content.slide) return HANDLERS.clear(s);
+    return s;
+  },
   showMedia: (s, a) => ({
     ...s,
     blackout: false,
@@ -99,6 +129,17 @@ const HANDLERS = {
       : { ...media, playing: a.command === 'play' };
     return { ...s, layers: { ...s.layers, media: next } };
   },
+  // Prop do mesmo id troca no lugar; passando de MAX_ACTIVE_PROPS, o mais antigo sai.
+  showProp: (s, a) => {
+    const item = itemOf(a.prop);
+    const items = s.layers.props.items;
+    const next = items.some((i) => i.id === item.id) ? items.map((i) => (i.id === item.id ? item : i)) : [...items, item];
+    return { ...s, layers: { ...s.layers, props: { items: next.slice(-MAX_ACTIVE_PROPS) } } };
+  },
+  hideProp: (s, a) => (s.layers.props.items.some((i) => i.id === a.id)
+    ? { ...s, layers: { ...s.layers, props: { items: s.layers.props.items.filter((i) => i.id !== a.id) } } }
+    : s),
+  clearProps: (s) => (s.layers.props.items.length ? { ...s, layers: { ...s.layers, props: { items: [] } } } : s),
   setStageMessage: (s, a) => ({ ...s, stage: { ...s.stage, message: a.text || null } }),
   blackout: (s) => ({ ...s, blackout: !s.blackout }),
   toggleCover: (s) => ({ ...s, layers: { ...s.layers, cover: { visible: !s.layers.cover.visible } } }),
@@ -123,15 +164,12 @@ const UNSAFE_URL_CHARS = /["')\\\s]/;
 // Caminho que o Windows trataria como compartilhamento de rede: //host, \\host, /\host (também codificados).
 const NETWORK_PATH = /^[/\\]{2}/;
 
-// Cor hex, ou URL file: local sem host (impede SMB/NTLM e carga remota).
+// URL file: local sem host (impede SMB/NTLM e carga remota). Serve para imagem, vídeo e áudio.
 // `file:////host/x` tem host vazio, mas o caminho começa com // e o Chromium abre \\host: por isso o teste do caminho.
-function isValidBackground(bg) {
-  if (!bg || typeof bg.value !== 'string') return false;
-  if (bg.kind === 'color') return HEX_COLOR.test(bg.value);
-  if (bg.kind !== 'image' && bg.kind !== 'video') return false;
-  if (UNSAFE_URL_CHARS.test(bg.value)) return false;
+function isLocalFileUrl(value) {
+  if (typeof value !== 'string' || UNSAFE_URL_CHARS.test(value)) return false;
   try {
-    const url = new URL(bg.value);
+    const url = new URL(value);
     if (url.protocol !== 'file:' || url.host !== '') return false;
     return !NETWORK_PATH.test(decodeURIComponent(url.pathname));
   } catch {
@@ -139,18 +177,43 @@ function isValidBackground(bg) {
   }
 }
 
+// Id de dispositivo de câmera/captura (vem do navegador, só vai para getUserMedia): letras, números e + / = . _ -
+const CAMERA_ID_RE = /^[A-Za-z0-9+/=._-]{1,200}$/;
+
+// Cor hex, câmera (id do dispositivo), ou arquivo local (imagem/vídeo).
+function isValidBackground(bg) {
+  if (!bg || typeof bg.value !== 'string') return false;
+  if (bg.kind === 'color') return HEX_COLOR.test(bg.value);
+  if (bg.kind === 'camera') return CAMERA_ID_RE.test(bg.value);
+  if (bg.kind !== 'image' && bg.kind !== 'video') return false;
+  return isLocalFileUrl(bg.value);
+}
+
 const isOptionalText = (v) => v == null || typeof v === 'string';
+
+// Acordes do slide (opcional): uma lista por linha do texto, cada acorde com a coluna e o nome.
+const isChordEntry = (e) => Boolean(e) && typeof e === 'object' && Number.isInteger(e.at) && e.at >= 0 && e.at <= MAX_CHORD_COLUMN && isChord(e.chord);
+function isValidSlideChords(chords, text) {
+  if (chords == null) return true;
+  if (!Array.isArray(chords) || chords.length > MAX_CHORD_LINES || chords.length > String(text).split('\n').length) return false;
+  return chords.every((line) => Array.isArray(line) && line.length <= MAX_CHORDS_PER_LINE && line.every(isChordEntry));
+}
+// Prop: campos fechados; a imagem precisa ser um arquivo local sem host (mesma regra do fundo).
+const isValidProp = (prop) => isValidPropFields(prop) && (prop.kind !== 'image' || isLocalFileUrl(prop.value));
 const MEDIA_COMMANDS = ['play', 'pause', 'restart'];
 
 const REQUIRED_FIELD = {
   showSlide: (a) => a.slide && typeof a.slide.text === 'string'
-    && isOptionalText(a.slide.title) && isOptionalText(a.slide.label)
+    && isOptionalText(a.slide.title) && isOptionalText(a.slide.label) && isValidSlideChords(a.slide.chords, a.slide.text)
     && (a.slide.image == null || isValidBackground({ kind: 'image', value: a.slide.image }))
     && (a.next == null || typeof a.next.text === 'string'),
   showMedia: (a) => a.media && isValidBackground(a.media) && isOptionalText(a.media.title) && isOptionalText(a.media.key)
     && (a.media.loop == null || typeof a.media.loop === 'boolean'),
   mediaControl: (a) => MEDIA_COMMANDS.includes(a.command),
   timerSet: (a) => TIMER_MODES.includes(a.mode) && Number.isInteger(a.seconds) && a.seconds >= 0 && a.seconds <= TIMER_MAX_SECONDS,
+  timerUntil: (a) => typeof a.time === 'string' && CLOCK_TIME_RE.test(a.time),
+  showProp: (a) => isValidProp(a.prop),
+  hideProp: (a) => typeof a.id === 'string' && a.id.length > 0,
   setStageMessage: (a) => typeof a.text === 'string',
   setBackground: (a) => isValidBackground(a.background),
   setTextStyle: (a) => isValidStylePatch(a.style),
@@ -176,4 +239,4 @@ function reduce(state, action) {
   return handler ? handler(state, action) : state;
 }
 
-module.exports = { initialState, reduce, isValidAction, isValidBackground, stampAction, liveKeyOf, DEFAULT_BACKGROUND };
+module.exports = { initialState, reduce, isValidAction, isValidBackground, isValidProp, isLocalFileUrl, stampAction, liveKeyOf, DEFAULT_BACKGROUND };

@@ -14,9 +14,11 @@
     <div class="toolbar" role="toolbar" aria-label="Ao vivo">
       <button id="btn-prev" class="ib" type="button" data-icon="skip-back" title="Slide anterior (←)" aria-label="Slide anterior"></button>
       <button id="btn-next" class="ib" type="button" data-icon="skip-forward" title="Próximo slide (→ ou Espaço)" aria-label="Próximo slide"></button>
-      <button id="btn-clear" class="ib" type="button" data-icon="eraser" title="Limpar o conteúdo (Esc)" aria-label="Limpar conteúdo"></button>
+      <button id="btn-clear" class="ib" type="button" data-icon="eraser" title="Limpar o conteúdo (a tecla Esc tira uma camada por vez)" aria-label="Limpar conteúdo"></button>
       <button id="btn-black" class="ib" type="button" data-icon="eye-off" title="Tela preta (B)" aria-label="Tela preta"></button>
       <button id="btn-cover" class="ib" type="button" data-icon="layers" title="Capa" aria-label="Capa"></button>
+      <button id="btn-undo" class="ib" type="button" data-icon="undo-2" title="Desfazer o que foi ao ar (Ctrl+Z)" aria-label="Desfazer o que foi ao ar"></button>
+      <button id="btn-redo" class="ib" type="button" data-icon="redo-2" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer"></button>
     </div>
 
     <!-- Camadas: ocultar sem perder o conteúdo (a letra volta no mesmo ponto). -->
@@ -25,6 +27,8 @@
       <button id="btn-layer-background" class="ib layer-btn" type="button" data-icon="image" data-layer="background" data-name="fundo" data-on="image" data-off="image-off" aria-pressed="false" title="Ocultar fundo" aria-label="Ocultar fundo"></button>
       <button id="btn-layer-announcement" class="ib layer-btn" type="button" data-icon="megaphone" data-layer="announcement" data-name="aviso" data-on="megaphone" data-off="megaphone-off" aria-pressed="false" title="Ocultar aviso" aria-label="Ocultar aviso"></button>
     </div>
+
+    <span id="sync-badge" class="sync-badge" role="status" hidden></span>
 
     <div class="spacer"></div>
 
@@ -41,6 +45,7 @@
 
     <div class="toolbar" role="toolbar" aria-label="Saída">
       <button id="btn-update" class="update-ready" type="button" data-icon="download" hidden title="Atualização baixada: instala ao fechar o app, ou clique para reiniciar agora" aria-label="Reiniciar e atualizar"><span class="label">Atualizar</span></button>
+      <button id="btn-sync" class="ib" type="button" data-icon="refresh-cw" aria-pressed="false" title="Seguir outro computador (espelho / redundância)" aria-label="Seguir outro computador"></button>
       <button id="btn-automation" class="ib" type="button" data-icon="workflow" title="Automação: OSC (Companion, Stream Deck, mesa de luz) e regras" aria-label="Automação OSC"></button>
       <button id="btn-outputs-config" class="ib" type="button" data-icon="monitor-cog" title="Configurar saídas: o que cada monitor mostra, panorâmico e edge blending" aria-label="Configurar saídas"></button>
       <button id="btn-remote" class="ib" type="button" data-icon="smartphone" title="Controle remoto e retorno pelo celular/tablet" aria-label="Controle remoto"></button>
@@ -59,7 +64,9 @@
             <input id="search" type="search" placeholder="Título ou trecho da letra…" aria-label="Buscar música por título ou trecho da letra" />
             <button id="btn-new" class="ib" type="button" data-icon="plus" title="Nova música" aria-label="Nova música"></button>
             <button id="btn-lyrics-online" class="ib" type="button" data-icon="globe" title="Buscar letra na internet" aria-label="Buscar letra na internet"></button>
+            <button id="btn-import-songs" class="ib" type="button" data-icon="file-up" title="Importar letras de outros programas (OpenLyrics, OpenSong, ChordPro, texto). Você também pode soltar os arquivos aqui." aria-label="Importar letras"></button>
           </div>
+          <p id="songs-msg" class="muted" role="status"></p>
           <ul id="songs" class="list"></ul>
         </details>
         <details class="fold" data-key="bible" open>
@@ -84,6 +91,26 @@
             <span id="media-msg" class="muted" role="status">Clique para usar de fundo. Arraste arquivos para cá.</span>
           </div>
           <div id="media-grid" class="media-grid"></div>
+        </details>
+        <details class="fold" data-key="audio" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="speaker"></span>Áudio</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Áudio" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <div class="row">
+            <button id="btn-audio-add" class="ib" type="button" data-icon="file-up" title="Adicionar músicas de fundo (ou arraste os arquivos para cá)" aria-label="Adicionar músicas de fundo"></button>
+            <button id="btn-audio-prev" class="ib" type="button" data-icon="skip-back" title="Faixa anterior" aria-label="Faixa anterior"></button>
+            <button id="btn-audio-toggle" class="ib primary" type="button" data-icon="play" title="Tocar" aria-label="Tocar música de fundo"></button>
+            <button id="btn-audio-next" class="ib" type="button" data-icon="skip-forward" title="Próxima faixa" aria-label="Próxima faixa"></button>
+            <button id="btn-audio-fade" class="ib" type="button" data-icon="volume-x" disabled title="Baixar o som e parar (fade-out)" aria-label="Baixar o som e parar"></button>
+          </div>
+          <div class="row">
+            <span class="ico muted" data-icon="volume-2" title="Volume"></span>
+            <input id="audio-volume" type="range" min="0" max="100" step="5" aria-label="Volume da música de fundo" />
+          </div>
+          <div class="row wrap">
+            <label class="check" title="Baixa a música sozinha quando o primeiro slide ou vídeo entra ao vivo"><input id="audio-fade-auto" type="checkbox" aria-label="Fade-out ao entrar o culto" />Fade ao entrar o culto</label>
+            <label class="check" title="Volta à primeira faixa no fim da lista"><input id="audio-loop" type="checkbox" aria-label="Repetir a lista" />Repetir</label>
+          </div>
+          <p id="audio-status" class="muted error-soft" role="status"></p>
+          <ul id="audio-list" class="list audio-list"></ul>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
@@ -126,6 +153,10 @@
           <div class="row wrap">
             <button id="btn-add-playlist" class="ib" type="button" data-icon="list-plus" disabled title="Adicionar ao culto" aria-label="Adicionar ao culto"></button>
             <button id="btn-edit" class="ib" type="button" data-icon="pencil" disabled title="Editar música" aria-label="Editar música"></button>
+            <label id="arrangement-box" class="preset-box dim-box" title="Arranjo: a ordem das seções desta música" hidden>
+              <span class="ico" data-icon="list-ordered"></span>
+              <select id="arrangement" aria-label="Arranjo da música"></select>
+            </label>
             <label class="preset-box dim-box" title="Avanço automático dos slides (avisos em loop, contagem antes do culto)">
               <span class="ico" data-icon="timer"></span>
               <select id="auto-advance" aria-label="Avanço automático">
@@ -139,6 +170,7 @@
             <label class="check" title="Clique envia direto ao vivo (sem passar pelo Preview)"><input id="direct" type="checkbox" aria-label="Clique envia direto ao vivo" /><span class="ico" data-icon="zap"></span>Direto</label>
           </div>
           <p id="slides-msg" class="muted error-soft" role="status"></p>
+          <div id="slide-groups" class="row wrap group-chips" role="toolbar" aria-label="Seções da música" hidden></div>
           <div id="slides" class="grid"></div>
         </details>
       </div>
@@ -158,11 +190,29 @@
             <label class="color-box" title="Cor de fundo"><span class="ico" data-icon="palette"></span><input id="bg-color" type="color" value="#000000" aria-label="Cor de fundo" /></label>
             <button id="btn-bg-image" class="ib" type="button" data-icon="image" title="Imagem de fundo…" aria-label="Imagem de fundo"></button>
             <button id="btn-bg-video" class="ib" type="button" data-icon="video" title="Vídeo de fundo (em loop, sem som)…" aria-label="Vídeo de fundo"></button>
+            <button id="btn-bg-camera" class="ib" type="button" data-icon="camera" title="Câmera ou placa de captura…" aria-label="Câmera ou placa de captura"></button>
             <label class="preset-box dim-box" title="Escurecer o fundo para a letra ler melhor">
               <span class="ico" data-icon="sun-dim"></span>
               <select id="bg-dim" aria-label="Escurecer o fundo"></select>
             </label>
           </div>
+        </details>
+        <details class="fold" data-key="messages" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="message-square-text"></span>Mensagens</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Mensagens" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <div class="row">
+            <select id="msg-template" aria-label="Modelo de mensagem"></select>
+            <button id="btn-msg-new" class="ib" type="button" data-icon="message-square-plus" title="Novo modelo de mensagem" aria-label="Novo modelo de mensagem"></button>
+            <button id="btn-msg-edit" class="ib" type="button" data-icon="pencil" title="Editar o modelo" aria-label="Editar modelo de mensagem"></button>
+            <button id="btn-msg-delete" class="ib danger" type="button" data-icon="trash" hidden title="Excluir o modelo selecionado" aria-label="Excluir modelo"></button>
+          </div>
+          <div id="msg-fields"></div>
+          <p id="msg-preview" class="muted msg-preview"></p>
+          <div class="row">
+            <button id="btn-msg-show" class="primary" type="button" data-icon="send">Mostrar</button>
+            <button id="btn-msg-clear" class="ib" type="button" data-icon="x" title="Tirar a mensagem do modelo" aria-label="Tirar a mensagem"></button>
+            <span id="msg-target" class="muted"></span>
+          </div>
+          <p id="msg-status" class="muted" role="status"></p>
         </details>
         <details class="fold" data-key="look" open>
           <summary><span class="fold-title"><span class="ico" data-icon="swatch-book"></span>Tema e texto</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Tema e texto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
@@ -210,6 +260,16 @@
             </select>
           </div>
           <div class="row">
+            <span class="ico muted" data-icon="square-dashed" title="Efeitos do texto"></span>
+            <select id="style-outline" aria-label="Contorno da letra" title="Contorno da letra">
+              <option value="none">Sem contorno</option>
+              <option value="thin">Contorno fino</option>
+              <option value="thick">Contorno grosso</option>
+            </select>
+            <select id="style-box" aria-label="Caixa escura atrás do texto" title="Caixa escura atrás do texto (lê melhor sobre vídeo claro)"></select>
+            <select id="style-blur" aria-label="Desfoque do fundo" title="Desfocar o fundo (imagem ou vídeo)"></select>
+          </div>
+          <div class="row">
             <span class="ico muted" data-icon="captions" title="Legenda do tema"></span>
             <input id="style-caption" maxlength="80" autocomplete="off" placeholder="Legenda: {titulo} · {hora}" aria-label="Legenda do tema (use {titulo}, {rotulo}, {hora}, {data}, {cronometro})" title="Variáveis: {titulo} {rotulo} {hora} {data} {cronometro}. Enter aplica." />
             <select id="style-caption-pos" class="narrow" aria-label="Canto da legenda" title="Canto da legenda">
@@ -236,6 +296,7 @@
           <summary><span class="fold-title"><span class="ico" data-icon="monitor-speaker"></span>Retorno de palco</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Retorno de palco" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
             <select id="stage-display" aria-label="Monitor do retorno"></select>
+            <select id="stage-layout" aria-label="Layout do retorno" title="O que o retorno mostra: letra, banda (com acordes) ou pregador (tempo grande)"></select>
             <button id="btn-stage" class="ib" type="button" data-icon="monitor-up" title="Abrir retorno" aria-label="Abrir retorno"></button>
           </div>
           <div class="row">
@@ -251,9 +312,11 @@
             <span id="timer-readout" class="timer-readout" role="timer" aria-live="off">05:00</span>
             <select id="timer-mode" aria-label="Tipo de cronômetro" title="Tipo">
               <option value="countdown">Regressiva</option>
+              <option value="until">Até o horário</option>
               <option value="stopwatch">Cronômetro</option>
             </select>
             <input id="timer-minutes" type="number" min="0" max="1440" step="1" value="5" aria-label="Minutos da contagem regressiva" title="Minutos (Enter aplica)" class="narrow" />
+            <input id="timer-clock" type="time" value="19:00" aria-label="Horário final da contagem" title="Conta até este horário (hoje, ou amanhã se já passou)" class="narrow clock" hidden />
           </div>
           <div class="row">
             <button id="btn-timer-toggle" class="ib primary" type="button" data-icon="play" title="Iniciar" aria-label="Iniciar cronômetro"></button>
@@ -270,9 +333,19 @@
       <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="playlist" open>
-          <summary><span class="fold-title"><span class="ico" data-icon="list-music"></span>Culto</span><button id="btn-import-presentation" class="ib" type="button" data-icon="presentation" title="Importar apresentação (PDF ou PowerPoint) para o culto" aria-label="Importar apresentação PDF ou PowerPoint"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="list-music"></span>Culto</span><button id="btn-usage" class="ib" type="button" data-icon="file-spreadsheet" title="Relatório de uso das músicas (CCLI)" aria-label="Relatório de uso das músicas"></button><button id="btn-import-presentation" class="ib" type="button" data-icon="presentation" title="Importar apresentação (PDF ou PowerPoint) para o culto" aria-label="Importar apresentação PDF ou PowerPoint"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <p id="import-msg" class="muted" role="status"></p>
           <ol id="playlist" class="list"></ol>
+        </details>
+        <details class="fold" data-key="macros" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="zap"></span>Macros</span><button id="btn-macro-new" class="ib" type="button" data-icon="plus" title="Novo macro" aria-label="Novo macro"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Macros" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <ul id="macro-list" class="list macro-list"></ul>
+          <p id="macro-status" class="muted" role="status"></p>
+        </details>
+        <details class="fold" data-key="props" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="picture-in-picture-2"></span>Props</span><button id="btn-prop-new" class="ib" type="button" data-icon="plus" title="Novo prop (logo, QR do Pix, faixa com o nome)" aria-label="Novo prop"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Props" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <div id="prop-list" class="row wrap prop-chips"></div>
+          <p id="prop-status" class="muted error-soft" role="status"></p>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
@@ -284,12 +357,163 @@
       <h3>Música</h3>
       <input id="ed-title" placeholder="Título" required />
       <label class="field">Tema desta música <select id="ed-theme" aria-label="Tema desta música"></select></label>
+      <div class="row">
+        <input id="ed-author" placeholder="Autor (para o relatório de uso)" maxlength="80" autocomplete="off" aria-label="Autor da música" />
+        <input id="ed-ccli" class="narrow" inputmode="numeric" placeholder="Nº CCLI" maxlength="10" autocomplete="off" aria-label="Número CCLI da música" title="Número da música na licença CCLI (só dígitos)" />
+      </div>
       <textarea id="ed-text" rows="16" placeholder="[Verso 1]&#10;Linha 1&#10;Linha 2&#10;&#10;[Refrão]&#10;…"></textarea>
-      <p class="muted">Use [Verso], [Refrão], [Ponte] para marcar seções. Linha em branco separa slides. Acordes como [Am] são ignorados na projeção.</p>
+      <p class="muted">Use [Verso 1], [Refrão], [Ponte] para marcar seções. Linha em branco separa slides. Acordes como [Am] são ignorados na projeção.
+        Escreva o refrão uma vez só: a repetição fica no arranjo.</p>
+      <h4>Arranjos</h4>
+      <p class="muted">A ordem das seções, por sigla (<b>V1 C V2 C P C C</b>: V1/V2 versos, C refrão, PC pré-refrão, P ponte, I intro,
+        F final) ou pelos nomes separados por vírgula. O primeiro arranjo é o padrão ao abrir e ao adicionar ao culto.</p>
+      <p id="ed-sections" class="muted"></p>
+      <div id="ed-arrangements"></div>
+      <p id="ed-arr-warn" class="muted error-soft" role="status"></p>
+      <button id="ed-arr-add" type="button" data-icon="plus">Adicionar arranjo</button>
       <div class="row end">
         <button id="ed-delete" type="button" class="danger">Excluir</button>
         <button value="cancel">Cancelar</button>
         <button id="ed-save" value="save" class="primary">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="quick-edit">
+    <form id="quick-form" method="dialog">
+      <h3>Editar slide</h3>
+      <textarea id="quick-text" rows="6" aria-label="Texto do slide"></textarea>
+      <p id="quick-hint" class="muted"></p>
+      <p id="quick-error" class="error" role="alert"></p>
+      <div class="row end">
+        <span class="muted">Ctrl+Enter salva</span>
+        <button id="quick-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="message-dialog">
+    <form id="msg-ed-form" method="dialog">
+      <h3>Modelo de mensagem</h3>
+      <input id="msg-ed-name" placeholder="Nome (ex.: Berçário)" maxlength="40" autocomplete="off" aria-label="Nome do modelo" />
+      <textarea id="msg-ed-text" rows="3" maxlength="200" placeholder="Pais de {criança}, por favor compareçam ao berçário." aria-label="Texto da mensagem"></textarea>
+      <p class="muted">Escreva os campos entre chaves, como <b>{criança}</b> ou <b>{placa}</b>: ao usar o modelo, o app pede o valor de cada um.</p>
+      <div class="row">
+        <select id="msg-ed-target" aria-label="Onde mostrar">
+          <option value="screen">Na tela (aviso)</option>
+          <option value="stage">No retorno de palco</option>
+          <option value="both">Na tela e no retorno</option>
+        </select>
+        <select id="msg-ed-seconds" aria-label="Por quanto tempo"></select>
+      </div>
+      <p id="msg-ed-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="msg-ed-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="sync-dialog" class="wide">
+    <form id="sync-form" method="dialog">
+      <h3>Seguir outro computador</h3>
+      <p class="muted">Este computador <b>espelha</b> o outro: a projeção, o retorno de palco e o celular daqui mostram o mesmo que lá. Serve de
+        <b>reserva</b> (se o outro cair, a projeção daqui continua como estava) ou para uma <b>sala de transmissão</b> separada.
+        No outro computador, abra o botão do celular (controle remoto) e copie o endereço do <b>Controle remoto</b>.</p>
+      <input id="sync-url" placeholder="http://192.168.0.10:5151/?t=…" autocomplete="off" spellcheck="false" aria-label="Endereço do outro computador" />
+      <p id="sync-status" class="muted" role="status"></p>
+      <ul class="muted sync-notes">
+        <li>Enquanto segue, os controles deste computador ficam <b>bloqueados</b>. "Parar de seguir" devolve o controle.</li>
+        <li>Fundos, imagens, vídeos e PDFs precisam estar <b>nos mesmos caminhos</b> nos dois computadores (ou numa pasta sincronizada).</li>
+        <li>O cronômetro acompanha o horário do outro computador, mesmo com os relógios diferentes.</li>
+        <li>As regras de saída OSC deste computador também disparam: desligue-as aqui se o outro já as envia.</li>
+        <li>O endereço tem um token que muda a cada vez que o outro app abre. Use só em rede confiável.</li>
+      </ul>
+      <div class="row end">
+        <button id="sync-close" type="button">Fechar</button>
+        <button id="sync-stop" type="button" class="danger" disabled>Parar de seguir</button>
+        <button id="sync-start" type="submit" class="primary">Seguir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="camera-dialog">
+    <form id="camera-form" method="dialog">
+      <h3>Câmera ou captura</h3>
+      <select id="cam-device" aria-label="Dispositivo de vídeo"></select>
+      <video id="cam-preview" class="cam-preview" autoplay muted playsinline></video>
+      <p id="cam-status" class="muted error-soft" role="status"></p>
+      <p class="muted">Só imagem, sem som. Serve câmera USB, placa de captura (HDMI) ou a câmera virtual do OBS. Como <b>fundo</b>, a letra aparece por cima;
+        em <b>tela cheia</b>, a câmera ocupa o lugar da letra (Esc limpa).</p>
+      <div class="row end">
+        <button id="cam-close" type="button">Fechar</button>
+        <button id="cam-full" type="button" data-icon="tv" disabled>Tela cheia</button>
+        <button id="cam-bg" type="button" class="primary" data-icon="image" disabled>Usar como fundo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="prop-dialog">
+    <form id="prop-form" method="dialog">
+      <h3>Prop</h3>
+      <input id="prop-name" placeholder="Nome (ex.: Logo, QR do Pix, Pregador)" maxlength="40" autocomplete="off" aria-label="Nome do prop" />
+      <div class="row">
+        <select id="prop-kind" aria-label="Tipo do prop">
+          <option value="image">Imagem</option>
+          <option value="text">Texto</option>
+        </select>
+        <input id="prop-text" maxlength="80" placeholder="Texto do prop (uma linha)" autocomplete="off" aria-label="Texto do prop" hidden />
+        <button id="prop-pick" type="button" data-icon="image">Escolher imagem…</button>
+      </div>
+      <p id="prop-file" class="muted"></p>
+      <div class="row">
+        <select id="prop-position" aria-label="Posição na tela"></select>
+        <select id="prop-size" aria-label="Tamanho"></select>
+      </div>
+      <p class="muted">O prop fica fixo sobre os slides até você desligar. Some com a tela preta e com a capa, e não aparece nas telas "só letra".</p>
+      <p id="prop-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="prop-delete" type="button" class="danger" hidden>Excluir</button>
+        <button id="prop-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="macro-dialog" class="wide">
+    <form id="macro-form" method="dialog">
+      <h3>Macro</h3>
+      <input id="macro-name" placeholder="Nome (ex.: Início do culto)" maxlength="40" autocomplete="off" aria-label="Nome do macro" />
+      <p class="muted">Os passos rodam na ordem, de uma vez só (um Ctrl+Z desfaz tudo). Se um passo falhar, os outros continuam e o app avisa qual falhou.
+        Execute pelo botão, por <b>Alt+1…9</b> (a ordem da lista) ou por OSC: <code class="inline">/xpresenter/macro/N</code>.
+        Atenção: criar ou excluir macros muda esses números para os macros seguintes (reveja os botões do Companion/Stream Deck).</p>
+      <div id="macro-steps"></div>
+      <button id="macro-step-add" type="button" data-icon="plus">Adicionar passo</button>
+      <p id="macro-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="macro-delete" type="button" class="danger" hidden>Excluir</button>
+        <button id="macro-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="usage-dialog" class="wide">
+    <form id="usage-form" method="dialog">
+      <h3>Relatório de uso das músicas</h3>
+      <p class="muted">Cada música que entra ao vivo é registrada uma vez por dia (pelo título, autor e número CCLI cadastrados no editor da música).
+        Exporte o período para planilha (CSV) e use no relatório da licença.</p>
+      <div class="row">
+        <label class="field">De <input id="usage-from" type="date" aria-label="Data inicial" /></label>
+        <label class="field">até <input id="usage-to" type="date" aria-label="Data final" /></label>
+      </div>
+      <p id="usage-summary" class="muted" role="status"></p>
+      <ul id="usage-list" class="list usage-list" aria-label="Músicas do período"></ul>
+      <p id="usage-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="usage-close" type="button">Fechar</button>
+        <button id="usage-export" type="button" class="primary" data-icon="file-spreadsheet">Exportar CSV…</button>
       </div>
     </form>
   </dialog>
@@ -399,9 +623,10 @@
     <h3>Controle remoto e retorno</h3>
     <p>Abra no celular ou tablet (mesma rede Wi-Fi):</p>
     <p class="muted">Controle remoto</p>
-    <code id="remote-url"></code>
+    <div class="qr-row"><div id="remote-qr" class="qr" role="img" aria-label="QR code do controle remoto"></div><code id="remote-url"></code></div>
     <p class="muted">Monitor de retorno (palco)</p>
-    <code id="remote-stage-url"></code>
+    <div class="qr-row"><div id="remote-stage-qr" class="qr" role="img" aria-label="QR code do monitor de retorno"></div><code id="remote-stage-url"></code></div>
+    <p class="muted">Acrescente <b>&amp;layout=banda</b> (acordes sobre a letra) ou <b>&amp;layout=pregador</b> (cronômetro grande) ao endereço do retorno.</p>
     <p class="muted">Transmissão (OBS: Browser Source 1920×1080; vMix: Web Browser). Fundo transparente, letra numa faixa embaixo.
       Acrescente <b>&amp;modo=tela</b> para a letra em tela cheia, ou <b>&amp;fundo=verde</b> para chroma key.
       <b>NDI:</b> no OBS com o plugin DistroAV, publique a cena como NDI (veja o README).</p>
@@ -412,6 +637,7 @@
   <script src="../shared/icons.js"></script>
   <script src="../shared/liveInfo.js"></script>
   <script src="../shared/stage.js"></script>
+  <script src="../shared/sections.js"></script>
   <script src="../shared/layoutModel.js"></script>
   <script src="../shared/layoutPresets.js"></script>
   <script src="layout.js"></script>
@@ -422,6 +648,16 @@
   <script src="media-panel.js"></script>
   <script src="outputs-panel.js"></script>
   <script src="automation-panel.js"></script>
+  <script src="../shared/macroSteps.js"></script>
+  <script src="../shared/audioPlayer.js"></script>
+  <script src="../shared/stageLayouts.js"></script>
+  <script src="messages-panel.js"></script>
+  <script src="props-panel.js"></script>
+  <script src="macros-panel.js"></script>
+  <script src="audio-panel.js"></script>
+  <script src="camera-panel.js"></script>
+  <script src="sync-panel.js"></script>
+  <script src="usage-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>
 </body>

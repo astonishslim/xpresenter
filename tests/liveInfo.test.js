@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { timerValueMs, formatTimer, fillTemplate, isTimerInUse } = require('../src/renderer/shared/liveInfo');
+const { timerValueMs, formatTimer, fillTemplate, isTimerInUse, isCountdown } = require('../src/renderer/shared/liveInfo');
 
 const countdown = (over = {}) => ({ mode: 'countdown', setMs: 300000, baseMs: 300000, startedAt: null, visible: false, ...over });
 
@@ -54,4 +54,15 @@ test('a cópia de liveInfo.js do remoto é idêntica à compartilhada', () => {
     fs.readFileSync(path.join(root, 'remote', 'liveInfo.js'), 'utf8'),
     fs.readFileSync(path.join(root, 'renderer', 'shared', 'liveInfo.js'), 'utf8'),
   );
+});
+
+test('modo "até o horário": o valor é o tempo que falta para targetAt, e fica negativo depois', () => {
+  const timer = { mode: 'until', setMs: 0, baseMs: 0, startedAt: null, targetAt: 10_000 };
+  assert.equal(timerValueMs(timer, 4_000), 6_000);
+  assert.equal(timerValueMs(timer, 12_000), -2_000);
+  assert.equal(isTimerInUse(timer), true);
+  assert.equal(isCountdown(timer), true);
+  assert.equal(isCountdown({ mode: 'countdown' }), true);
+  assert.equal(isCountdown({ mode: 'stopwatch' }), false);
+  assert.equal(isCountdown(null), false);
 });

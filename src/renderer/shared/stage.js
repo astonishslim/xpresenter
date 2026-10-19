@@ -6,7 +6,7 @@
   const CONTENT_FILL = 0.8;
   const TICK_MS = 250;
   const GHOST_GRACE_MS = 80;
-  const { fillTemplate, formatTimer, timerValueMs, isTimerInUse } = root.liveInfo;
+  const { fillTemplate, formatTimer, timerValueMs, isTimerInUse, isCountdown } = root.liveInfo;
 
   function el(tag, className) {
     const node = document.createElement(tag);
@@ -27,8 +27,35 @@
     textEl.style.fontSize = `${lo}cqh`;
   }
 
+  // Tira o conteúdo de uma camada. Fecha o fluxo da câmera de qualquer <video> que sai de cena
+  // (sem isso a câmera continuaria ligada, com a luz acesa, mesmo sem aparecer na tela).
+  function releaseHost(host) {
+    host.querySelectorAll('video').forEach((video) => {
+      if (video.srcObject) video.srcObject.getTracks().forEach((track) => track.stop());
+      video.srcObject = null;
+    });
+    host.replaceChildren();
+  }
+
+  // Câmera ou placa de captura (sem som): cada janela abre o seu fluxo e o solta ao sair de cena.
+  function attachCamera(host, deviceId) {
+    const video = document.createElement('video');
+    Object.assign(video, { autoplay: true, muted: true, playsInline: true });
+    host.appendChild(video);
+    if (!navigator.mediaDevices) return;
+    navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } }, audio: false })
+      .then((stream) => {
+        if (!video.isConnected) {
+          stream.getTracks().forEach((track) => track.stop()); // saiu de cena antes de abrir
+          return;
+        }
+        video.srcObject = stream;
+      })
+      .catch((err) => console.warn(`[câmera] não foi possível abrir o dispositivo: ${err.message}`));
+  }
+
   function setBackground(bgEl, bg) {
-    bgEl.replaceChildren();
+    releaseHost(bgEl);
     bgEl.style.backgroundImage = '';
     bgEl.style.backgroundColor = '#000';
     if (bg.kind === 'image') {
@@ -37,6 +64,8 @@
       const video = document.createElement('video');
       Object.assign(video, { src: bg.value, autoplay: true, loop: true, muted: true });
       bgEl.appendChild(video);
+    } else if (bg.kind === 'camera') {
+      attachCamera(bgEl, bg.value);
     } else {
       bgEl.style.backgroundColor = bg.value;
     }
@@ -48,6 +77,11 @@
     stage.dataset.align = style.align;
     stage.dataset.position = style.position;
     stage.dataset.caption = style.captionPosition;
+    stage.dataset.outline = style.outline;
+    stage.dataset.blur = style.blur > 0 ? 'on' : 'off';
+    stage.dataset.box = style.box > 0 ? 'on' : 'off';
+    stage.style.setProperty('--box', String(style.box / 100));
+    stage.style.setProperty('--blur', String(style.blur / 10)); // em cqh: escala com o tamanho do palco
     stage.style.setProperty('--text-color', style.color);
     stage.style.setProperty('--fade', style.transition === 'cut' ? '0ms' : `${style.transitionMs}ms`);
     stage.classList.toggle('upper', style.uppercase);
@@ -58,6 +92,7 @@
   const FALLBACK_STYLE = {
     font: 'sans', color: '#ffffff', size: 100, align: 'center', position: 'middle', uppercase: false, shadow: true,
     showLabel: true, transition: 'fade', transitionMs: 400, caption: '', captionPosition: 'top-right',
+    outline: 'none', box: 0, blur: 0,
   };
 
   const pad = (n) => String(n).padStart(2, '0');
@@ -81,8 +116,9 @@
     const key = media ? `${media.kind}|${media.value}|${media.seq}` : '';
     if (key !== last.key) {
       last.key = key;
-      layer.replaceChildren();
+      releaseHost(layer);
       layer.style.backgroundImage = '';
+      if (media && media.kind === 'camera') attachCamera(layer, media.value);
       if (media && media.kind === 'image') layer.style.backgroundImage = `url("${media.value}")`;
       if (media && media.kind === 'video') {
         const video = document.createElement('video');
@@ -103,14 +139,43 @@
     if (!media.playing && !video.paused) video.pause();
   }
 
+  // Props (logo, QR, faixa): o conjunto só é refeito quando muda. Imagem local por <img>, texto por textContent.
+  function propNode(item) {
+    const node = el('div', 'prop');
+    node.dataset.pos = item.position;
+    node.style.setProperty('--size', String(item.size));
+    if (item.kind === 'image') {
+      const img = document.createElement('img');
+      img.src = item.value;
+      img.alt = '';
+      img.addEventListener('error', () => node.remove()); // arquivo sumiu depois de ligado: melhor nada que imagem quebrada
+      node.appendChild(img);
+    } else {
+      const label = el('span', 'prop-text');
+      label.textContent = item.value;
+      node.appendChild(label);
+    }
+    return node;
+  }
+
+  function renderProps(layer, props, last) {
+    const items = props && Array.isArray(props.items) ? props.items : [];
+    const key = JSON.stringify(items);
+    if (key === last.key) return;
+    last.key = key;
+    layer.replaceChildren(...items.map(propNode));
+  }
+
   function createStage(container, { now = () => Date.now(), audio = false } = {}) {
     const stage = el('div', 'stage');
     const mediaState = { key: '' };
+    const propsState = { key: '' };
     const layers = {
       bg: el('div', 'layer bg'),
       media: el('div', 'layer media'),
       content: el('div', 'layer content hidden'),
       caption: el('div', 'layer caption'),
+      props: el('div', 'layer props'),
       cover: el('div', 'layer cover'),
       timer: el('div', 'layer timer'),
       announcement: el('div', 'layer announcement'),
@@ -156,7 +221,7 @@
       layers.timer.classList.toggle('visible', showTimer);
       if (!showTimer) return;
       timerText.textContent = formatTimer(timerMs);
-      layers.timer.classList.toggle('over', timer.mode === 'countdown' && timerMs <= 0 && isTimerInUse(timer));
+      layers.timer.classList.toggle('over', isCountdown(timer) && timerMs <= 0 && isTimerInUse(timer));
       // Com letra na tela, o cronômetro vai para o canto; sem letra, ocupa o centro (ex.: contagem antes do culto).
       const lyricsOnScreen = Boolean(slide) && !lastState.layers.content.hidden;
       layers.timer.classList.toggle('corner', lyricsOnScreen);
@@ -175,6 +240,7 @@
         layers.bg.classList.toggle('off', Boolean(background.hidden));
         layers.bg.style.setProperty('--bg-dim', String((background.dim || 0) / 100));
         renderMedia(layers.media, state.layers.media || null, audio, mediaState);
+        renderProps(layers.props, state.layers.props, propsState);
 
         const style = state.textStyle || FALLBACK_STYLE;
         const styleKey = JSON.stringify(style);

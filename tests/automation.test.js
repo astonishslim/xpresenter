@@ -65,3 +65,14 @@ test('nextAutoIndex: avança, para no fim ou volta ao começo em loop', () => {
   assert.equal(nextAutoIndex(-1, 3, false), 0, 'nada ao vivo: começa do primeiro');
   assert.equal(nextAutoIndex(0, 0, true), -1);
 });
+
+test('OSC: /xpresenter/macro/N pede o N-ésimo macro (1 a 99); o resto é ignorado', () => {
+  assert.deepEqual(commandFor('/xpresenter/macro/3'), { kind: 'macro', index: 3 });
+  assert.deepEqual(commandFor('/apresentador/macro/12'), { kind: 'macro', index: 12 });
+  assert.equal(commandFor('/xpresenter/macro/0'), null);
+  assert.equal(commandFor('/xpresenter/macro/100'), null);
+  assert.equal(commandFor('/xpresenter/macro/x'), null);
+  assert.equal(commandFor('/xpresenter/macro/'), null);
+  assert.equal(commandFor('/xpresenter/macro/1/2'), null);
+  assert.ok(INPUT_COMMANDS.some((c) => c.startsWith('/xpresenter/macro/')));
+});

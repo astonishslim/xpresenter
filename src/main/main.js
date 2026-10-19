@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, session } = require('electron');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -6,6 +6,7 @@ const { randomBytes } = require('node:crypto');
 const { createStore } = require('../core/store');
 const { createLibrary } = require('../core/library');
 const { createRemoteServer } = require('../core/remoteServer');
+const { qrRows } = require('../core/qrCode');
 const { createOperatorWindow, createOutputWindows, createStageWindow, getDisplays } = require('./windows');
 const { sanitizeConfig, planOutputs } = require('../core/outputConfig');
 const { createBibleLibrary } = require('../core/bibleLibrary');
@@ -17,6 +18,18 @@ const { createImportStore } = require('../core/importStore');
 const { initialState, liveKeyOf, isValidAction } = require('../core/state');
 const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
+const { registerMessageIpc } = require('./messageIpc');
+const { registerPropIpc } = require('./propIpc');
+const { registerAudioIpc } = require('./audioIpc');
+const { registerSyncIpc } = require('./syncIpc');
+const { createAudioLibrary } = require('../core/audioLibrary');
+const { isMediaPermissionAllowed } = require('../core/permissions');
+const { registerMacroIpc } = require('./macroIpc');
+const { createPropLibrary } = require('../core/propLibrary');
+const { createMacroLibrary, createMacroRunner } = require('../core/macros');
+const { registerUsageIpc } = require('./usageIpc');
+const { createUsageLog, createUsageTracker } = require('../core/usageLog');
+const { createMessageLibrary, createMessageRunner } = require('../core/messages');
 const { setupUpdater } = require('./updater');
 const { resolveUserDataDir } = require('./userDataDir');
 
@@ -94,13 +107,13 @@ function createStageManager() {
   let win = null;
   return {
     isOpen: () => Boolean(win) && !win.isDestroyed(),
-    toggle(displayId) {
+    toggle(displayId, layout) {
       if (win && !win.isDestroyed()) {
         win.close();
         win = null;
         return false;
       }
-      win = createStageWindow(displayId);
+      win = createStageWindow(displayId, layout);
       win.on('closed', () => { win = null; });
       return true;
     },
@@ -136,6 +149,14 @@ function stepLive(ctx, delta) {
   return true;
 }
 
+// Música por trás do item ao vivo: da biblioteca ("lib-<id>") ou de um item do culto. Versículo e mídia não contam.
+function songOfLiveItem({ library }, itemId) {
+  const item = itemId.startsWith('lib-') ? null : findItem(library.getPlaylist(), itemId);
+  const songId = itemId.startsWith('lib-') ? itemId.slice('lib-'.length) : (item && item.kind === 'song' ? item.refId : null);
+  const song = songId && library.listSongs().find((s) => s.id === songId);
+  return song ? { songId: song.id, title: song.title, author: song.author, ccli: song.ccli } : null;
+}
+
 // A versão anterior guardava uma única Bíblia importada em userData/bible.json: passa a ser mais uma versão.
 function migrateLegacyBible(bibles, userDataDir) {
   const legacy = path.join(userDataDir, 'bible.json');
@@ -148,7 +169,19 @@ function migrateLegacyBible(bibles, userDataDir) {
   }
 }
 
+// Só a câmera (vídeo, sem microfone) e só para as janelas do app; todo o resto é negado.
+function restrictPermissions() {
+  const appDir = path.join(__dirname, '..');
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    callback(isMediaPermissionAllowed({ kind: 'request', permission, url: webContents.getURL(), mediaTypes: details.mediaTypes, appDir }));
+  });
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, _origin, details) => isMediaPermissionAllowed({
+    kind: 'check', permission, url: webContents ? webContents.getURL() : '', mediaType: details.mediaType, appDir,
+  }));
+}
+
 async function start() {
+  restrictPermissions();
   const userDataDir = app.getPath('userData');
   const themes = createThemeLibrary(path.join(userDataDir, 'themes.json'));
   const store = createStore(initialState(themes.getCurrent()));
@@ -167,6 +200,7 @@ async function start() {
     getState: store.getState,
     dispatch: store.dispatch,
     subscribe: store.subscribe,
+    isFollowing: store.isLocked,
     getPlaylist: library.getPlaylist,
     goTo: (target) => goToPlaylistSlide({ store, library, themes }, target),
   });
@@ -193,19 +227,54 @@ async function start() {
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;
-      return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}`, liveUrl: `${base}/live.html?t=${token}` };
+      const url = `${base}/?t=${token}`;
+      const stageUrl = `${base}/stage.html?t=${token}`;
+      return { url, stageUrl, liveUrl: `${base}/live.html?t=${token}`, qr: qrRows(url), stageQr: qrRows(stageUrl) };
     },
   });
+  const messages = createMessageLibrary(path.join(userDataDir, 'messages.json'));
+  const messageRunner = createMessageRunner({ dispatch: store.dispatch, getState: store.getState });
+  registerMessageIpc({ messages, runner: messageRunner });
+
+  // Props (logo, QR, faixa) e macros (um botão que faz várias coisas).
+  const props = createPropLibrary(path.join(userDataDir, 'props.json'));
+  registerPropIpc({ props });
+  registerAudioIpc({ audio: createAudioLibrary(path.join(userDataDir, 'audio.json')), getWindow: () => operator });
+  const macros = createMacroLibrary(path.join(userDataDir, 'macros.json'));
+  const macroRunner = createMacroRunner({
+    dispatch: store.dispatch,
+    getState: store.getState,
+    themeActions: (name) => {
+      const theme = themes.get(name);
+      return theme ? themeActions(theme) : null;
+    },
+    getProp: props.findByName,
+    getMessage: messages.findByName,
+    messages: messageRunner,
+  });
+  registerMacroIpc({ macros, runner: macroRunner });
+  const sync = registerSyncIpc({ store, ownToken: token });
+
   const automation = registerAutomationIpc({
     store,
     file: path.join(userDataDir, 'automation.json'),
     getWindow: () => operator,
     step: (delta) => stepLive({ store, library, themes }, delta),
+    // OSC /xpresenter/macro/N: o N-ésimo macro da lista.
+    runMacro: (n) => {
+      const macro = macros.list()[n - 1];
+      if (macro) macroRunner.run(macro);
+    },
   });
+  // Relatório de uso (CCLI): cada música que entra ao vivo é gravada uma vez por dia.
+  const usageLog = createUsageLog(path.join(userDataDir, 'usage.jsonl'));
+  registerUsageIpc({ log: usageLog, getWindow: () => operator });
+  const usageTracker = createUsageTracker({ log: usageLog, resolveSong: (itemId) => songOfLiveItem({ library }, itemId) });
+  store.subscribe(usageTracker.observe);
   setupUpdater({ getWindow: () => operator });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());
-  app.on('before-quit', () => { flushLook(); automation.stop(); remote.close(); });
+  app.on('before-quit', () => { flushLook(); automation.stop(); messageRunner.stop(); sync.stop(); remote.close(); });
 }
 
 app.whenReady().then(start).catch((err) => {

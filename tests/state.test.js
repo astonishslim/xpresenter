@@ -1,12 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { initialState, reduce, isValidAction } = require('../src/core/state');
+const { initialState, reduce, isValidAction, stampAction } = require('../src/core/state');
 
 const slide = { label: 'Verso', text: 'Olá' };
 
 test('estado inicial tem as 5 camadas e não está em blackout', () => {
   const s = initialState();
-  assert.deepEqual(Object.keys(s.layers), ['background', 'media', 'content', 'cover', 'announcement']);
+  assert.deepEqual(Object.keys(s.layers), ['background', 'media', 'content', 'cover', 'announcement', 'props']);
   assert.equal(s.blackout, false);
 });
 
@@ -293,4 +293,85 @@ test('isValidAction valida next e setStageMessage', () => {
   assert.equal(isValidAction({ type: 'showSlide', slide, next: { text: 5 } }), false);
   assert.equal(isValidAction({ type: 'setStageMessage', text: 'oi' }), true);
   assert.equal(isValidAction({ type: 'setStageMessage' }), false);
+});
+
+const at = (h, m) => new Date(2026, 9, 19, h, m, 0).getTime();
+const tomorrow = (h, m) => new Date(2026, 9, 20, h, m, 0).getTime();
+
+test('timerUntil conta até o próximo horário (hoje, ou amanhã se já passou)', () => {
+  const today = reduce(initialState(), { type: 'timerUntil', time: '19:00', now: at(18, 30) });
+  assert.equal(today.timer.mode, 'until');
+  assert.equal(today.timer.targetAt, at(19, 0));
+  const next = reduce(initialState(), { type: 'timerUntil', time: '19:00', now: at(20, 0) });
+  assert.equal(next.timer.targetAt, tomorrow(19, 0));
+  const exact = reduce(initialState(), { type: 'timerUntil', time: '19:00', now: at(19, 0) });
+  assert.equal(exact.timer.targetAt, tomorrow(19, 0));
+});
+
+test('timerUntil exige "HH:MM" e carimba o relógio (stampAction)', () => {
+  const ok = (time) => isValidAction({ type: 'timerUntil', time });
+  assert.equal(ok('19:00'), true);
+  assert.equal(ok('00:00'), true);
+  assert.equal(ok('23:59'), true);
+  assert.equal(ok('24:00'), false);
+  assert.equal(ok('7:00'), false);
+  assert.equal(ok('19:60'), false);
+  assert.equal(ok(1900), false);
+  assert.equal(stampAction({ type: 'timerUntil', time: '19:00' }, 5).now, 5);
+});
+
+test('timerUntil sem relógio (now) não muda nada', () => {
+  const s = initialState();
+  assert.equal(reduce(s, { type: 'timerUntil', time: '19:00' }), s);
+});
+
+test('no modo "até o horário" iniciar/pausar não faz nada e zerar volta à regressiva padrão', () => {
+  const s = reduce(initialState(), { type: 'timerUntil', time: '19:00', now: at(18, 30) });
+  assert.equal(reduce(s, { type: 'timerToggle', now: at(18, 31) }), s);
+  const reset = reduce(s, { type: 'timerReset' });
+  assert.equal(reset.timer.mode, 'countdown');
+  assert.equal(reset.timer.targetAt, null);
+  assert.equal(reset.timer.baseMs, 5 * 60 * 1000);
+});
+
+test('timerSet sai do modo "até o horário"', () => {
+  const s = reduce(initialState(), { type: 'timerUntil', time: '19:00', now: at(18, 30) });
+  const next = reduce(s, { type: 'timerSet', mode: 'countdown', seconds: 600 });
+  assert.equal(next.timer.mode, 'countdown');
+  assert.equal(next.timer.targetAt, null);
+});
+
+// ESC: limpa a camada mais alta que está no ar, uma por vez, de cima para baixo.
+test('clearTop tira uma camada por vez, da mais alta para a mais baixa', () => {
+  const prop = { id: 'p1', name: 'Faixa', kind: 'text', value: 'Pr. João', position: 'lower-third', size: 30 };
+  let s = initialState();
+  [
+    { type: 'showSlide', slide },
+    { type: 'showProp', prop },
+    { type: 'toggleCover' },
+    { type: 'timerVisible' },
+    { type: 'setAnnouncement', text: 'Aviso' },
+    { type: 'blackout' },
+  ].forEach((a) => { s = reduce(s, a); });
+  const seen = [];
+  const top = (st) => (st.blackout ? 'preto' : st.layers.announcement.text ? 'aviso' : st.timer.visible ? 'cronômetro'
+    : st.layers.cover.visible ? 'capa' : st.layers.props.items.length ? 'props' : st.layers.content.slide ? 'letra' : 'nada');
+  for (let i = 0; i < 7; i += 1) {
+    seen.push(top(s));
+    s = reduce(s, { type: 'clearTop' });
+  }
+  assert.deepEqual(seen, ['preto', 'aviso', 'cronômetro', 'capa', 'props', 'letra', 'nada']);
+});
+
+test('clearTop com o vídeo no ar limpa o vídeo e o próximo slide; sem nada no ar, não muda o estado', () => {
+  let s = reduce(initialState(), { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4' } });
+  s = reduce(s, { type: 'clearTop' });
+  assert.equal(s.layers.media, null);
+  assert.equal(reduce(s, { type: 'clearTop' }), s);
+});
+
+test('clearTop é uma ação válida; o fundo não é limpo', () => {
+  assert.equal(isValidAction({ type: 'clearTop' }), true);
+  const s = reduce(initialState(), { type: 'setBackground', background: { kind: 'color', value: '#112233' } });
+  assert.equal(reduce(s, { type: 'clearTop' }).layers.background.value, '#112233');
 });

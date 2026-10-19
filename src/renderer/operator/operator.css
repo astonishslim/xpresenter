@@ -21,13 +21,23 @@ main#layout {
 body.editing-layout .tile-body:empty::before { content: 'Solte uma seção aqui'; display: block; padding: 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; }
 .resize-handle { position: absolute; right: 1px; bottom: 1px; width: 20px; height: 20px; border: none; background: none; color: var(--muted); cursor: nwse-resize; touch-action: none; }
 .resize-handle:hover, .resize-handle:focus-visible, .resize-handle.dragging { color: var(--accent); outline: none; background: none; }
-body.resizing, body.resizing * { cursor: nwse-resize !important; user-select: none; }
+.resize-edge { position: absolute; padding: 0; border: none; background: none; touch-action: none; z-index: 2; }
+.resize-edge.edge-e { top: 20px; right: 0; bottom: 22px; width: 7px; cursor: ew-resize; }
+.resize-edge.edge-s { left: 20px; right: 22px; bottom: 0; height: 7px; cursor: ns-resize; }
+.resize-edge:hover, .resize-edge:focus-visible, .resize-edge.dragging { background: rgba(79, 140, 255, .55); outline: none; border-radius: 4px; }
+body.resizing, body.resizing * { user-select: none; }
+body.resizing-both, body.resizing-both * { cursor: nwse-resize !important; }
+body.resizing-c, body.resizing-c * { cursor: ew-resize !important; }
+body.resizing-r, body.resizing-r * { cursor: ns-resize !important; }
 
 .grip { cursor: grab; width: auto; height: 18px; padding: 0 5px; background: none; border: 1px solid transparent; color: var(--muted); border-radius: 4px; }
 .grip:hover, .grip:focus-visible { color: var(--text); border-color: var(--accent); outline: none; background: none; }
 .grip:active { cursor: grabbing; }
 .tile.dragging, .fold.dragging { opacity: .5; }
-.tile.drop-target { outline: 2px dashed var(--accent); outline-offset: -2px; }
+/* Onde o bloco arrastado vai encaixar: uma linha suave na borda do bloco alvo (esquerda = antes, direita = depois). */
+.tile.land-before::after, .tile.land-after::after { content: ''; position: absolute; top: 6px; bottom: 6px; width: 4px; border-radius: 4px; background: var(--accent); box-shadow: 0 0 12px 3px rgba(79, 140, 255, .55); pointer-events: none; z-index: 3; }
+.tile.land-before::after { left: 3px; }
+.tile.land-after::after { right: 3px; }
 .tile-body.drop-end { box-shadow: inset 0 -3px 0 var(--accent); }
 .fold.drop-before { box-shadow: 0 -3px 0 var(--accent); }
 .fold.drop-after { box-shadow: 0 3px 0 var(--accent); }
@@ -174,6 +184,7 @@ button[aria-pressed="true"] { background: var(--accent); border-color: var(--acc
 /* ---------- Modo "editar painéis": alças só aparecem quando ligado ---------- */
 body:not(.editing-layout) .grip,
 body:not(.editing-layout) .resize-handle,
+body:not(.editing-layout) .resize-edge,
 body:not(.editing-layout) .panel-bar { display: none !important; }
 body.editing-layout .tile { outline: 1px dashed rgba(79, 140, 255, .55); outline-offset: 2px; }
 
@@ -183,3 +194,68 @@ body.editing-layout .tile { outline: 1px dashed rgba(79, 140, 255, .55); outline
 .results .snippet { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; line-height: 1.3; }
 #bible-license { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 details.fold.file-over { outline: 2px dashed var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* ---------- Seções da música: cor por tipo, tecla de atalho e botões das seções ---------- */
+:root { --k-verse: #3b82f6; --k-chorus: #e11d48; --k-prechorus: #f59e0b; --k-bridge: #8b5cf6; --k-intro: #14b8a6; --k-ending: #64748b; }
+.slide.kind-verse { border-left: 5px solid var(--k-verse); }
+.slide.kind-chorus { border-left: 5px solid var(--k-chorus); }
+.slide.kind-prechorus { border-left: 5px solid var(--k-prechorus); }
+.slide.kind-bridge { border-left: 5px solid var(--k-bridge); }
+.slide.kind-intro { border-left: 5px solid var(--k-intro); }
+.slide.kind-ending { border-left: 5px solid var(--k-ending); }
+.slide .tag { display: flex; align-items: center; gap: 5px; }
+.slide .hotkey { display: inline-flex; align-items: center; justify-content: center; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 3px; background: #2c313b; color: var(--text); font-weight: 700; letter-spacing: 0; }
+.group-chips { gap: 3px; }
+.group-chip { height: 22px; min-width: 30px; padding: 0 6px; font-size: 11px; font-weight: 700; border-left-width: 4px; }
+.group-chip.kind-verse { border-left-color: var(--k-verse); }
+.group-chip.kind-chorus { border-left-color: var(--k-chorus); }
+.group-chip.kind-prechorus { border-left-color: var(--k-prechorus); }
+.group-chip.kind-bridge { border-left-color: var(--k-bridge); }
+.group-chip.kind-intro { border-left-color: var(--k-intro); }
+.group-chip.kind-ending { border-left-color: var(--k-ending); }
+.group-chip.live { background: #1f3b2c; border-top-color: var(--live); border-right-color: var(--live); border-bottom-color: var(--live); }
+
+/* Editor de arranjos e mensagens */
+.arr-row .arr-name { flex: 0 0 34%; }
+#ed-arr-add { margin-bottom: 8px; }
+.msg-preview:not(:empty) { padding: 4px 6px; background: #0e1014; border-radius: 5px; color: var(--text); white-space: pre-wrap; }
+#btn-msg-show { height: var(--ib); padding: 0 10px; }
+
+/* Relatório de uso e campo de horário do cronômetro */
+.usage-list { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+.usage-list li { flex-direction: column; align-items: flex-start; gap: 1px; cursor: default; }
+.usage-list li small { color: var(--muted); font-size: 11px; }
+.row input.clock { width: 92px; }
+
+/* Props (botões que ligam e desligam) e macros */
+.prop-chips { gap: 4px; }
+.prop-chip { display: inline-flex; align-items: stretch; }
+.prop-toggle { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 8px; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.prop-chip .mini { height: 24px; width: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; }
+.macro-list li { cursor: default; }
+.macro-run { flex: 1; display: inline-flex; align-items: center; gap: 6px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 24px; }
+.macro-step .step-type { flex: 1.3; }
+.macro-step .step-slot { flex: 1; min-width: 0; display: flex; }
+.macro-step .step-value { flex: 1; }
+.macro-step .mini { width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+#macro-step-add, #prop-pick { margin-bottom: 8px; }
+
+/* Câmera (preview no diálogo) e áudio de fundo */
+.cam-preview { display: block; width: 100%; aspect-ratio: 16 / 9; margin: 8px 0; background: #000; border: 1px solid var(--line); border-radius: 6px; object-fit: contain; }
+.audio-list li.active { background: #1f3b2c; }
+.audio-list li.is-missing { opacity: .55; }
+input[type=range] { padding: 0; height: 18px; accent-color: var(--accent); }
+
+/* Seguindo outro computador: aviso no cabeçalho */
+.sync-badge { padding: 2px 10px; border-radius: 999px; background: #3b2f12; border: 1px solid #f59e0b; color: #ffd479; font-size: 11px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; }
+.sync-badge.lost { background: #3a1517; border-color: var(--danger); color: #ffb4a8; }
+body.following header { box-shadow: inset 0 -2px 0 #f59e0b; }
+.sync-notes { margin: 4px 0 8px; padding-left: 18px; }
+.sync-notes li { margin: 2px 0; }
+
+/* QR code do controle remoto (fundo branco e margem de 4 módulos, como o padrão exige para leitura) */
+.qr-row { display: flex; gap: 12px; align-items: center; margin: 4px 0 10px; }
+.qr-row code { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.qr { flex: none; width: 132px; height: 132px; background: #fff; border-radius: 6px; }
+.qr svg { display: block; width: 100%; height: 100%; }
+.qr:empty { display: none; }

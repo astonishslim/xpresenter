@@ -7,6 +7,7 @@ function fileUrlOf(action) {
   if (!action) return null;
   if (action.type === 'showMedia') return action.media && action.media.value;
   if (action.type === 'showSlide') return action.slide && action.slide.image;
+  if (action.type === 'showProp') return action.prop && action.prop.kind === 'image' ? action.prop.value : null;
   if (action.type === 'setBackground') return action.background && action.background.kind !== 'color' ? action.background.value : null;
   return null;
 }

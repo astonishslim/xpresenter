@@ -77,7 +77,8 @@
   // Estado visto por uma saída com esse perfil (não muta o original).
   function applyProfile(state, profile) {
     if (profile === 'lyrics') {
-      return { ...state, layers: { ...state.layers, background: { kind: 'color', value: '#000000' }, media: null } };
+      // Só a letra sobre preto: sem fundo, mídia nem props (logo e QR são para o público, não para a banda).
+      return { ...state, layers: { ...state.layers, background: { kind: 'color', value: '#000000' }, media: null, props: { items: [] } } };
     }
     if (profile === 'background') {
       return {

@@ -16,9 +16,41 @@ function fit(el) {
   el.style.fontSize = `${lo}vh`;
 }
 
+// Layout do retorno (?layout=letra|banda|pregador): o que a tela mostra. Sem parâmetro, o padrão (letra).
+const layoutName = new URLSearchParams(location.search).get('layout');
+const layout = window.stageLayouts.layoutFor(layoutName);
+document.body.dataset.layout = window.stageLayouts.LAYOUT_NAMES.includes(layoutName) ? layoutName : window.stageLayouts.DEFAULT_LAYOUT;
+$('stage-main').hidden = !layout.now && !layout.next;
+$('now').hidden = !layout.now;
+$('next').hidden = !layout.next;
+$('clock-box').hidden = !layout.clock;
+
+// Letra com os acordes sobre as sílabas (layout da banda). Fonte de largura fixa para as colunas alinharem.
+function showChorded(el, slide) {
+  el.classList.add('chorded');
+  el.replaceChildren(...window.stageLayouts.chordLines(slide.text, slide.chords).map((row) => {
+    const line = document.createElement('div');
+    const chords = document.createElement('pre');
+    const lyric = document.createElement('pre');
+    line.className = 'cline';
+    chords.className = 'chord-row';
+    lyric.className = 'lyric-row';
+    chords.textContent = row.chords || ' ';
+    lyric.textContent = row.text;
+    line.append(chords, lyric);
+    return line;
+  }));
+  fit(el);
+}
+
 // Página de PDF não tem texto: o palco vê o rótulo ("Página 3").
 function show(id, slide, empty) {
   const el = $(id);
+  el.classList.remove('chorded');
+  if (id === 'now-text' && layout.chords && slide && slide.text && slide.chords) {
+    showChorded(el, slide);
+    return;
+  }
   el.textContent = slide ? (slide.text || (slide.image ? `🖼 ${slide.label || 'Imagem'}` : empty)) : empty;
   fit(el);
 }
@@ -26,7 +58,7 @@ function show(id, slide, empty) {
 function render(state) {
   const { content, media } = state.layers;
   // Vídeo/imagem no ar ocupa o lugar da letra: o palco vê o que está passando.
-  const now = media ? { label: media.kind === 'video' ? 'VÍDEO' : 'IMAGEM', text: media.title || '—' } : content.slide;
+  const now = media ? { label: { video: 'VÍDEO', camera: 'CÂMERA' }[media.kind] || 'IMAGEM', text: media.title || '—' } : content.slide;
   $('now-label').textContent = now && now.label ? `AGORA · ${now.label.toUpperCase()}` : 'AGORA';
   show('now-text', now, '—');
   const next = state.stage.next;
@@ -37,7 +69,7 @@ function render(state) {
   $('status').hidden = !state.blackout && !lyricsHidden;
   $('status-text').textContent = state.blackout ? 'TELA EM PRETO' : (lyricsHidden ? 'LETRA OCULTA' : '');
   $('message-text').textContent = state.stage.message || '';
-  $('message').classList.toggle('visible', Boolean(state.stage.message));
+  $('message').classList.toggle('visible', layout.message && Boolean(state.stage.message));
 }
 
 // Diferença entre o relógio do computador do operador e o deste aparelho (0 na janela do próprio app).
@@ -49,14 +81,14 @@ const WARN_MS = 60 * 1000;
 function renderTimer() {
   const timer = lastState && lastState.timer;
   const { isTimerInUse, timerValueMs, formatTimer } = window.liveInfo;
-  const inUse = isTimerInUse(timer);
+  const inUse = isTimerInUse(timer) && layout.timer;
   $('timer').hidden = !inUse;
   if (!inUse) return;
   const ms = timerValueMs(timer, serverNow());
   $('timer-text').textContent = formatTimer(ms);
-  $('timer').classList.toggle('over', timer.mode === 'countdown' && ms <= 0);
-  $('timer').classList.toggle('warn', timer.mode === 'countdown' && ms > 0 && ms <= WARN_MS);
-  $('timer').classList.toggle('paused', timer.startedAt == null);
+  $('timer').classList.toggle('over', window.liveInfo.isCountdown(timer) && ms <= 0);
+  $('timer').classList.toggle('warn', window.liveInfo.isCountdown(timer) && ms > 0 && ms <= WARN_MS);
+  $('timer').classList.toggle('paused', timer.mode !== 'until' && timer.startedAt == null); // até o horário nunca pausa
 }
 
 function tickClock() {

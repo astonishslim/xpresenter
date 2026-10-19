@@ -6,7 +6,11 @@
   const NONE = '';
   const SIZES = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150];
   const TOGGLES = { 'style-uppercase': 'uppercase', 'style-shadow': 'shadow', 'style-label': 'showLabel' };
-  const SELECTS = { 'style-font': 'font', 'style-align': 'align', 'style-position': 'position' };
+  const SELECTS = { 'style-font': 'font', 'style-align': 'align', 'style-position': 'position', 'style-outline': 'outline' };
+  // Caixa atrás do texto (% de opacidade) e desfoque do fundo: valores fechados em passos, como no núcleo.
+  const BOX_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80];
+  const BLUR_STEPS = [0, 5, 10, 15, 20];
+  const NUMERIC_SELECTS = { 'style-box': 'box', 'style-blur': 'blur' };
   const $ = (id) => document.getElementById(id);
 
   function option(value, label) {
@@ -34,6 +38,9 @@
     $('style-size').replaceChildren(...SIZES.map((s) => option(String(s), `${s}%`)));
     $('style-size').addEventListener('change', (e) => setStyle({ size: Number(e.target.value) }));
     Object.entries(SELECTS).forEach(([id, field]) => $(id).addEventListener('change', (e) => setStyle({ [field]: e.target.value })));
+    $('style-box').replaceChildren(...BOX_STEPS.map((v) => option(String(v), v ? `Caixa ${v}%` : 'Sem caixa')));
+    $('style-blur').replaceChildren(...BLUR_STEPS.map((v) => option(String(v), v ? `Desfoque ${v}` : 'Fundo nítido')));
+    Object.entries(NUMERIC_SELECTS).forEach(([id, field]) => $(id).addEventListener('change', (e) => setStyle({ [field]: Number(e.target.value) })));
     $('style-color').addEventListener('input', (e) => setStyle({ color: e.target.value }));
     Object.entries(TOGGLES).forEach(([id, field]) => $(id).addEventListener('click', () => {
       if (state) setStyle({ [field]: !state.textStyle[field] });
@@ -65,6 +72,7 @@
       $('style-caption-pos').value = style.captionPosition;
       $('style-size').value = String(style.size);
       Object.entries(SELECTS).forEach(([id, field]) => { $(id).value = style[field]; });
+      Object.entries(NUMERIC_SELECTS).forEach(([id, field]) => { $(id).value = String(style[field]); });
       if (document.activeElement !== $('style-color')) $('style-color').value = style.color;
       Object.entries(TOGGLES).forEach(([id, field]) => $(id).setAttribute('aria-pressed', String(style[field])));
     };
