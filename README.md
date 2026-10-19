@@ -215,5 +215,6 @@ permitidas. Use apenas em Wi-Fi confiável.
 
 ## Próximos passos sugeridos
 
-Biblioteca de mídia com miniaturas (e vídeo como item do culto), várias saídas com conteúdo diferente, NDI, importação de
-PPTX/PDF, atualização automática do instalador.
+NDI (depende do SDK proprietário da NDI e da licença dele), atualização automática do instalador (precisa de um lugar para
+publicar as versões, ex.: GitHub Releases, e de preferência certificado de assinatura de código), efeitos visuais e linha
+do tempo completa.
