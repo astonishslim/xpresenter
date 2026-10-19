@@ -6,6 +6,7 @@ const { randomBytes } = require('node:crypto');
 const { createStore } = require('../core/store');
 const { createLibrary } = require('../core/library');
 const { createRemoteServer } = require('../core/remoteServer');
+const { qrRows } = require('../core/qrCode');
 const { createOperatorWindow, createOutputWindows, createStageWindow, getDisplays } = require('./windows');
 const { sanitizeConfig, planOutputs } = require('../core/outputConfig');
 const { createBibleLibrary } = require('../core/bibleLibrary');
@@ -226,7 +227,9 @@ async function start() {
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;
-      return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}`, liveUrl: `${base}/live.html?t=${token}` };
+      const url = `${base}/?t=${token}`;
+      const stageUrl = `${base}/stage.html?t=${token}`;
+      return { url, stageUrl, liveUrl: `${base}/live.html?t=${token}`, qr: qrRows(url), stageQr: qrRows(stageUrl) };
     },
   });
   const messages = createMessageLibrary(path.join(userDataDir, 'messages.json'));

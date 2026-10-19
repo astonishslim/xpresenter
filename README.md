@@ -27,7 +27,7 @@ npm start
      um arquivo por livro como o `damarals/biblias`, ou o formato do app) e **Zefania XML**. Versões importadas podem ser removidas.
    - ARA, ARC, NVI, NAA, NTLH e outras são de editoras: **não vêm no app**. Importe somente arquivos que você tenha o direito de usar.
 5. **Culto** é a ordem do culto (músicas e versículos); reordene e remova.
-6. **Remoto** mostra um endereço para abrir no celular (mesma rede Wi-Fi). O endereço contém um token novo a cada execução.
+6. **Remoto** mostra um endereço para abrir no celular (mesma rede Wi-Fi), com **QR code**: aponte a câmera do celular e o controle remoto abre (o do retorno de palco também tem QR). O endereço contém um token novo a cada execução.
 
 ## Arranjos e teclas de seção
 
@@ -405,7 +405,7 @@ permitidas. Use apenas em Wi-Fi confiável.
 ## Licença
 
 Código sob a licença [MIT](LICENSE). Componentes de terceiros mantêm as próprias licenças (pasta `licenses/` e
-`data/bibles/SOURCES.md`): ícones Lucide (ISC), pdf.js (Apache-2.0), fflate (MIT) e Bíblia Livre (CC BY 3.0 BR, com
+`data/bibles/SOURCES.md`): ícones Lucide (ISC), pdf.js (Apache-2.0), fflate (MIT), qrcode-generator (MIT) e Bíblia Livre (CC BY 3.0 BR, com
 atribuição exibida no app). TB e Almeida 1911 são de domínio público.
 
 ## Próximos passos sugeridos

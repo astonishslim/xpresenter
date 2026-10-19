@@ -7,6 +7,24 @@ function miniButton(name, label, onclick) {
   return h('button', { class: 'mini', title: label, 'aria-label': label, onclick }, icon(name));
 }
 
+// Desenha a matriz do QR (linhas de '0' e '1') como um SVG de um só caminho, com margem de 4 módulos.
+const QR_MARGIN = 4;
+function drawQr(box, rows) {
+  box.replaceChildren();
+  if (!Array.isArray(rows) || !rows.length) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const size = rows.length + QR_MARGIN * 2;
+  const path = rows.flatMap((row, y) => [...row].map((bit, x) => (bit === '1' ? `M${x + QR_MARGIN} ${y + QR_MARGIN}h1v1h-1z` : ''))).join('');
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+  svg.setAttribute('shape-rendering', 'crispEdges');
+  const shape = document.createElementNS(NS, 'path');
+  shape.setAttribute('d', path);
+  shape.setAttribute('fill', '#000');
+  svg.append(shape);
+  box.append(svg);
+}
+
 function h(tag, props = {}, ...children) {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(props)) {
@@ -768,6 +786,8 @@ function bindEvents() {
     $('remote-url').textContent = info.url;
     $('remote-stage-url').textContent = info.stageUrl;
     $('remote-live-url').textContent = info.liveUrl;
+    drawQr($('remote-qr'), info.qr);
+    drawQr($('remote-stage-qr'), info.stageQr);
     $('remote-dialog').showModal();
   });
   $('remote-close').addEventListener('click', () => $('remote-dialog').close());
