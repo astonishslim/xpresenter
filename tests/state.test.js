@@ -340,3 +340,38 @@ test('timerSet sai do modo "até o horário"', () => {
   assert.equal(next.timer.mode, 'countdown');
   assert.equal(next.timer.targetAt, null);
 });
+
+// ESC: limpa a camada mais alta que está no ar, uma por vez, de cima para baixo.
+test('clearTop tira uma camada por vez, da mais alta para a mais baixa', () => {
+  const prop = { id: 'p1', name: 'Faixa', kind: 'text', value: 'Pr. João', position: 'lower-third', size: 30 };
+  let s = initialState();
+  [
+    { type: 'showSlide', slide },
+    { type: 'showProp', prop },
+    { type: 'toggleCover' },
+    { type: 'timerVisible' },
+    { type: 'setAnnouncement', text: 'Aviso' },
+    { type: 'blackout' },
+  ].forEach((a) => { s = reduce(s, a); });
+  const seen = [];
+  const top = (st) => (st.blackout ? 'preto' : st.layers.announcement.text ? 'aviso' : st.timer.visible ? 'cronômetro'
+    : st.layers.cover.visible ? 'capa' : st.layers.props.items.length ? 'props' : st.layers.content.slide ? 'letra' : 'nada');
+  for (let i = 0; i < 7; i += 1) {
+    seen.push(top(s));
+    s = reduce(s, { type: 'clearTop' });
+  }
+  assert.deepEqual(seen, ['preto', 'aviso', 'cronômetro', 'capa', 'props', 'letra', 'nada']);
+});
+
+test('clearTop com o vídeo no ar limpa o vídeo e o próximo slide; sem nada no ar, não muda o estado', () => {
+  let s = reduce(initialState(), { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4' } });
+  s = reduce(s, { type: 'clearTop' });
+  assert.equal(s.layers.media, null);
+  assert.equal(reduce(s, { type: 'clearTop' }), s);
+});
+
+test('clearTop é uma ação válida; o fundo não é limpo', () => {
+  assert.equal(isValidAction({ type: 'clearTop' }), true);
+  const s = reduce(initialState(), { type: 'setBackground', background: { kind: 'color', value: '#112233' } });
+  assert.equal(reduce(s, { type: 'clearTop' }).layers.background.value, '#112233');
+});

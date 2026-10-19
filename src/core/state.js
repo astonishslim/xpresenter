@@ -91,6 +91,17 @@ const HANDLERS = {
     stage: { ...s.stage, next: a.next || null },
   }),
   clear: (s) => ({ ...s, layers: { ...s.layers, media: null, content: { slide: null } }, stage: { ...s.stage, next: null } }),
+  // ESC: tira só a camada mais alta que está no ar (preto, aviso, cronômetro, capa, props, letra/vídeo), de cima
+  // para baixo. O fundo fica: é o visual do culto, não algo "no ar".
+  clearTop: (s) => {
+    if (s.blackout) return { ...s, blackout: false };
+    if (s.layers.announcement.text) return HANDLERS.setAnnouncement(s, { text: null });
+    if (s.timer.visible) return withTimer(s, { visible: false });
+    if (s.layers.cover.visible) return { ...s, layers: { ...s.layers, cover: { visible: false } } };
+    if (s.layers.props.items.length) return HANDLERS.clearProps(s);
+    if (s.layers.media || s.layers.content.slide) return HANDLERS.clear(s);
+    return s;
+  },
   showMedia: (s, a) => ({
     ...s,
     blackout: false,

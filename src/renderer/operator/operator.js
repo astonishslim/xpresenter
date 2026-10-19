@@ -818,7 +818,7 @@ function bindEvents() {
       Enter: () => goLive(ui.selected),
       b: () => api.dispatch({ type: 'blackout' }),
       l: () => toggleLayer('content'),
-      Escape: () => api.dispatch({ type: 'clear' }),
+      Escape: () => api.dispatch({ type: 'clearTop' }), // uma camada por vez, da mais alta para a mais baixa
     };
     const act = actions[e.key.length === 1 ? e.key.toLowerCase() : e.key];
     if (act) { e.preventDefault(); act(); }

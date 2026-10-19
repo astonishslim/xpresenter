@@ -16,7 +16,7 @@ npm start
 1. **+ Música** cria uma música. Use `[Verso 1]`, `[Refrão]`, `[Ponte]` para marcar seções; linha em branco separa slides.
    Acordes inline como `[Am]` são ignorados na projeção.
 2. **Projetar** abre a saída: em tela cheia no monitor externo, ou em janela se houver um só monitor.
-3. Clique num slide para colocá-lo ao vivo. Atalhos: `→`/`Espaço` próximo, `←` anterior, `B` preto, `Esc` limpar,
+3. Clique num slide para colocá-lo ao vivo. Atalhos: `→`/`Espaço` próximo, `←` anterior, `B` preto, `Esc` limpa **uma camada por vez, da mais alta para a mais baixa** (preto, aviso, cronômetro, capa, props, letra/vídeo; o fundo fica),
    `1`–`9`/`C`/`E`/`P`/`I`/`F` seção, `F2` editar slide, `Ctrl+Z` desfazer.
 4. **Bíblia**: escolha a versão e digite uma referência (`João 3:16-17`, `1 Co 13:4-7`, `Salmo 23`) **ou palavras**
    (`amou o mundo`, `"assim amou Deus"` para frase exata). A busca ignora acentos e maiúsculas. Clique num resultado para
