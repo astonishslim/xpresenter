@@ -9,7 +9,7 @@ const ICONS = [
   'layers', 'megaphone', 'send', 'image', 'palette', 'circle-play', 'plus', 'search', 'file-up', 'list-plus',
   'pencil', 'zap', 'monitor-up', 'monitor-off', 'x', 'arrow-up', 'grip', 'grip-vertical', 'move-diagonal-2', 'check',
   'layout-dashboard', 'clock', 'video', 'type', 'case-upper', 'blend', 'tag', 'swatch-book',
-  'globe', 'captions', 'captions-off', 'image-off', 'megaphone-off', 'sun-dim', 'timer', 'play', 'pause', 'timer-reset', 'tv', 'wand-sparkles', 'images', 'film',
+  'globe', 'captions', 'captions-off', 'image-off', 'megaphone-off', 'sun-dim', 'timer', 'play', 'pause', 'timer-reset', 'tv', 'wand-sparkles', 'images', 'film', 'presentation',
 ];
 
 const root = path.join(__dirname, '..');

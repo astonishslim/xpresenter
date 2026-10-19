@@ -36,6 +36,11 @@ contextBridge.exposeInMainWorld('apresentador', {
   remote: { info: () => invoke('remote:info') },
   displays: { list: () => invoke('displays:list') },
   stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },
+  imports: {
+    pick: () => invoke('import:pick'),
+    savePage: (importId, index, bytes) => invoke('import:savePage', { importId, index, bytes }),
+    discard: (importId) => invoke('import:discard', importId),
+  },
   media: {
     list: () => invoke('media:list'),
     add: () => invoke('media:add'),

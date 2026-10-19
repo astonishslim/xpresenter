@@ -121,6 +121,17 @@ Seção **Mídia** (no bloco da biblioteca): imagens (JPG, PNG, WebP, GIF) e ví
 - Só a primeira janela de projeção toca o som; Preview e Programa ficam mudos. O retorno de palco mostra "AGORA · VÍDEO".
 - O app desliga a economia de energia do Chromium para vídeo e relógios não pararem com a janela encoberta.
 
+## Importar apresentação (PDF e PowerPoint)
+
+Botão de apresentação na seção **Culto**:
+- **PDF**: cada página vira um slide de imagem (1920 px de largura) e o arquivo entra no culto como um item. Ideal para os
+  slides do pregador: no PowerPoint/Google Slides/Keynote, **exporte como PDF** e importe aqui. Até 300 páginas, 100 MB.
+  As páginas ficam na pasta de dados do app e são apagadas quando o item sai do culto.
+- **PPTX**: importa só o **texto** de cada slide (como slides de texto, no estilo do tema). Para manter o visual, use PDF.
+- O PDF é renderizado com o [pdf.js](https://mozilla.github.io/pdf.js/) (Apache-2.0, cópia em `src/renderer/vendor/pdfjs`;
+  atualizar com `npm run vendor:pdfjs`). O PPTX é lido com o [fflate](https://github.com/101arrowz/fflate) (MIT), com limites
+  contra arquivos que se expandem demais.
+
 ## Transições, legenda e tema automático
 
 - **Transição** (em "Tema e texto"): corte seco ou fade (rápido, normal, lento, muito lento). No fade, o slide

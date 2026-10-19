@@ -256,7 +256,8 @@
       <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="playlist" open>
-          <summary><span class="fold-title"><span class="ico" data-icon="list-music"></span>Culto</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="list-music"></span>Culto</span><button id="btn-import-presentation" class="ib" type="button" data-icon="presentation" title="Importar apresentação (PDF ou PowerPoint) para o culto" aria-label="Importar apresentação PDF ou PowerPoint"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <p id="import-msg" class="muted" role="status"></p>
           <ol id="playlist" class="list"></ol>
         </details>
       </div>
@@ -350,6 +351,7 @@
   <script src="theme-panel.js"></script>
   <script src="lyrics-panel.js"></script>
   <script src="media-panel.js"></script>
+  <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>
 </body>
 </html>

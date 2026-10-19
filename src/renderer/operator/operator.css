@@ -85,6 +85,7 @@ ol.list li::before { counter-increment: n; content: counter(n); color: var(--mut
 .slide.live { border-color: var(--live); box-shadow: 0 0 0 2px rgba(47, 179, 109, .35); }
 .slide .tag { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px; }
 .slide .body { white-space: pre-wrap; line-height: 1.3; }
+.slide .slide-thumb { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; border-radius: 4px; }
 
 /* Monitores 16:9 que se adaptam ao tamanho do bloco (largura e altura). */
 .monitor { aspect-ratio: 16 / 9; width: min(100%, calc((100cqh - 78px) * 16 / 9)); min-width: 120px; margin-inline: auto; background: #000; border: 2px solid var(--line); border-radius: 5px; overflow: hidden; }

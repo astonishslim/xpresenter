@@ -9,7 +9,8 @@ if (params.get('fundo') === 'verde') document.body.classList.add('chroma');
 function render(state) {
   const { content } = state.layers;
   const slide = content.slide;
-  const visible = Boolean(slide) && !content.hidden && !state.blackout;
+  // Página de PDF (só imagem) não tem letra para a faixa.
+  const visible = Boolean(slide && slide.text && slide.text.trim()) && !content.hidden && !state.blackout;
   $('bar').classList.toggle('visible', visible);
   $('bar').classList.toggle('upper', Boolean(state.textStyle && state.textStyle.uppercase));
   if (!slide) return;

@@ -16,9 +16,10 @@ function fit(el) {
   el.style.fontSize = `${lo}vh`;
 }
 
+// Página de PDF não tem texto: o palco vê o rótulo ("Página 3").
 function show(id, slide, empty) {
   const el = $(id);
-  el.textContent = slide ? slide.text : empty;
+  el.textContent = slide ? (slide.text || (slide.image ? `🖼 ${slide.label || 'Imagem'}` : empty)) : empty;
   fit(el);
 }
 

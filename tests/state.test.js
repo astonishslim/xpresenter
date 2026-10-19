@@ -264,6 +264,14 @@ test('isValidAction valida showMedia e mediaControl', () => {
   assert.equal(isValidAction({ type: 'mediaControl', command: 'seek' }), false);
 });
 
+test('showSlide aceita slide de imagem (página de PDF) só com URL local', () => {
+  const ok = (image) => isValidAction({ type: 'showSlide', slide: { text: '', label: 'Página 1', image } });
+  assert.equal(ok('file:///C:/dados/imports/abc/page-001.png'), true);
+  assert.equal(ok('http://x/y.png'), false);
+  assert.equal(ok('file:////host/s/a.png'), false);
+  assert.equal(ok(5), false);
+});
+
 test('setBackground aceita vídeo local', () => {
   assert.equal(isValidAction({ type: 'setBackground', background: { kind: 'video', value: 'file:///C:/videos/loop.mp4' } }), true);
 });

@@ -10,6 +10,7 @@ const { createOperatorWindow, createOutputWindows, createStageWindow } = require
 const { createBibleLibrary } = require('../core/bibleLibrary');
 const { createThemeLibrary, persistCurrentLook } = require('../core/themeLibrary');
 const { createMediaLibrary } = require('../core/mediaLibrary');
+const { createImportStore } = require('../core/importStore');
 const { initialState } = require('../core/state');
 const { registerIpc } = require('./ipc');
 
@@ -115,6 +116,7 @@ async function start() {
     bibles,
     themes,
     media: createMediaLibrary(path.join(userDataDir, 'media.json')),
+    imports: createImportStore(path.join(userDataDir, 'imports')),
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;

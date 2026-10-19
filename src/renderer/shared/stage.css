@@ -19,6 +19,11 @@
 /* Crossfade: o slide novo nasce transparente (sem animar) e a cópia do anterior some por cima. */
 .stage .content.entering { opacity: 0; transition: none; }
 .stage .content.ghost { pointer-events: none; }
+/* Slide de imagem (página de PDF): ocupa a tela inteira, sem texto nem margem. */
+.stage .slide-image { display: none; }
+.stage .content.has-image { padding: 0; }
+.stage .content.has-image .label, .stage .content.has-image .text { display: none; }
+.stage .content.has-image .slide-image { display: block; width: 100%; height: 100%; object-fit: contain; }
 
 /* Legenda do tema ({titulo}, {hora}, {cronometro}…) num dos cantos. */
 .stage .caption { inset: auto; max-width: 60cqw; padding: 2.4cqh 3cqw; color: var(--text-color, #fff); font-size: 3cqh; font-weight: 600; opacity: 0; transition: opacity .3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 .2cqh .8cqh rgba(0, 0, 0, .7); }

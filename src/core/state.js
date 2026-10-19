@@ -143,6 +143,7 @@ const MEDIA_COMMANDS = ['play', 'pause', 'restart'];
 const REQUIRED_FIELD = {
   showSlide: (a) => a.slide && typeof a.slide.text === 'string'
     && isOptionalText(a.slide.title) && isOptionalText(a.slide.label)
+    && (a.slide.image == null || isValidBackground({ kind: 'image', value: a.slide.image }))
     && (a.next == null || typeof a.next.text === 'string'),
   showMedia: (a) => a.media && isValidBackground(a.media) && isOptionalText(a.media.title)
     && (a.media.loop == null || typeof a.media.loop === 'boolean'),

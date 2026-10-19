@@ -114,9 +114,11 @@
     };
     const label = el('div', 'label');
     const text = el('div', 'text');
+    const picture = el('img', 'slide-image'); // página de PDF importada
+    picture.alt = '';
     const captionText = el('span', 'caption-text');
     const timerText = el('span', 'timer-text');
-    layers.content.append(label, text);
+    layers.content.append(label, text, picture);
     layers.caption.append(captionText);
     layers.timer.append(timerText);
     stage.append(...Object.values(layers));
@@ -180,7 +182,7 @@
         const slide = content.slide;
         const wasVisible = !layers.content.classList.contains('hidden');
         const visible = Boolean(slide) && !content.hidden;
-        const textKey = slide ? `${slide.label}|${slide.text}` : '';
+        const textKey = slide ? `${slide.label}|${slide.text}|${slide.image || ''}` : '';
         // Troca de slide com os dois visíveis: crossfade. Aparecer/sumir usa a transição da própria camada.
         if (slide && textKey !== lastText && wasVisible && visible && style.transition === 'fade' && lastText) {
           crossfade(layers.content, style.transitionMs);
@@ -190,9 +192,15 @@
         const fitKey = slide ? `${textKey}|${container.clientWidth}x${container.clientHeight}|${styleKey}` : '';
         if (slide && fitKey !== lastFit) {
           lastFit = fitKey;
-          label.textContent = slide.label || '';
-          text.textContent = slide.text;
-          fitText(text, layers.content, style.size / 100);
+          layers.content.classList.toggle('has-image', Boolean(slide.image));
+          if (slide.image) {
+            picture.src = slide.image;
+          } else {
+            picture.removeAttribute('src');
+            label.textContent = slide.label || '';
+            text.textContent = slide.text;
+            fitText(text, layers.content, style.size / 100);
+          }
         }
         if (slide) lastText = textKey;
 

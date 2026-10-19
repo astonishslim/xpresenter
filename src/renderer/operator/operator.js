@@ -110,7 +110,8 @@ function renderSlides() {
     class: `slide${i === ui.index ? ' live' : ''}${i === ui.selected ? ' selected' : ''}`,
     onclick: () => (ui.direct ? goLive(i) : selectSlide(i)),
     ondblclick: () => goLive(i),
-  }, h('div', { class: 'tag' }, slide.label || ''), h('div', { class: 'body' }, slide.text))));
+  }, h('div', { class: 'tag' }, slide.label || ''),
+  slide.image ? h('img', { class: 'slide-thumb', src: slide.image, alt: slide.label || '', loading: 'lazy' }) : h('div', { class: 'body' }, slide.text))));
 }
 
 // ---------- Biblioteca ----------
@@ -440,6 +441,9 @@ async function init() {
     addToPlaylist: async (item) => { await api.playlist.add(item); refreshPlaylist(); },
     getProgramVideo: () => programStage.mediaVideo(),
   });
+  // O import-panel é um módulo (carrega depois): liga quando ele estiver pronto.
+  const bindImport = () => window.bindImport({ api, onImported: async (item) => { await api.playlist.add(item); refreshPlaylist(); } });
+  if (window.bindImport) bindImport(); else window.addEventListener('import-panel-ready', bindImport, { once: true });
   try { ui.direct = localStorage.getItem(DIRECT_KEY) === '1'; } catch { ui.direct = false; }
   $('direct').checked = ui.direct;
 

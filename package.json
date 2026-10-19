@@ -10,12 +10,14 @@
     "coverage": "node --test --experimental-test-coverage \"tests/*.test.js\"",
     "dist": "electron-builder --win nsis",
     "icons": "node scripts/build-icons.js",
-    "bibles": "node scripts/fetch-bibles.js"
+    "bibles": "node scripts/fetch-bibles.js",
+    "vendor:pdfjs": "node scripts/vendor-pdfjs.js"
   },
   "devDependencies": {
     "electron": "^44.9.0",
     "electron-builder": "^26.15.3",
-    "lucide-static": "^1.59.0"
+    "lucide-static": "^1.59.0",
+    "pdfjs-dist": "^6.4.299"
   },
   "author": "Alisson Smith",
   "build": {
@@ -46,5 +48,8 @@
       "allowToChangeInstallationDirectory": true,
       "perMachine": false
     }
+  },
+  "dependencies": {
+    "fflate": "^0.8.3"
   }
 }

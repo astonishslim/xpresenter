@@ -7,6 +7,7 @@ const { registerBibleIpc } = require('./bibleIpc');
 
 const { registerThemeIpc } = require('./themeIpc');
 const { registerMediaIpc } = require('./mediaIpc');
+const { registerImportIpc } = require('./importIpc');
 const { searchSongs } = require('../core/songSearch');
 const { createLyricsClient } = require('../core/lyricsOnline');
 
@@ -18,7 +19,7 @@ const BACKGROUND_PICKERS = {
   video: { title: 'Escolher vídeo de fundo', filters: [{ name: 'Vídeos', extensions: ['mp4', 'webm', 'm4v', 'ogv'] }] },
 };
 
-function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles, themes, media, getWindow }) {
+function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles, themes, media, imports, getWindow }) {
   const slidesFor = ({ title, text }) => toSlides(parseSong(title, text));
 
   ipcMain.handle('state:get', () => store.getState());
@@ -45,12 +46,16 @@ function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles
 
   ipcMain.handle('playlist:list', () => library.getPlaylist());
   ipcMain.handle('playlist:add', (_e, item) => library.addToPlaylist(item));
-  ipcMain.handle('playlist:remove', (_e, id) => library.removeFromPlaylist(id));
+  ipcMain.handle('playlist:remove', (_e, id) => {
+    library.removeFromPlaylist(id);
+    pruneUnused(); // páginas de PDF que ninguém mais usa
+  });
   ipcMain.handle('playlist:move', (_e, { id, index }) => library.movePlaylistItem(id, index));
 
   registerBibleIpc({ bibles, getWindow });
   registerThemeIpc({ store, themes });
   registerMediaIpc({ media, getWindow });
+  const { pruneUnused } = registerImportIpc({ imports, library, getWindow });
 
   ipcMain.handle('outputs:toggle', () => outputs.toggle());
   ipcMain.handle('outputs:isOpen', () => outputs.isOpen());
