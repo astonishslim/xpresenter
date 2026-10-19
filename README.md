@@ -230,6 +230,17 @@ permitidas. Use apenas em Wi-Fi confiável.
   zerar) e **vídeo** (tocar, pausar, do início). Não pode: fundo, estilo/tema, mostrar cronômetro na projeção, camadas de
   fundo, saídas, automação.
 
+## Instalação e atualização automática
+
+- Baixe o instalador `Apresentador-Setup-x.y.z.exe` em [Releases](https://github.com/astonishslim/xpresenter/releases).
+  O instalador ainda **não é assinado**: na primeira vez o Windows mostra "O Windows protegeu o computador" → **Mais
+  informações → Executar assim mesmo**.
+- O app instalado procura versões novas no GitHub (15 s depois de abrir e a cada 6 h) e **baixa em segundo plano**. A
+  atualização é instalada **quando você fecha o app**; ele nunca reinicia sozinho no meio do culto. Para atualizar na hora,
+  use o botão verde **Atualizar** no cabeçalho (dois cliques). Sem internet, nada muda.
+- Para publicar uma versão: aumente `version` no `package.json`, rode `npm run dist` e crie a release `vX.Y.Z` no GitHub com
+  os três arquivos de `dist/`: o `.exe`, o `.exe.blockmap` e o `latest.yml`.
+
 ## Licença
 
 Código sob a licença [MIT](LICENSE). Componentes de terceiros mantêm as próprias licenças (pasta `licenses/` e

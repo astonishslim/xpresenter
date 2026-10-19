@@ -317,6 +317,28 @@ function renderLive(state) {
   if (document.activeElement !== $('bg-dim')) $('bg-dim').value = String(state.layers.background.dim || 0);
 }
 
+// ---------- Atualização ----------
+// Baixada em segundo plano; instala ao fechar o app. Reiniciar agora exige dois cliques (nada de reinício acidental no culto).
+const UPDATE_CONFIRM_MS = 4000;
+function bindUpdate() {
+  const btn = $('btn-update');
+  let confirmTimer = null;
+  const show = (version) => {
+    btn.hidden = false;
+    btn.querySelector('.label').textContent = `Atualizar (${version})`;
+  };
+  api.update.onReady(({ version }) => show(version));
+  api.update.status().then((s) => s.ready && show(s.ready));
+  btn.addEventListener('click', () => {
+    if (!confirmTimer) {
+      btn.querySelector('.label').textContent = 'Clique de novo para reiniciar';
+      confirmTimer = setTimeout(() => { confirmTimer = null; api.update.status().then((s) => s.ready && show(s.ready)); }, UPDATE_CONFIRM_MS);
+      return;
+    }
+    api.update.install();
+  });
+}
+
 // ---------- Cronômetro ----------
 const TIMER_TICK_MS = 250;
 const SECONDS_PER_MINUTE = 60;
@@ -500,6 +522,7 @@ async function init() {
   });
   window.initOutputsPanel({ api });
   window.initAutomationPanel({ api });
+  bindUpdate();
   // OSC: avançar/voltar precisam do contexto de slides daqui.
   api.automation.onCommand((command) => {
     if (command === 'next') goLive(ui.index + 1);

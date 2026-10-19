@@ -17,6 +17,7 @@ const { createImportStore } = require('../core/importStore');
 const { initialState, liveKeyOf, isValidAction } = require('../core/state');
 const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
+const { setupUpdater } = require('./updater');
 
 const REMOTE_PORT = 5151;
 
@@ -197,6 +198,7 @@ async function start() {
     getWindow: () => operator,
     step: (delta) => stepLive({ store, library, themes }, delta),
   });
+  setupUpdater({ getWindow: () => operator });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());
   app.on('before-quit', () => { flushLook(); automation.stop(); remote.close(); });

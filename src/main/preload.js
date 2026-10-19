@@ -41,6 +41,15 @@ contextBridge.exposeInMainWorld('apresentador', {
   remote: { info: () => invoke('remote:info') },
   displays: { list: () => invoke('displays:list') },
   stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },
+  update: {
+    status: () => invoke('update:status'),
+    install: () => invoke('update:install'),
+    onReady(callback) {
+      const handler = (_event, info) => callback(info);
+      ipcRenderer.on('update:ready', handler);
+      return () => ipcRenderer.removeListener('update:ready', handler);
+    },
+  },
   automation: {
     get: () => invoke('automation:get'),
     set: (settings) => invoke('automation:set', settings),

@@ -1,6 +1,6 @@
 {
   "name": "apresentador",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Apresentador: letras, versículos e avisos projetados para o culto, com controle remoto pelo celular.",
   "main": "src/main/main.js",
   "license": "MIT",
@@ -51,10 +51,19 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "perMachine": false
-    }
+      "perMachine": false,
+      "artifactName": "Apresentador-Setup-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "astonishslim",
+        "repo": "xpresenter"
+      }
+    ]
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "fflate": "^0.8.3"
   }
 }
