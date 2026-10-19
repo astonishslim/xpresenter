@@ -94,6 +94,23 @@ transparente** e a letra ou o versículo ao vivo numa faixa inferior. No OBS, ad
 (Browser Source) de 1920×1080 com esse endereço; no vMix, uma entrada **Web Browser**. Para softwares sem transparência,
 acrescente `&fundo=verde` e use chroma key. A faixa some com tela preta, letra oculta ou conteúdo limpo.
 
+- `&modo=tela`: a letra em **tela cheia** (com cor, fonte e maiúsculas do tema) sobre fundo transparente, em vez da faixa.
+
+### NDI (pelo OBS)
+
+O app não embute o SDK da NDI (licença proprietária). Use o OBS como ponte, de graça:
+
+1. Instale o [OBS Studio](https://obsproject.com) e o plugin [DistroAV](https://github.com/DistroAV/DistroAV) (antigo obs-ndi),
+   que instala também o NDI Runtime.
+2. Monte a cena no OBS:
+   - **Só a letra** (para sobrepor na mesa de vídeo): **Fonte de navegador** 1920×1080 com o endereço de Transmissão
+     (`…/live.html?t=…&modo=tela` para tela cheia, ou sem `modo` para a faixa inferior). O fundo é transparente: o NDI
+     leva o canal alfa.
+   - **A projeção inteira** (fundo, vídeos, PDF): **Captura de janela** da janela "Apresentador - Saída" (ou de tela, se a
+     saída estiver em tela cheia num monitor).
+3. Em **Ferramentas → Configurações do DistroAV**, ligue a **Saída principal NDI** (ou use o filtro "NDI Output" só numa
+   fonte). A mesa de vídeo, o vMix ou outro computador passam a ver o "OBS" como fonte NDI na rede.
+
 ## Fundo, estilo do texto e temas
 
 Nas seções **Aviso e fundo** (cor, imagem, vídeo) e **Tema e texto** (estilo, temas):
@@ -215,6 +232,6 @@ permitidas. Use apenas em Wi-Fi confiável.
 
 ## Próximos passos sugeridos
 
-NDI (depende do SDK proprietário da NDI e da licença dele), atualização automática do instalador (precisa de um lugar para
+NDI nativo (hoje via OBS + DistroAV; nativo depende do SDK proprietário da NDI), atualização automática do instalador (precisa de um lugar para
 publicar as versões, ex.: GitHub Releases, e de preferência certificado de assinatura de código), efeitos visuais e linha
 do tempo completa.
