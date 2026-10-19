@@ -27,10 +27,13 @@ npm start
   mostrar o próximo slide. Marque "Clique envia direto ao vivo" para o modo direto.
 - **Retorno de palco** (para banda e pregador): slide atual, próximo, relógio, aviso de tela preta e mensagem livre.
   Abre em tela cheia no monitor escolhido ou em janela. Também funciona em tablet/celular: botão **Remoto** mostra o link.
-- **Painéis dinâmicos**: arraste os divisores entre os painéis (duplo clique restaura, setas ← → no divisor ajustam) e recolha
-  seções. Para **trocar a posição dos painéis**, arraste a alça ⠿ de um painel sobre outro (os dois se trocam), ou foque a
-  alça e use ← →. A largura pertence à posição (esquerda/direita), não ao painel. **Restaurar layout** volta ao padrão, e o
-  layout fica salvo.
+- **Grade bento**: a tela do operador é uma grade de 12 colunas com blocos de tamanhos variados.
+  - **Mover bloco**: arraste a alça ⠿ do bloco sobre outro (ele toma o lugar do alvo), ou foque a alça e use as setas.
+  - **Redimensionar**: arraste o canto ◢ (encaixa nas células da grade), ou foque o canto e use as setas; duplo clique restaura.
+  - **Mover seção**: cada seção (Músicas, Bíblia, Preview, Programa, Slides, Controles, Retorno, Culto) tem a alça ⋮⋮.
+    Arraste para outro bloco, antes/depois de outra seção, ou para um bloco vazio. Pelo teclado: ↑ ↓ reordena dentro do
+    bloco e ← → manda para o bloco anterior/seguinte. Seções também recolhem.
+  - **Restaurar layout** volta a tudo ao padrão. O layout (blocos, tamanhos e seções) fica salvo.
 
 ## Camadas da projeção
 
@@ -41,7 +44,7 @@ Fundo (cor/imagem) → Conteúdo (slide) → Capa → Aviso (rodapé) → Preto.
 ```
 src/core/      lógica pura e testada (songParser, bible, state, store, library, remoteServer)
 src/main/      processo principal Electron (janelas, IPC, preload)
-src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa)
+src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa; layoutModel.js com o modelo puro da grade bento)
 src/remote/    controle remoto e retorno de palco (HTTP + SSE, sem dependências)
 ```
 

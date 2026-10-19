@@ -250,8 +250,12 @@ function bindEvents() {
   $('remote-close').addEventListener('click', () => $('remote-dialog').close());
 
   document.addEventListener('keydown', (e) => {
-    const typing = e.target instanceof Element && e.target.matches('input, textarea, select');
-    if (typing || document.querySelector('dialog[open]')) return;
+    const target = e.target instanceof Element ? e.target : null;
+    const typing = target && target.matches('input, textarea, select');
+    // Alças usam as setas para mover/redimensionar; Espaço/Enter em botões ativam o próprio botão.
+    const onGrip = target && target.closest('.grip, .resize-handle');
+    const activatesControl = target && target.closest('button, summary, a') && (e.key === ' ' || e.key === 'Enter');
+    if (typing || onGrip || activatesControl || e.defaultPrevented || document.querySelector('dialog[open]')) return;
     const actions = {
       ArrowRight: () => goLive(ui.index + 1),
       ' ': () => goLive(ui.index + 1),

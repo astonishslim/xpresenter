@@ -1,13 +1,34 @@
 /* global window */
-// Painéis dinâmicos: divisores arrastáveis, seções recolhíveis e layout salvo.
+// Grade bento: blocos movíveis e redimensionáveis, seções que mudam de bloco, layout salvo.
 (function exposeLayout(root) {
   const STORAGE_KEY = 'apresentador.layout';
-  const DEFAULTS = { c1: 300, c3: 380 };
-  const MIN_COL = 200;
-  const MAX_FRACTION = 0.45;
-  const KEY_STEP = 20;
-  const PANEL_IDS = ['library', 'slides-panel', 'right'];
-  const PANEL_MIME = 'application/x-apresentador-panel';
+  const TILE_IDS = ['library', 'preview', 'program', 'slides', 'controls', 'stage', 'playlist'];
+  // Posição inicial vem da ordem (grid-auto-flow: dense); aqui só o tamanho em células da grade 12x12.
+  const DEFAULT_SPANS = {
+    library: { c: 3, r: 12 },
+    preview: { c: 4, r: 4 },
+    program: { c: 5, r: 4 },
+    slides: { c: 6, r: 5 },
+    controls: { c: 3, r: 4 },
+    stage: { c: 3, r: 4 },
+    playlist: { c: 6, r: 3 },
+  };
+  const DEFAULT_SECTIONS = {
+    library: ['songs', 'bible'],
+    preview: ['preview'],
+    program: ['program'],
+    slides: ['slides'],
+    controls: ['controls'],
+    stage: ['stage'],
+    playlist: ['playlist'],
+  };
+  const KEY_DELTA = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
+  const DRAG_MIME = 'application/x-apresentador-layout';
+
+  const $ = (id) => document.getElementById(id);
+  const tileEl = (id) => $(`tile-${id}`);
+  const foldEl = (key) => document.querySelector(`details.fold[data-key="${key}"]`);
+  const tileOfSection = (sections, key) => Object.keys(sections).find((t) => sections[t].includes(key));
 
   function read() {
     try {
@@ -17,143 +38,222 @@
     }
   }
 
-  function write(layout) {
+  function write(state) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
       // armazenamento indisponível: o layout só não persiste
     }
   }
 
-  const clamp = (value, total) => Math.round(Math.max(MIN_COL, Math.min(value, total * MAX_FRACTION)));
+  function freshState(saved) {
+    const M = root.layoutModel;
+    return {
+      order: M.resolveOrder(saved.order, TILE_IDS),
+      spans: M.resolveSpans(saved.spans, DEFAULT_SPANS),
+      sections: M.resolveSections(saved.sections, DEFAULT_SECTIONS),
+      folds: saved.folds && typeof saved.folds === 'object' ? saved.folds : {},
+    };
+  }
 
-  const resolveOrder = (saved) => root.panelOrder.resolveOrder(saved, PANEL_IDS);
+  function createController() {
+    let state = freshState(read());
+    // Referências guardadas antes de mover qualquer coisa: replaceChildren tira seções do DOM.
+    const folds = Object.fromEntries(Object.values(DEFAULT_SECTIONS).flat().map((key) => [key, foldEl(key)]));
+    const differs = (actual, wanted) => actual.length !== wanted.length || wanted.some((el, i) => actual[i] !== el);
 
-  function bindPanelDrag(getOrder, setOrder) {
-    const { swap, move } = root.panelOrder;
-    let dragId = null;
-    const clearMarks = () => document.querySelectorAll('.panel').forEach((p) => p.classList.remove('dragging', 'drop-target'));
-
-    PANEL_IDS.forEach((id) => {
-      const panel = document.getElementById(id);
-      const grip = panel.querySelector('.grip');
-
-      grip.addEventListener('dragstart', (e) => {
-        dragId = id;
-        e.dataTransfer.setData(PANEL_MIME, id);
-        e.dataTransfer.effectAllowed = 'move';
-        panel.classList.add('dragging');
+    // Idempotente: só mexe no DOM onde algo mudou (re-inserir um nó derruba a captura do ponteiro).
+    const render = () => {
+      const main = $('layout');
+      const tiles = state.order.map(tileEl);
+      if (differs([...main.children], tiles)) main.append(...tiles);
+      TILE_IDS.forEach((id) => {
+        const tile = tileEl(id);
+        tile.style.setProperty('--c', state.spans[id].c);
+        tile.style.setProperty('--r', state.spans[id].r);
+        const body = tile.querySelector('.tile-body');
+        const wanted = state.sections[id].map((key) => folds[key]);
+        // childNodes (não children): espaços em branco do HTML original impediriam o :empty da dica.
+        if (differs([...body.childNodes], wanted)) body.replaceChildren(...wanted);
       });
-      grip.addEventListener('dragend', () => { dragId = null; clearMarks(); });
+      document.querySelectorAll('details.fold').forEach((d) => {
+        if (d.dataset.key in state.folds) d.open = state.folds[d.dataset.key];
+      });
+    };
+    const set = (patch, focusSelector) => {
+      state = { ...state, ...patch };
+      render();
+      write(state);
+      if (focusSelector) document.querySelector(focusSelector)?.focus();
+    };
+    return { get: () => state, set, render, reset: () => { state = freshState({}); render(); write({}); } };
+  }
+
+  // ---------- Arrastar e soltar (blocos e seções) ----------
+  function bindDrag(ctl) {
+    const M = root.layoutModel;
+    let drag = null; // { kind: 'tile' | 'section', id }
+    const clearMarks = () => document.querySelectorAll('.dragging, .drop-target, .drop-end, .drop-before, .drop-after')
+      .forEach((n) => n.classList.remove('dragging', 'drop-target', 'drop-end', 'drop-before', 'drop-after'));
+    const start = (e, kind, id, el) => {
+      drag = { kind, id };
+      e.dataTransfer.setData(DRAG_MIME, `${kind}:${id}`);
+      e.dataTransfer.effectAllowed = 'move';
+      el.classList.add('dragging');
+    };
+    const finish = () => { drag = null; clearMarks(); };
+    const dropSection = (key, tileId, refKey, after) => {
+      const sections = M.moveSection(ctl.get().sections, key, tileId, refKey, after);
+      ctl.set({ sections }, `details.fold[data-key="${key}"] .fold-grip`);
+    };
+
+    document.querySelectorAll('.tile').forEach((tile) => {
+      const tileId = tile.dataset.tile;
+      const grip = tile.querySelector('.tile-grip');
+      grip.addEventListener('dragstart', (e) => start(e, 'tile', tileId, tile));
+      grip.addEventListener('dragend', finish);
+      tile.addEventListener('dragover', (e) => {
+        if (!drag || (drag.kind === 'tile' && drag.id === tileId)) return;
+        e.preventDefault();
+        clearMarks();
+        (drag.kind === 'tile' ? tile : tile.querySelector('.tile-body')).classList.add(drag.kind === 'tile' ? 'drop-target' : 'drop-end');
+      });
+      tile.addEventListener('drop', (e) => {
+        if (!drag) return;
+        e.preventDefault();
+        const current = drag;
+        finish();
+        if (current.kind === 'tile') ctl.set({ order: M.moveTo(ctl.get().order, current.id, tileId) }, `#tile-${current.id} .tile-grip`);
+        else dropSection(current.id, tileId, null, false);
+      });
+    });
+
+    document.querySelectorAll('details.fold').forEach((fold) => {
+      const key = fold.dataset.key;
+      const grip = fold.querySelector('.fold-grip');
+      grip.addEventListener('dragstart', (e) => { e.stopPropagation(); start(e, 'section', key, fold); });
+      grip.addEventListener('dragend', finish);
+      const half = (e) => e.clientY > fold.getBoundingClientRect().top + fold.getBoundingClientRect().height / 2;
+      fold.addEventListener('dragover', (e) => {
+        if (!drag || drag.kind !== 'section' || drag.id === key) return;
+        e.preventDefault();
+        e.stopPropagation();
+        clearMarks();
+        fold.classList.add(half(e) ? 'drop-after' : 'drop-before');
+      });
+      fold.addEventListener('drop', (e) => {
+        if (!drag || drag.kind !== 'section') return;
+        e.preventDefault();
+        e.stopPropagation();
+        const { id } = drag;
+        const after = half(e);
+        finish();
+        if (id !== key) dropSection(id, tileOfSection(ctl.get().sections, key), key, after);
+      });
+    });
+  }
+
+  // ---------- Teclado: mover blocos e seções ----------
+  function bindKeyboard(ctl) {
+    const M = root.layoutModel;
+    document.querySelectorAll('.tile-grip').forEach((grip) => {
+      const id = grip.closest('.tile').dataset.tile;
       grip.addEventListener('keydown', (e) => {
-        const delta = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+        const delta = KEY_DELTA[e.key];
         if (!delta) return;
         e.preventDefault();
-        setOrder(move(getOrder(), id, delta), id);
+        ctl.set({ order: M.move(ctl.get().order, id, delta) }, `#tile-${id} .tile-grip`);
       });
+    });
 
-      panel.addEventListener('dragover', (e) => {
-        if (!dragId || dragId === id) return;
+    document.querySelectorAll('.fold-grip').forEach((grip) => {
+      const key = grip.closest('.fold').dataset.key;
+      grip.addEventListener('keydown', (e) => {
+        const delta = KEY_DELTA[e.key];
+        if (!delta) return;
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        panel.classList.add('drop-target');
+        const { sections, order } = ctl.get();
+        const tileId = tileOfSection(sections, key);
+        const list = sections[tileId];
+        const at = list.indexOf(key);
+        const vertical = e.key === 'ArrowUp' || e.key === 'ArrowDown';
+        const neighbor = list[at + delta];
+        let next;
+        if (vertical && neighbor) {
+          next = M.moveSection(sections, key, tileId, neighbor, delta > 0);
+        } else {
+          const targetTile = order[order.indexOf(tileId) + delta];
+          if (!targetTile) return;
+          next = M.moveSection(sections, key, targetTile, null, false);
+        }
+        ctl.set({ sections: next }, `details.fold[data-key="${key}"] .fold-grip`);
       });
-      panel.addEventListener('dragleave', (e) => {
-        if (!panel.contains(e.relatedTarget)) panel.classList.remove('drop-target');
+    });
+  }
+
+  // ---------- Redimensionar blocos ----------
+  function bindResize(ctl) {
+    const M = root.layoutModel;
+    const main = $('layout');
+    const metrics = () => {
+      const css = getComputedStyle(main);
+      return { colW: parseFloat(css.gridTemplateColumns), rowH: parseFloat(css.gridTemplateRows), gap: parseFloat(css.columnGap) || 0 };
+    };
+    const setSpan = (id, c, r) => ctl.set({ spans: { ...ctl.get().spans, [id]: { c, r } } });
+
+    document.querySelectorAll('.resize-handle').forEach((handle) => {
+      const tile = handle.closest('.tile');
+      const id = tile.dataset.tile;
+      let origin = null;
+
+      handle.addEventListener('pointerdown', (e) => {
+        handle.setPointerCapture(e.pointerId);
+        const rect = tile.getBoundingClientRect();
+        origin = { left: rect.left, top: rect.top };
+        handle.classList.add('dragging');
+        document.body.classList.add('resizing');
       });
-      panel.addEventListener('drop', (e) => {
+      handle.addEventListener('pointermove', (e) => {
+        if (!origin) return;
+        const { colW, rowH, gap } = metrics();
+        setSpan(id, M.spanFromPixels(e.clientX - origin.left, colW, gap), M.spanFromPixels(e.clientY - origin.top, rowH, gap));
+      });
+      const stop = () => { origin = null; handle.classList.remove('dragging'); document.body.classList.remove('resizing'); };
+      handle.addEventListener('pointerup', stop);
+      handle.addEventListener('pointercancel', stop);
+      handle.addEventListener('dblclick', () => setSpan(id, DEFAULT_SPANS[id].c, DEFAULT_SPANS[id].r));
+      handle.addEventListener('keydown', (e) => {
+        const dc = { ArrowLeft: -1, ArrowRight: 1 }[e.key] || 0;
+        const dr = { ArrowUp: -1, ArrowDown: 1 }[e.key] || 0;
+        if (!dc && !dr) return;
         e.preventDefault();
-        const from = dragId;
-        clearMarks();
-        dragId = null;
-        if (from && from !== id) setOrder(swap(getOrder(), from, id), from);
+        const { c, r } = ctl.get().spans[id];
+        setSpan(id, M.clampSpan(c + dc), M.clampSpan(r + dr));
+      });
+    });
+  }
+
+  function bindFolds(ctl) {
+    document.querySelectorAll('details.fold').forEach((d) => {
+      d.addEventListener('toggle', () => {
+        const state = ctl.get();
+        if (state.folds[d.dataset.key] === d.open) return;
+        ctl.set({ folds: { ...state.folds, [d.dataset.key]: d.open } });
       });
     });
   }
 
   function initLayout() {
-    const main = document.getElementById('layout');
-    let layout = read();
-
-    const apply = () => {
-      main.style.setProperty('--c1', `${layout.c1 || DEFAULTS.c1}px`);
-      main.style.setProperty('--c3', `${layout.c3 || DEFAULTS.c3}px`);
-    };
-    const update = (patch) => {
-      layout = { ...layout, ...patch };
-      apply();
-      write(layout);
-    };
-
-    const bindSplitter = (id, key, widthFromPointer) => {
-      const bar = document.getElementById(id);
-      const total = () => main.getBoundingClientRect().width;
-      const current = () => layout[key] || DEFAULTS[key];
-
-      bar.addEventListener('pointerdown', (e) => {
-        bar.setPointerCapture(e.pointerId);
-        bar.classList.add('dragging');
-        document.body.classList.add('resizing');
-      });
-      bar.addEventListener('pointermove', (e) => {
-        if (!bar.hasPointerCapture(e.pointerId)) return;
-        update({ [key]: clamp(widthFromPointer(e.clientX, main.getBoundingClientRect()), total()) });
-      });
-      const stop = (e) => {
-        if (bar.hasPointerCapture(e.pointerId)) bar.releasePointerCapture(e.pointerId);
-        bar.classList.remove('dragging');
-        document.body.classList.remove('resizing');
-      };
-      bar.addEventListener('pointerup', stop);
-      bar.addEventListener('pointercancel', stop);
-      bar.addEventListener('dblclick', () => update({ [key]: DEFAULTS[key] }));
-      bar.addEventListener('keydown', (e) => {
-        const dir = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
-        if (!dir) return;
-        e.preventDefault();
-        const sign = key === 'c1' ? 1 : -1;
-        update({ [key]: clamp(current() + sign * dir * KEY_STEP, total()) });
-      });
-    };
-
-    // Ordem dos painéis: arrastar a alça sobre outro painel troca os dois; ← → na alça move um passo.
-    // Os divisores ficam fixos; a largura pertence à posição (esquerda/direita), não ao painel.
-    let order = resolveOrder(layout.order);
-    const applyOrder = () => {
-      const [a, b, c] = order.map((id) => document.getElementById(id));
-      main.append(a, document.getElementById('split-left'), b, document.getElementById('split-right'), c);
-    };
-    const setOrder = (next, focusId) => {
-      order = next;
-      applyOrder();
-      update({ order });
-      if (focusId) document.querySelector(`#${focusId} .grip`).focus();
-    };
-    bindPanelDrag(() => order, setOrder);
-    applyOrder();
-
-    const PAD = 12;
-    bindSplitter('split-left', 'c1', (x, rect) => x - rect.left - PAD);
-    bindSplitter('split-right', 'c3', (x, rect) => rect.right - x - PAD);
-
-    // Seções recolhíveis: lembra quais estavam abertas.
-    const folds = layout.folds || {};
-    document.querySelectorAll('details.fold').forEach((d) => {
-      const { key } = d.dataset;
-      if (key in folds) d.open = folds[key];
-      d.addEventListener('toggle', () => update({ folds: { ...(layout.folds || {}), [key]: d.open } }));
-    });
-
-    document.getElementById('btn-reset-layout').addEventListener('click', () => {
-      layout = {};
-      write(layout);
-      order = [...PANEL_IDS];
-      applyOrder();
-      apply();
+    const ctl = createController();
+    ctl.render();
+    bindDrag(ctl);
+    bindKeyboard(ctl);
+    bindResize(ctl);
+    bindFolds(ctl);
+    $('btn-reset-layout').addEventListener('click', () => {
+      ctl.reset();
       document.querySelectorAll('details.fold').forEach((d) => { d.open = true; });
     });
-
-    apply();
   }
 
   root.initLayout = initLayout;

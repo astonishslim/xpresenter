@@ -11,98 +11,130 @@
   <header>
     <h1>Apresentador</h1>
     <div class="spacer"></div>
-    <button id="btn-reset-layout" title="Restaurar tamanho e seções dos painéis">Restaurar layout</button>
+    <button id="btn-reset-layout" title="Restaurar blocos, tamanhos e seções ao padrão">Restaurar layout</button>
     <button id="btn-remote" title="Controle remoto e retorno pelo celular/tablet">Remoto</button>
     <button id="btn-output" class="primary">Projetar</button>
   </header>
 
+  <!-- Grade bento: cada bloco (.tile) é movível e redimensionável; cada seção (.fold) pode mudar de bloco. -->
   <main id="layout">
-    <section id="library" class="panel">
-      <div class="panel-bar"><span>Biblioteca</span><button class="grip" type="button" draggable="true" aria-label="Mover painel Biblioteca" title="Arraste para trocar de posição, ou use ← → com o foco aqui">⠿</button></div>
-      <details class="fold" data-key="songs" open>
-        <summary>Músicas</summary>
-        <div class="row">
-          <input id="search" type="search" placeholder="Buscar música…" />
-          <button id="btn-new">+ Música</button>
-        </div>
-        <ul id="songs" class="list"></ul>
-      </details>
-      <details class="fold" data-key="bible" open>
-        <summary>Bíblia</summary>
-        <div class="row">
-          <input id="verse-ref" placeholder="Ex.: João 3:16-17" />
-          <button id="btn-verse">Buscar</button>
-        </div>
-        <button id="btn-import-bible" class="link">Importar versão da Bíblia (JSON)</button>
-        <p id="verse-msg" class="muted"></p>
-      </details>
-    </section>
-
-    <div class="splitter" id="split-left" role="separator" aria-orientation="vertical" tabindex="0" title="Arraste para redimensionar (duplo clique restaura)"></div>
-
-    <section id="slides-panel" class="panel">
-      <div class="panel-bar"><span>Slides</span><button class="grip" type="button" draggable="true" aria-label="Mover painel Slides" title="Arraste para trocar de posição, ou use ← → com o foco aqui">⠿</button></div>
-      <h2 id="slides-title">Slides</h2>
-      <div class="row">
-        <button id="btn-add-playlist" disabled>Adicionar ao culto</button>
-        <button id="btn-edit" disabled>Editar</button>
-        <label class="check"><input id="direct" type="checkbox" /> Clique envia direto ao vivo</label>
+    <section class="panel tile" id="tile-library" data-tile="library">
+      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="tile-body">
+        <details class="fold" data-key="songs" open>
+          <summary><span class="fold-title">Músicas</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Músicas" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <div class="row">
+            <input id="search" type="search" placeholder="Buscar música…" />
+            <button id="btn-new">+ Música</button>
+          </div>
+          <ul id="songs" class="list"></ul>
+        </details>
+        <details class="fold" data-key="bible" open>
+          <summary><span class="fold-title">Bíblia</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Bíblia" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <div class="row">
+            <input id="verse-ref" placeholder="Ex.: João 3:16-17" />
+            <button id="btn-verse">Buscar</button>
+          </div>
+          <button id="btn-import-bible" class="link">Importar versão da Bíblia (JSON)</button>
+          <p id="verse-msg" class="muted"></p>
+        </details>
       </div>
-      <div id="slides" class="grid"></div>
+      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
     </section>
 
-    <div class="splitter" id="split-right" role="separator" aria-orientation="vertical" tabindex="0" title="Arraste para redimensionar (duplo clique restaura)"></div>
-
-    <section id="right" class="panel">
-      <div class="panel-bar"><span>Monitores e controles</span><button class="grip" type="button" draggable="true" aria-label="Mover painel Monitores e controles" title="Arraste para trocar de posição, ou use ← → com o foco aqui">⠿</button></div>
-      <div class="monitors">
-        <figure>
-          <figcaption><span>Preview</span><button id="btn-take" class="primary" disabled>Ao vivo ▶ (Enter)</button></figcaption>
+    <section class="panel tile" id="tile-preview" data-tile="preview">
+      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="tile-body">
+        <details class="fold" data-key="preview" open>
+          <summary><span class="fold-title">Preview</span><button id="btn-take" class="primary small" type="button" disabled>Ao vivo ▶ (Enter)</button><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Preview" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
           <div id="mon-preview" class="monitor"></div>
-        </figure>
-        <figure>
-          <figcaption><span class="live-tag">Programa (ao vivo)</span></figcaption>
-          <div id="mon-program" class="monitor"></div>
-        </figure>
+        </details>
       </div>
+      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+    </section>
 
-      <details class="fold" data-key="controls" open>
-        <summary>Controles</summary>
-        <div class="row wrap">
-          <button id="btn-prev">◀ Anterior</button>
-          <button id="btn-next">Próximo ▶</button>
-          <button id="btn-clear">Limpar (Esc)</button>
-          <button id="btn-black">Preto (B)</button>
-          <button id="btn-cover">Capa</button>
-        </div>
-        <div class="row">
-          <input id="announce" placeholder="Aviso na parte inferior…" />
-          <button id="btn-announce">Enviar</button>
-        </div>
-        <div class="row wrap">
-          <label>Fundo <input id="bg-color" type="color" value="#000000" /></label>
-          <button id="btn-bg-image">Imagem…</button>
-        </div>
-      </details>
+    <section class="panel tile" id="tile-program" data-tile="program">
+      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="tile-body">
+        <details class="fold" data-key="program" open>
+          <summary><span class="fold-title live-tag">Programa (ao vivo)</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Programa" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <div id="mon-program" class="monitor"></div>
+        </details>
+      </div>
+      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+    </section>
 
-      <details class="fold" data-key="stage" open>
-        <summary>Retorno de palco</summary>
-        <div class="row">
-          <select id="stage-display" aria-label="Monitor do retorno"></select>
-          <button id="btn-stage">Abrir retorno</button>
-        </div>
-        <div class="row">
-          <input id="stage-msg" placeholder="Mensagem para o palco…" />
-          <button id="btn-stage-msg">Enviar</button>
-          <button id="btn-stage-clear" title="Limpar mensagem">✕</button>
-        </div>
-        <p class="muted">Mostra agora, próximo, relógio e mensagem. Também abre em tablet/celular pelo botão Remoto.</p>
-      </details>
+    <section class="panel tile" id="tile-slides" data-tile="slides">
+      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="tile-body">
+        <details class="fold" data-key="slides" open>
+          <summary><span class="fold-title">Slides</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Slides" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <h2 id="slides-title">Slides</h2>
+          <div class="row wrap">
+            <button id="btn-add-playlist" disabled>Adicionar ao culto</button>
+            <button id="btn-edit" disabled>Editar</button>
+            <label class="check"><input id="direct" type="checkbox" /> Clique envia direto ao vivo</label>
+          </div>
+          <div id="slides" class="grid"></div>
+        </details>
+      </div>
+      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+    </section>
 
-      <details class="fold" data-key="playlist" open>
-        <summary>Culto</summary>
-        <ol id="playlist" class="list"></ol>
-      </details>
+    <section class="panel tile" id="tile-controls" data-tile="controls">
+      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="tile-body">
+        <details class="fold" data-key="controls" open>
+          <summary><span class="fold-title">Controles</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Controles" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <div class="row wrap">
+            <button id="btn-prev">◀ Anterior</button>
+            <button id="btn-next">Próximo ▶</button>
+            <button id="btn-clear">Limpar (Esc)</button>
+            <button id="btn-black">Preto (B)</button>
+            <button id="btn-cover">Capa</button>
+          </div>
+          <div class="row">
+            <input id="announce" placeholder="Aviso na parte inferior…" />
+            <button id="btn-announce">Enviar</button>
+          </div>
+          <div class="row wrap">
+            <label>Fundo <input id="bg-color" type="color" value="#000000" /></label>
+            <button id="btn-bg-image">Imagem…</button>
+          </div>
+        </details>
+      </div>
+      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+    </section>
+
+    <section class="panel tile" id="tile-stage" data-tile="stage">
+      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="tile-body">
+        <details class="fold" data-key="stage" open>
+          <summary><span class="fold-title">Retorno de palco</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Retorno de palco" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <div class="row">
+            <select id="stage-display" aria-label="Monitor do retorno"></select>
+            <button id="btn-stage">Abrir retorno</button>
+          </div>
+          <div class="row">
+            <input id="stage-msg" placeholder="Mensagem para o palco…" />
+            <button id="btn-stage-msg">Enviar</button>
+            <button id="btn-stage-clear" title="Limpar mensagem">✕</button>
+          </div>
+          <p class="muted">Mostra agora, próximo, relógio e mensagem. Também abre em tablet/celular pelo botão Remoto.</p>
+        </details>
+      </div>
+      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+    </section>
+
+    <section class="panel tile" id="tile-playlist" data-tile="playlist">
+      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="tile-body">
+        <details class="fold" data-key="playlist" open>
+          <summary><span class="fold-title">Culto</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <ol id="playlist" class="list"></ol>
+        </details>
+      </div>
+      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
     </section>
   </main>
 
@@ -131,7 +163,7 @@
   </dialog>
 
   <script src="../shared/stage.js"></script>
-  <script src="../shared/panelOrder.js"></script>
+  <script src="../shared/layoutModel.js"></script>
   <script src="layout.js"></script>
   <script src="operator.js"></script>
 </body>
