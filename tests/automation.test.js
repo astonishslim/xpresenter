@@ -50,6 +50,10 @@ test('commandFor: só endereços da lista; ações de estado ou de navegação d
   assert.deepEqual(commandFor('/apresentador/lyrics'), { kind: 'action', action: { type: 'toggleLayer', layer: 'content' } });
   assert.deepEqual(commandFor('/apresentador/timer/toggle'), { kind: 'action', action: { type: 'timerToggle' } });
   assert.equal(commandFor('/apresentador/setBackground'), null);
+  assert.deepEqual(commandFor('/xpresenter/next'), { kind: 'operator', command: 'next' });
+  assert.deepEqual(commandFor('/xpresenter/black'), { kind: 'action', action: { type: 'blackout' } });
+  assert.equal(commandFor('/xpresenter/setBackground'), null);
+  assert.equal(commandFor('/xpresenterx/next'), null);
   assert.equal(commandFor('/outra/coisa'), null);
   assert.ok(INPUT_COMMANDS.length >= 8);
 });

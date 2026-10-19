@@ -107,7 +107,7 @@ test('client.search devolve resultados e envia User-Agent do app', async () => {
   const res = await createLyricsClient({ fetchImpl: impl }).search({ title: 'Grandes coisas' });
   assert.equal(res.ok, true);
   assert.equal(res.results[0].title, 'Grandes Coisas');
-  assert.match(calls[0].opts.headers['user-agent'], /^Apresentador\//);
+  assert.match(calls[0].opts.headers['user-agent'], /^xpresenter\//);
   assert.ok(calls[0].opts.signal, 'tem timeout');
 });
 

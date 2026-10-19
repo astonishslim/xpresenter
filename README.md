@@ -1,4 +1,4 @@
-# Apresentador
+# xpresenter
 
 Aplicativo desktop (Electron) para projetar **letras de músicas**, **versículos** e **avisos** no culto, com
 **controle remoto pelo celular**. Inspirado na experiência de uso de apps como o Spresenter, mas escrito do zero
@@ -106,7 +106,7 @@ O app não embute o SDK da NDI (licença proprietária). Use o OBS como ponte, d
    - **Só a letra** (para sobrepor na mesa de vídeo): **Fonte de navegador** 1920×1080 com o endereço de Transmissão
      (`…/live.html?t=…&modo=tela` para tela cheia, ou sem `modo` para a faixa inferior). O fundo é transparente: o NDI
      leva o canal alfa.
-   - **A projeção inteira** (fundo, vídeos, PDF): **Captura de janela** da janela "Apresentador - Saída" (ou de tela, se a
+   - **A projeção inteira** (fundo, vídeos, PDF): **Captura de janela** da janela "xpresenter - Saída" (ou de tela, se a
      saída estiver em tela cheia num monitor).
 3. Em **Ferramentas → Configurações do DistroAV**, ligue a **Saída principal NDI** (ou use o filtro "NDI Output" só numa
    fonte). A mesa de vídeo, o vMix ou outro computador passam a ver o "OBS" como fonte NDI na rede.
@@ -155,7 +155,7 @@ Botão **Configurar saídas** (ícone de monitor com engrenagem, no grupo Saída
 Botão **Automação** (grupo Saída):
 - **Receber comandos OSC** (Bitfocus Companion, Stream Deck, TouchOSC, mesa de luz): desligado por padrão. Ligado, escuta só
   **este computador** (127.0.0.1) na porta escolhida; marque "de qualquer aparelho da rede" só em rede confiável (OSC não tem
-  senha). Comandos aceitos (lista fechada): `/apresentador/next`, `/prev`, `/clear`, `/black`, `/cover`, `/lyrics`,
+  senha). Comandos aceitos (lista fechada): `/xpresenter/next`, `/prev`, `/clear`, `/black`, `/cover`, `/lyrics`,
   `/background`, `/timer/toggle`, `/timer/reset`, `/media/play`, `/media/pause`, `/media/restart`. No máximo 100 mensagens
   por segundo.
 - **Regras de saída**: "quando **slide ao vivo / item novo / tela preta liga ou desliga / conteúdo limpo / vídeo no ar**,
@@ -232,7 +232,7 @@ permitidas. Use apenas em Wi-Fi confiável.
 
 ## Instalação e atualização automática
 
-- Baixe o instalador `Apresentador-Setup-x.y.z.exe` em [Releases](https://github.com/astonishslim/xpresenter/releases).
+- Baixe o instalador `xpresenter-Setup-x.y.z.exe` em [Releases](https://github.com/astonishslim/xpresenter/releases).
   O instalador ainda **não é assinado**: na primeira vez o Windows mostra "O Windows protegeu o computador" → **Mais
   informações → Executar assim mesmo**.
 - O app instalado procura versões novas no GitHub (15 s depois de abrir e a cada 6 h) e **baixa em segundo plano**. A
@@ -240,6 +240,8 @@ permitidas. Use apenas em Wi-Fi confiável.
   use o botão verde **Atualizar** no cabeçalho (dois cliques). Sem internet, nada muda.
 - Para publicar uma versão: aumente `version` no `package.json`, rode `npm run dist` e crie a release `vX.Y.Z` no GitHub com
   os três arquivos de `dist/`: o `.exe`, o `.exe.blockmap` e o `latest.yml`.
+- O app se chamava **Apresentador** até a 0.2.0. Ao atualizar, os dados (músicas, temas, layout) passam de
+  `%APPDATA%\Apresentador` para `%APPDATA%\xpresenter` sozinhos, e os comandos OSC `/apresentador/...` continuam valendo.
 
 ## Licença
 

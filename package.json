@@ -1,7 +1,7 @@
 {
-  "name": "apresentador",
+  "name": "xpresenter",
   "version": "0.2.0",
-  "description": "Apresentador: letras, versículos e avisos projetados para o culto, com controle remoto pelo celular.",
+  "description": "xpresenter: letras, versículos e avisos projetados para o culto, com controle remoto pelo celular.",
   "main": "src/main/main.js",
   "license": "MIT",
   "repository": {
@@ -27,7 +27,7 @@
   "author": "Alisson Smith",
   "build": {
     "appId": "br.com.livres.apresentador",
-    "productName": "Apresentador",
+    "productName": "xpresenter",
     "directories": {
       "output": "dist"
     },
@@ -52,7 +52,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "perMachine": false,
-      "artifactName": "Apresentador-Setup-${version}.${ext}"
+      "artifactName": "xpresenter-Setup-${version}.${ext}"
     },
     "publish": [
       {

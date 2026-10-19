@@ -18,7 +18,7 @@ function createOperatorWindow() {
     height: 860,
     minWidth: 1000,
     minHeight: 640,
-    title: 'Apresentador',
+    title: 'xpresenter',
     icon: ICON,
     backgroundColor: '#14161a',
     webPreferences: WINDOW_PREFS,
@@ -40,7 +40,7 @@ function createOutputWindows(plan) {
       ...(fullscreen ? { x: p.bounds.x, y: p.bounds.y, width: p.bounds.width, height: p.bounds.height } : WINDOWED),
       fullscreen,
       frame: !fullscreen,
-      title: `Apresentador - Saída ${i + 1}`,
+      title: `xpresenter - Saída ${i + 1}`,
       icon: ICON,
       backgroundColor: '#000000',
       autoHideMenuBar: true,
@@ -80,7 +80,7 @@ function createStageWindow(displayId) {
     ...(display
       ? { x: display.bounds.x, y: display.bounds.y, width: display.bounds.width, height: display.bounds.height, fullscreen: true, frame: false }
       : { width: 1024, height: 576 }),
-    title: 'Apresentador - Retorno de palco',
+    title: 'xpresenter - Retorno de palco',
     icon: ICON,
     backgroundColor: '#000000',
     autoHideMenuBar: true,

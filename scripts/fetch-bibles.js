@@ -34,7 +34,7 @@ const FREE = {
 };
 
 async function getJson(url) {
-  const res = await fetch(url, { headers: { 'user-agent': 'apresentador-fetch-bibles' } });
+  const res = await fetch(url, { headers: { 'user-agent': 'xpresenter-fetch-bibles' } });
   if (!res.ok) throw new Error(`${res.status} ao baixar ${url}`);
   return res.json();
 }

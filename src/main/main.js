@@ -18,6 +18,10 @@ const { initialState, liveKeyOf, isValidAction } = require('../core/state');
 const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
 const { setupUpdater } = require('./updater');
+const { resolveUserDataDir } = require('./userDataDir');
+
+// Antes de qualquer coisa tocar em userData. Não usa app.getPath('userData'): ele já cria a pasta nova vazia.
+app.setPath('userData', resolveUserDataDir(path.join(app.getPath('appData'), app.getName())));
 
 const REMOTE_PORT = 5151;
 

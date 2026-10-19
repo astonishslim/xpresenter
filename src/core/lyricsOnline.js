@@ -3,7 +3,7 @@
 const { version } = require('../../package.json');
 
 const API = 'https://lrclib.net/api/search';
-const USER_AGENT = `Apresentador/${version} (projeção para igrejas)`;
+const USER_AGENT = `xpresenter/${version} (projeção para igrejas)`;
 const MAX_QUERY_CHARS = 200;
 const MAX_RESULTS = 25;
 const MAX_TITLE_CHARS = 120;

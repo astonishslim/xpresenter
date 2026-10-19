@@ -13,7 +13,9 @@ const MAX_RULES = 30;
 const MAX_ARGS_CHARS = 200;
 const DEFAULT_IN_PORT = 8000;
 const HOST_RE = /^(?:[a-z0-9-]+\.)*[a-z0-9-]+$/i;
-const PREFIX = '/apresentador';
+const PREFIX = '/xpresenter';
+// Nome antigo do app: continua aceito para não quebrar botões já configurados no Companion/Stream Deck.
+const PREFIXES = [PREFIX, '/apresentador'];
 
 // Comandos aceitos pela entrada OSC. "operator": precisa do contexto de slides do operador (avançar/voltar).
 const INPUT_MAP = {
@@ -33,8 +35,10 @@ const INPUT_MAP = {
 const INPUT_COMMANDS = Object.keys(INPUT_MAP).map((k) => `${PREFIX}/${k}`);
 
 function commandFor(address) {
-  if (typeof address !== 'string' || !address.startsWith(`${PREFIX}/`)) return null;
-  const key = address.slice(PREFIX.length + 1);
+  if (typeof address !== 'string') return null;
+  const prefix = PREFIXES.find((p) => address.startsWith(`${p}/`));
+  if (!prefix) return null;
+  const key = address.slice(prefix.length + 1);
   if (!Object.hasOwn(INPUT_MAP, key)) return null;
   const hit = INPUT_MAP[key];
   return hit.kind === 'action' ? { kind: 'action', action: { ...hit.action } } : { ...hit };
