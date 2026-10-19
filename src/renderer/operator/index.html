@@ -9,17 +9,33 @@
 </head>
 <body>
   <header>
-    <h1>Apresentador</h1>
+    <div class="brand"><img class="logo" src="../../assets/icon.png" alt="" width="20" height="20" /><h1>Apresentador</h1></div>
+
+    <div class="toolbar" role="toolbar" aria-label="Ao vivo">
+      <button id="btn-prev" class="ib" type="button" data-icon="skip-back" title="Slide anterior (←)" aria-label="Slide anterior"></button>
+      <button id="btn-next" class="ib" type="button" data-icon="skip-forward" title="Próximo slide (→ ou Espaço)" aria-label="Próximo slide"></button>
+      <button id="btn-clear" class="ib" type="button" data-icon="eraser" title="Limpar o conteúdo (Esc)" aria-label="Limpar conteúdo"></button>
+      <button id="btn-black" class="ib" type="button" data-icon="eye-off" title="Tela preta (B)" aria-label="Tela preta"></button>
+      <button id="btn-cover" class="ib" type="button" data-icon="layers" title="Capa" aria-label="Capa"></button>
+    </div>
+
     <div class="spacer"></div>
-    <label class="preset-box" title="Troque o arranjo da tela com um clique">
-      <span class="ico" data-icon="layout-grid"></span>
-      <select id="preset-select" aria-label="Layout da tela"></select>
-    </label>
-    <button id="btn-preset-save" class="ib" type="button" data-icon="save" title="Salvar o arranjo atual como um layout seu" aria-label="Salvar layout"></button>
-    <button id="btn-preset-delete" class="ib danger" type="button" data-icon="trash" hidden title="Excluir o layout salvo selecionado" aria-label="Excluir layout salvo"></button>
-    <button id="btn-reset-layout" class="ib" type="button" data-icon="rotate-ccw" title="Restaurar blocos, tamanhos e seções ao padrão" aria-label="Restaurar layout"></button>
-    <button id="btn-remote" class="ib" type="button" data-icon="smartphone" title="Controle remoto e retorno pelo celular/tablet" aria-label="Controle remoto"></button>
-    <button id="btn-output" class="primary" type="button" data-icon="monitor-play"><span class="label">Projetar</span></button>
+
+    <div class="toolbar" role="toolbar" aria-label="Layout">
+      <label class="preset-box" title="Troque o arranjo da tela com um clique">
+        <span class="ico" data-icon="layout-grid"></span>
+        <select id="preset-select" aria-label="Layout da tela"></select>
+      </label>
+      <button id="btn-preset-save" class="ib" type="button" data-icon="save" title="Salvar o arranjo atual como um layout seu" aria-label="Salvar layout"></button>
+      <button id="btn-preset-delete" class="ib danger" type="button" data-icon="trash" hidden title="Excluir o layout salvo selecionado" aria-label="Excluir layout salvo"></button>
+      <button id="btn-reset-layout" class="ib" type="button" data-icon="rotate-ccw" title="Restaurar blocos, tamanhos e seções ao padrão" aria-label="Restaurar layout"></button>
+      <button id="btn-edit-layout" class="ib" type="button" data-icon="layout-dashboard" aria-pressed="false" title="Editar painéis: mostrar as alças de mover e redimensionar" aria-label="Editar painéis"></button>
+    </div>
+
+    <div class="toolbar" role="toolbar" aria-label="Saída">
+      <button id="btn-remote" class="ib" type="button" data-icon="smartphone" title="Controle remoto e retorno pelo celular/tablet" aria-label="Controle remoto"></button>
+      <button id="btn-output" class="primary" type="button" data-icon="monitor-play"><span class="label">Projetar</span></button>
+    </div>
   </header>
 
   <!-- Grade bento: cada bloco (.tile) é movível e redimensionável; cada seção (.fold) pode mudar de bloco. -->
@@ -91,14 +107,7 @@
       <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="controls" open>
-          <summary><span class="fold-title"><span class="ico" data-icon="sliders-horizontal"></span>Controles</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Controles" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
-          <div class="row wrap">
-            <button id="btn-prev" class="ib" type="button" data-icon="skip-back" title="Slide anterior (←)" aria-label="Slide anterior"></button>
-            <button id="btn-next" class="ib" type="button" data-icon="skip-forward" title="Próximo slide (→ ou Espaço)" aria-label="Próximo slide"></button>
-            <button id="btn-clear" class="ib" type="button" data-icon="eraser" title="Limpar o conteúdo (Esc)" aria-label="Limpar conteúdo"></button>
-            <button id="btn-black" class="ib" type="button" data-icon="eye-off" title="Tela preta (B)" aria-label="Tela preta"></button>
-            <button id="btn-cover" class="ib" type="button" data-icon="layers" title="Capa" aria-label="Capa"></button>
-          </div>
+          <summary><span class="fold-title"><span class="ico" data-icon="sliders-horizontal"></span>Aviso e fundo</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Aviso e fundo" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
             <input id="announce" placeholder="Aviso na parte inferior…" aria-label="Aviso na parte inferior" />
             <button id="btn-announce" class="ib" type="button" data-icon="megaphone" title="Enviar aviso" aria-label="Enviar aviso"></button>

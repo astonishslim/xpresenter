@@ -9,20 +9,21 @@
 </head>
 <body>
   <header>
-    <span id="clock">--:--:--</span>
-    <span id="status"></span>
+    <span class="clock-box"><span class="ico" data-icon="clock" data-icon-size="22"></span><span id="clock">--:--:--</span></span>
+    <span id="status" hidden><span class="ico" data-icon="eye-off" data-icon-size="22"></span><span id="status-text"></span></span>
   </header>
   <main>
     <section id="now">
-      <small id="now-label">AGORA</small>
+      <small><span class="ico" data-icon="radio" data-icon-size="18"></span><span id="now-label">AGORA</span></small>
       <div id="now-text">—</div>
     </section>
     <section id="next">
-      <small id="next-label">PRÓXIMO</small>
+      <small><span class="ico" data-icon="skip-forward" data-icon-size="18"></span><span id="next-label">PRÓXIMO</span></small>
       <div id="next-text">—</div>
     </section>
   </main>
-  <footer id="message"></footer>
+  <footer id="message"><span class="ico" data-icon="megaphone" data-icon-size="32"></span><span id="message-text"></span></footer>
+  <script src="icons.js"></script>
   <script src="stage.js"></script>
 </body>
 </html>

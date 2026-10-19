@@ -6,6 +6,7 @@
   const { TILE_IDS, DEFAULT_LAYOUT } = root.layoutPresets;
   const DEFAULT_SPANS = DEFAULT_LAYOUT.spans;
   const DEFAULT_SECTIONS = DEFAULT_LAYOUT.sections;
+  const isEditing = () => document.body.classList.contains('editing-layout');
   const KEY_DELTA = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
   const DRAG_MIME = 'application/x-apresentador-layout';
 
@@ -105,7 +106,7 @@
     document.querySelectorAll('.tile').forEach((tile) => {
       const tileId = tile.dataset.tile;
       const grip = tile.querySelector('.tile-grip');
-      grip.addEventListener('dragstart', (e) => start(e, 'tile', tileId, tile));
+      grip.addEventListener('dragstart', (e) => { if (!isEditing()) return e.preventDefault(); return start(e, 'tile', tileId, tile); });
       grip.addEventListener('dragend', finish);
       tile.addEventListener('dragover', (e) => {
         if (!drag || (drag.kind === 'tile' && drag.id === tileId)) return;
@@ -126,7 +127,7 @@
     document.querySelectorAll('details.fold').forEach((fold) => {
       const key = fold.dataset.key;
       const grip = fold.querySelector('.fold-grip');
-      grip.addEventListener('dragstart', (e) => { e.stopPropagation(); start(e, 'section', key, fold); });
+      grip.addEventListener('dragstart', (e) => { e.stopPropagation(); if (!isEditing()) return e.preventDefault(); return start(e, 'section', key, fold); });
       grip.addEventListener('dragend', finish);
       const half = (e) => e.clientY > fold.getBoundingClientRect().top + fold.getBoundingClientRect().height / 2;
       fold.addEventListener('dragover', (e) => {
@@ -155,7 +156,7 @@
       const id = grip.closest('.tile').dataset.tile;
       grip.addEventListener('keydown', (e) => {
         const delta = KEY_DELTA[e.key];
-        if (!delta) return;
+        if (!delta || !isEditing()) return;
         e.preventDefault();
         ctl.set({ order: M.move(ctl.get().order, id, delta) }, `#tile-${id} .tile-grip`);
       });
@@ -165,7 +166,7 @@
       const key = grip.closest('.fold').dataset.key;
       grip.addEventListener('keydown', (e) => {
         const delta = KEY_DELTA[e.key];
-        if (!delta) return;
+        if (!delta || !isEditing()) return;
         e.preventDefault();
         const { sections, order } = ctl.get();
         const tileId = tileOfSection(sections, key);
@@ -202,6 +203,7 @@
       let origin = null;
 
       handle.addEventListener('pointerdown', (e) => {
+        if (!isEditing()) return;
         handle.setPointerCapture(e.pointerId);
         const rect = tile.getBoundingClientRect();
         origin = { left: rect.left, top: rect.top };
@@ -216,8 +218,9 @@
       const stop = () => { origin = null; handle.classList.remove('dragging'); document.body.classList.remove('resizing'); };
       handle.addEventListener('pointerup', stop);
       handle.addEventListener('pointercancel', stop);
-      handle.addEventListener('dblclick', () => setSpan(id, DEFAULT_SPANS[id].c, DEFAULT_SPANS[id].r));
+      handle.addEventListener('dblclick', () => isEditing() && setSpan(id, DEFAULT_SPANS[id].c, DEFAULT_SPANS[id].r));
       handle.addEventListener('keydown', (e) => {
+        if (!isEditing()) return;
         const dc = { ArrowLeft: -1, ArrowRight: 1 }[e.key] || 0;
         const dr = { ArrowUp: -1, ArrowDown: 1 }[e.key] || 0;
         if (!dc && !dr) return;
@@ -238,6 +241,24 @@
     });
   }
 
+  // Modo "editar painéis": as alças de mover/redimensionar só existem enquanto ele está ligado.
+  // Não é persistido de propósito: o app sempre abre travado, para ninguém mexer sem querer no culto.
+  function bindEditMode() {
+    const btn = $('btn-edit-layout');
+    const setEditing = (on) => {
+      document.body.classList.toggle('editing-layout', on);
+      btn.setAttribute('aria-pressed', String(on));
+      btn.title = on ? 'Concluir a edição dos painéis' : 'Editar painéis: mostrar as alças de mover e redimensionar';
+      btn.setAttribute('aria-label', on ? 'Concluir edição dos painéis' : 'Editar painéis');
+      if (!on) {
+        document.querySelectorAll('.dragging, .drop-target, .drop-end, .drop-before, .drop-after')
+          .forEach((n) => n.classList.remove('dragging', 'drop-target', 'drop-end', 'drop-before', 'drop-after'));
+      }
+    };
+    btn.addEventListener('click', () => setEditing(!isEditing()));
+    setEditing(false);
+  }
+
   function initLayout() {
     const ctl = createController();
     ctl.render();
@@ -245,6 +266,7 @@
     bindKeyboard(ctl);
     bindResize(ctl);
     bindFolds(ctl);
+    bindEditMode();
     $('btn-reset-layout').addEventListener('click', () => {
       ctl.reset();
       document.querySelectorAll('details.fold').forEach((d) => { d.open = true; });

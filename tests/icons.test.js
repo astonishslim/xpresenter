@@ -6,10 +6,12 @@ const { NODES, ALLOWED_TAGS } = require('../src/renderer/shared/icons');
 
 const ROOT = path.join(__dirname, '..', 'src', 'renderer');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
+const REMOTE = path.join(__dirname, '..', 'src', 'remote');
 const html = read('operator', 'index.html');
+const remoteHtml = ['index.html', 'stage.html'].map((f) => fs.readFileSync(path.join(REMOTE, f), 'utf8')).join('\n');
 const scripts = ['operator.js', 'presets.js', 'layout.js'].map((f) => read('operator', f)).join('\n');
 
-const usedInHtml = [...html.matchAll(/data-icon="([a-z0-9-]+)"/g)].map((m) => m[1]);
+const usedInHtml = [...(html + remoteHtml).matchAll(/data-icon="([a-z0-9-]+)"/g)].map((m) => m[1]);
 // Formas usadas no JS: icon('x'), miniButton('x', ...), setIcon(el, 'x') e setIcon(el, cond ? 'x' : 'y').
 const usedInJs = [
   ...[...scripts.matchAll(/\bicon\(\s*'([a-z0-9-]+)'/g)].map((m) => m[1]),
@@ -19,6 +21,17 @@ const usedInJs = [
 
 test('o HTML usa ícones (garante que o teste está olhando para algo)', () => {
   assert.ok(usedInHtml.length >= 20, `só ${usedInHtml.length} ícones no HTML`);
+});
+
+test('o controle remoto e o retorno de palco usam ícones e carregam a sua cópia de icons.js', () => {
+  assert.ok([...remoteHtml.matchAll(/data-icon="/g)].length >= 8);
+  for (const page of ['index.html', 'stage.html']) {
+    assert.match(fs.readFileSync(path.join(REMOTE, page), 'utf8'), /<script src="icons\.js"><\/script>/, page);
+  }
+});
+
+test('a cópia de icons.js do remoto é idêntica à do operador (rode npm run icons)', () => {
+  assert.equal(fs.readFileSync(path.join(REMOTE, 'icons.js'), 'utf8'), read('shared', 'icons.js'));
 });
 
 test('todo ícone usado no HTML existe na tabela gerada', () => {

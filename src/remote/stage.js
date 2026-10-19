@@ -30,8 +30,9 @@ function render(state) {
   $('next-label').textContent = next && next.label ? `PRÓXIMO · ${next.label.toUpperCase()}` : 'PRÓXIMO';
   show('next-text', next, '—');
 
-  $('status').textContent = state.blackout ? 'TELA EM PRETO' : '';
-  $('message').textContent = state.stage.message || '';
+  $('status').hidden = !state.blackout;
+  $('status-text').textContent = state.blackout ? 'TELA EM PRETO' : '';
+  $('message-text').textContent = state.stage.message || '';
   $('message').classList.toggle('visible', Boolean(state.stage.message));
 }
 
@@ -51,6 +52,7 @@ function connect(onState) {
 }
 
 let lastState = null;
+window.icons.apply();
 connect((state) => { lastState = state; render(state); });
 window.addEventListener('resize', () => lastState && render(lastState));
 tickClock();

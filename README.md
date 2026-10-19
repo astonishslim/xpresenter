@@ -42,12 +42,23 @@ npm start
     um segundo clique. Se você mexer no arranjo, o seletor mostra **Personalizado**. Trocar de preset não altera o que
     está ao vivo.
 
+## Cabeçalho e modo "editar painéis"
+
+- O cabeçalho é uma linha de ícones em grupos: **ao vivo** (anterior, próximo, limpar, preto, capa), **layout** (seletor de
+  preset, salvar, excluir, restaurar e **editar painéis**) e **saída** (controle remoto e Projetar).
+- As alças de **mover bloco**, **mover seção** e **redimensionar** ficam **ocultas** por padrão. Clique em **editar painéis**
+  (ícone de painéis, no grupo Layout) para mostrá-las; o botão fica azul e os blocos ganham contorno tracejado. Clique de novo
+  para concluir. Com o modo desligado, mover e redimensionar ficam desativados de fato (teclado e arrastar incluídos).
+- O modo **não é salvo**: o app sempre abre travado, para ninguém desmontar a tela no meio do culto. O layout editado é mantido.
+- Trocar de preset, salvar e restaurar layout funcionam sem ligar o modo de edição.
+
 ## Interface compacta com ícones
 
 Os botões usam ícones minúsculos (14 px; 12 px nos menores) no estilo de apps de projeção como o Spresenter, com o texto só
 nos botões principais (`Projetar`). Todo botão só de ícone tem `title` (dica ao passar o mouse) e `aria-label`. Os ícones são do
 [Lucide](https://lucide.dev) (licença ISC, em `licenses/lucide-LICENSE.txt`), embutidos em `src/renderer/shared/icons.js` só com
-os usados. Para trocar ou acrescentar: edite a lista em `scripts/build-icons.js` e rode `npm run icons`.
+os usados. Para trocar ou acrescentar: edite a lista em `scripts/build-icons.js` e rode `npm run icons` (gera também a cópia
+em `src/remote/icons.js`, usada pelo controle remoto do celular e pelo retorno de palco).
 
 ## Camadas da projeção
 

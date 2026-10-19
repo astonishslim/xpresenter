@@ -75,6 +75,7 @@ function renderState(state) {
 }
 
 async function init() {
+  window.icons.apply();
   $('prev').onclick = () => step(-1);
   $('next').onclick = () => step(1);
   $('clear').onclick = () => send({ type: 'clear' });

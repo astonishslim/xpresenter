@@ -13,3 +13,12 @@ small { font-size: 2.2vh; letter-spacing: .15em; color: #8a93a3; margin-bottom: 
 #next-text { color: #b8bfcc; }
 #message { background: #ffd479; color: #111; font-size: 5vh; font-weight: 800; text-align: center; padding: 1.5vh 2vw; display: none; }
 #message.visible { display: block; }
+
+/* ---------- Ícones ---------- */
+.icon { display: block; flex: none; pointer-events: none; }
+.ico { display: inline-flex; align-items: center; margin-right: .6vh; }
+.clock-box, #status { display: inline-flex; align-items: center; }
+#status[hidden] { display: none; }
+small { display: flex; align-items: center; }
+#message { display: none; align-items: center; justify-content: center; gap: 1.5vh; }
+#message.visible { display: flex; }

@@ -8,6 +8,7 @@ const ICONS = [
   'save', 'trash', 'rotate-ccw', 'smartphone', 'monitor-play', 'skip-back', 'skip-forward', 'eraser', 'eye-off',
   'layers', 'megaphone', 'send', 'image', 'palette', 'circle-play', 'plus', 'search', 'file-up', 'list-plus',
   'pencil', 'zap', 'monitor-up', 'monitor-off', 'x', 'arrow-up', 'grip', 'grip-vertical', 'move-diagonal-2', 'check',
+  'layout-dashboard', 'clock',
 ];
 
 const root = path.join(__dirname, '..');
@@ -57,7 +58,9 @@ const body = `// GERADO por scripts/build-icons.js: não edite à mão.
   return { NODES, ALLOWED_TAGS, create, setIcon, apply };
 }));
 `;
+// O servidor remoto só serve a pasta src/remote, então o controle remoto e o retorno levam a sua própria cópia.
 fs.writeFileSync(path.join(root, 'src', 'renderer', 'shared', 'icons.js'), body);
+fs.writeFileSync(path.join(root, 'src', 'remote', 'icons.js'), body);
 fs.mkdirSync(path.join(root, 'licenses'), { recursive: true });
 fs.copyFileSync(path.join(root, 'node_modules', 'lucide-static', 'LICENSE'), path.join(root, 'licenses', 'lucide-LICENSE.txt'));
 console.log(`icons.js gerado com ${ICONS.length} ícones`);

@@ -18,7 +18,7 @@ main#layout {
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; container-type: size; }
 .panel-bar { display: flex; justify-content: flex-start; padding: 1px 4px 0; min-height: 20px; flex: none; }
 .tile-body { flex: 1; min-height: 0; overflow: auto; padding: 0 10px 8px; }
-.tile-body:empty::before { content: 'Solte uma seção aqui'; display: block; padding: 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; }
+body.editing-layout .tile-body:empty::before { content: 'Solte uma seção aqui'; display: block; padding: 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; }
 .resize-handle { position: absolute; right: 1px; bottom: 1px; width: 20px; height: 20px; border: none; background: none; color: var(--muted); cursor: nwse-resize; touch-action: none; }
 .resize-handle:hover, .resize-handle:focus-visible, .resize-handle.dragging { color: var(--accent); outline: none; background: none; }
 body.resizing, body.resizing * { cursor: nwse-resize !important; user-select: none; }
@@ -103,3 +103,17 @@ dialog h3 { margin-top: 0; }
 dialog textarea { margin: 8px 0; font-family: Consolas, monospace; resize: vertical; }
 dialog input { height: auto; padding: 7px 10px; }
 code { display: block; padding: 10px; background: #0e1014; border-radius: 6px; word-break: break-all; user-select: all; margin-bottom: 8px; }
+
+/* ---------- Cabeçalho: linha de ícones em grupos ---------- */
+.brand { display: flex; align-items: center; gap: 6px; margin-right: 6px; }
+.logo { border-radius: 5px; display: block; }
+.toolbar { display: flex; align-items: center; gap: 3px; padding: 0 8px; border-left: 1px solid var(--line); }
+.toolbar:first-of-type { border-left: none; }
+.toolbar button.primary:not(.ib) { height: var(--ib); padding: 0 10px; }
+button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ---------- Modo "editar painéis": alças só aparecem quando ligado ---------- */
+body:not(.editing-layout) .grip,
+body:not(.editing-layout) .resize-handle,
+body:not(.editing-layout) .panel-bar { display: none !important; }
+body.editing-layout .tile { outline: 1px dashed rgba(79, 140, 255, .55); outline-offset: 2px; }

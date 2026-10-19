@@ -3,23 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self'; style-src 'self'; script-src 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'self'; style-src 'self'; script-src 'self'" />
   <title>Apresentador Remoto</title>
   <link rel="stylesheet" href="remote.css" />
 </head>
 <body>
-  <header><strong>Apresentador</strong><a id="stage-link" href="#">Retorno</a><span id="conn" class="dot"></span></header>
+  <header>
+    <strong>Apresentador</strong>
+    <a id="stage-link" href="#" data-icon="monitor-speaker" data-icon-size="16"><span class="label">Retorno</span></a>
+    <span id="conn" class="dot" role="status" aria-label="Conexão"></span>
+  </header>
   <div id="live"><small id="live-label"></small><div id="live-text">—</div></div>
   <div class="bar">
-    <button id="prev">◀</button>
-    <button id="next" class="primary">Próximo ▶</button>
+    <button id="prev" type="button" data-icon="skip-back" data-icon-size="22" aria-label="Slide anterior"><span class="label">Anterior</span></button>
+    <button id="next" class="primary" type="button" data-icon="skip-forward" data-icon-size="22" aria-label="Próximo slide"><span class="label">Próximo</span></button>
   </div>
   <div class="bar">
-    <button id="clear">Limpar</button>
-    <button id="black">Preto</button>
-    <button id="cover">Capa</button>
+    <button id="clear" type="button" data-icon="eraser" data-icon-size="22" aria-label="Limpar conteúdo"><span class="label">Limpar</span></button>
+    <button id="black" type="button" data-icon="eye-off" data-icon-size="22" aria-label="Tela preta"><span class="label">Preto</span></button>
+    <button id="cover" type="button" data-icon="layers" data-icon-size="22" aria-label="Capa"><span class="label">Capa</span></button>
   </div>
   <div id="playlist"></div>
+  <script src="icons.js"></script>
   <script src="remote.js"></script>
 </body>
 </html>
