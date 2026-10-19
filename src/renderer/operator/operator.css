@@ -1,3 +1,4 @@
+:root { color-scheme: dark; }
 :root { --bg: #14161a; --panel: #1c1f26; --line: #2c313b; --text: #e8eaee; --muted: #8a93a3; --accent: #4f8cff; --danger: #e5484d; --live: #2fb36d; }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 14px 'Segoe UI', system-ui, sans-serif; }
@@ -67,3 +68,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .6); }
 dialog h3 { margin-top: 0; }
 dialog textarea { margin: 8px 0; font-family: Consolas, monospace; resize: vertical; }
 code { display: block; padding: 10px; background: #0e1014; border-radius: 6px; word-break: break-all; user-select: all; margin-bottom: 8px; }
+
+.panel-bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; margin: -12px -12px 10px; padding: 6px 8px 6px 12px; background: var(--panel); border-bottom: 1px solid var(--line); border-radius: 10px 10px 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.grip { cursor: grab; padding: 0 8px; line-height: 22px; font-size: 16px; background: none; border: 1px solid transparent; color: var(--muted); }
+.grip:hover, .grip:focus-visible { color: var(--text); border-color: var(--accent); outline: none; }
+.grip:active { cursor: grabbing; }
+.panel.dragging { opacity: .55; }
+.panel.drop-target { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.panel-bar + h2 { margin-top: 4px; }
+/* Monitores limitados também pela altura, para não estourar em colunas largas. */
+.monitor { width: min(100%, calc(32vh * 16 / 9)); margin-inline: auto; }

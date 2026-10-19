@@ -18,6 +18,7 @@
 
   <main id="layout">
     <section id="library" class="panel">
+      <div class="panel-bar"><span>Biblioteca</span><button class="grip" type="button" draggable="true" aria-label="Mover painel Biblioteca" title="Arraste para trocar de posição, ou use ← → com o foco aqui">⠿</button></div>
       <details class="fold" data-key="songs" open>
         <summary>Músicas</summary>
         <div class="row">
@@ -40,6 +41,7 @@
     <div class="splitter" id="split-left" role="separator" aria-orientation="vertical" tabindex="0" title="Arraste para redimensionar (duplo clique restaura)"></div>
 
     <section id="slides-panel" class="panel">
+      <div class="panel-bar"><span>Slides</span><button class="grip" type="button" draggable="true" aria-label="Mover painel Slides" title="Arraste para trocar de posição, ou use ← → com o foco aqui">⠿</button></div>
       <h2 id="slides-title">Slides</h2>
       <div class="row">
         <button id="btn-add-playlist" disabled>Adicionar ao culto</button>
@@ -52,6 +54,7 @@
     <div class="splitter" id="split-right" role="separator" aria-orientation="vertical" tabindex="0" title="Arraste para redimensionar (duplo clique restaura)"></div>
 
     <section id="right" class="panel">
+      <div class="panel-bar"><span>Monitores e controles</span><button class="grip" type="button" draggable="true" aria-label="Mover painel Monitores e controles" title="Arraste para trocar de posição, ou use ← → com o foco aqui">⠿</button></div>
       <div class="monitors">
         <figure>
           <figcaption><span>Preview</span><button id="btn-take" class="primary" disabled>Ao vivo ▶ (Enter)</button></figcaption>
@@ -128,6 +131,7 @@
   </dialog>
 
   <script src="../shared/stage.js"></script>
+  <script src="../shared/panelOrder.js"></script>
   <script src="layout.js"></script>
   <script src="operator.js"></script>
 </body>

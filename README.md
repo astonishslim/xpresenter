@@ -27,8 +27,10 @@ npm start
   mostrar o próximo slide. Marque "Clique envia direto ao vivo" para o modo direto.
 - **Retorno de palco** (para banda e pregador): slide atual, próximo, relógio, aviso de tela preta e mensagem livre.
   Abre em tela cheia no monitor escolhido ou em janela. Também funciona em tablet/celular: botão **Remoto** mostra o link.
-- **Painéis dinâmicos**: arraste os divisores entre os painéis (duplo clique restaura, setas ← → no divisor ajustam),
-  recolha seções e use **Restaurar layout**. O layout fica salvo.
+- **Painéis dinâmicos**: arraste os divisores entre os painéis (duplo clique restaura, setas ← → no divisor ajustam) e recolha
+  seções. Para **trocar a posição dos painéis**, arraste a alça ⠿ de um painel sobre outro (os dois se trocam), ou foque a
+  alça e use ← →. A largura pertence à posição (esquerda/direita), não ao painel. **Restaurar layout** volta ao padrão, e o
+  layout fica salvo.
 
 ## Camadas da projeção
 
