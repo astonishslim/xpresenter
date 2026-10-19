@@ -34,6 +34,13 @@ npm start
     Arraste para outro bloco, antes/depois de outra seção, ou para um bloco vazio. Pelo teclado: ↑ ↓ reordena dentro do
     bloco e ← → manda para o bloco anterior/seguinte. Seções também recolhem.
   - **Restaurar layout** volta a tudo ao padrão. O layout (blocos, tamanhos e seções) fica salvo.
+- **Presets de layout** (seletor **Layout** no cabeçalho): troca o arranjo inteiro com um clique.
+  - **Padrão**, **Culto** (monitores grandes no topo, slides e controles embaixo), **Ensaio** (biblioteca e slides em
+    destaque) e **Operador de mídia** (monitores e controles em faixa, retorno e slides abaixo). Todos preenchem a grade
+    12×12 sem buracos.
+  - **Salvar layout…** guarda o arranjo atual com um nome (até 20; mesmo nome substitui). **Excluir** pede confirmação com
+    um segundo clique. Se você mexer no arranjo, o seletor mostra **Personalizado**. Trocar de preset não altera o que
+    está ao vivo.
 
 ## Camadas da projeção
 

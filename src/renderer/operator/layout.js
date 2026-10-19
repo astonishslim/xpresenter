@@ -2,26 +2,10 @@
 // Grade bento: blocos movíveis e redimensionáveis, seções que mudam de bloco, layout salvo.
 (function exposeLayout(root) {
   const STORAGE_KEY = 'apresentador.layout';
-  const TILE_IDS = ['library', 'preview', 'program', 'slides', 'controls', 'stage', 'playlist'];
-  // Posição inicial vem da ordem (grid-auto-flow: dense); aqui só o tamanho em células da grade 12x12.
-  const DEFAULT_SPANS = {
-    library: { c: 3, r: 12 },
-    preview: { c: 4, r: 4 },
-    program: { c: 5, r: 4 },
-    slides: { c: 6, r: 5 },
-    controls: { c: 3, r: 4 },
-    stage: { c: 3, r: 4 },
-    playlist: { c: 6, r: 3 },
-  };
-  const DEFAULT_SECTIONS = {
-    library: ['songs', 'bible'],
-    preview: ['preview'],
-    program: ['program'],
-    slides: ['slides'],
-    controls: ['controls'],
-    stage: ['stage'],
-    playlist: ['playlist'],
-  };
+  // Posição vem da ordem (grid-auto-flow: dense); o layout guarda ordem, tamanhos e seções por bloco.
+  const { TILE_IDS, DEFAULT_LAYOUT } = root.layoutPresets;
+  const DEFAULT_SPANS = DEFAULT_LAYOUT.spans;
+  const DEFAULT_SECTIONS = DEFAULT_LAYOUT.sections;
   const KEY_DELTA = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
   const DRAG_MIME = 'application/x-apresentador-layout';
 
@@ -80,14 +64,25 @@
         if (d.dataset.key in state.folds) d.open = state.folds[d.dataset.key];
       });
     };
+    const listeners = new Set();
     const set = (patch, focusSelector) => {
       state = { ...state, ...patch };
       render();
       write(state);
+      listeners.forEach((fn) => fn(layoutOf(state)));
       if (focusSelector) document.querySelector(focusSelector)?.focus();
     };
-    return { get: () => state, set, render, reset: () => { state = freshState({}); render(); write({}); } };
+    return {
+      get: () => state,
+      set,
+      render,
+      reset: () => set({ ...freshState({}) }),
+      onChange: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
+    };
   }
+
+  // Só o que um preset guarda (sem o estado aberto/fechado das seções).
+  const layoutOf = ({ order, spans, sections }) => ({ order: [...order], spans: { ...spans }, sections: { ...sections } });
 
   // ---------- Arrastar e soltar (blocos e seções) ----------
   function bindDrag(ctl) {
@@ -254,6 +249,11 @@
       ctl.reset();
       document.querySelectorAll('details.fold').forEach((d) => { d.open = true; });
     });
+    return {
+      getLayout: () => layoutOf(ctl.get()),
+      applyLayout: (layout) => ctl.set(layoutOf(root.layoutPresets.normalizeLayout(layout))),
+      onChange: ctl.onChange,
+    };
   }
 
   root.initLayout = initLayout;

@@ -270,7 +270,7 @@ function bindEvents() {
 }
 
 async function init() {
-  window.initLayout();
+  window.initPresets(window.initLayout());
   previewStage = window.createStage($('mon-preview'));
   programStage = window.createStage($('mon-program'));
   try { ui.direct = localStorage.getItem(DIRECT_KEY) === '1'; } catch { ui.direct = false; }

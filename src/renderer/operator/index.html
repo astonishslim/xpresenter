@@ -11,6 +11,11 @@
   <header>
     <h1>Apresentador</h1>
     <div class="spacer"></div>
+    <label class="preset-box" title="Troque o arranjo da tela com um clique">Layout
+      <select id="preset-select" aria-label="Layout da tela"></select>
+    </label>
+    <button id="btn-preset-save" title="Salvar o arranjo atual como um layout seu">Salvar layout…</button>
+    <button id="btn-preset-delete" class="danger" hidden title="Excluir o layout salvo selecionado">Excluir</button>
     <button id="btn-reset-layout" title="Restaurar blocos, tamanhos e seções ao padrão">Restaurar layout</button>
     <button id="btn-remote" title="Controle remoto e retorno pelo celular/tablet">Remoto</button>
     <button id="btn-output" class="primary">Projetar</button>
@@ -152,6 +157,19 @@
     </form>
   </dialog>
 
+  <dialog id="preset-dialog">
+    <form id="preset-form" method="dialog">
+      <h3>Salvar layout</h3>
+      <input id="preset-name" placeholder="Nome do layout (ex.: Ensaio da banda)" maxlength="40" autocomplete="off" />
+      <p id="preset-error" class="error" role="alert"></p>
+      <p class="muted">Guarda a posição, o tamanho dos blocos e as seções de cada bloco. Salvar com um nome já existente substitui o layout.</p>
+      <div class="row end">
+        <button id="preset-cancel" type="button">Cancelar</button>
+        <button id="preset-save" class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="remote-dialog">
     <h3>Controle remoto e retorno</h3>
     <p>Abra no celular ou tablet (mesma rede Wi-Fi):</p>
@@ -164,7 +182,9 @@
 
   <script src="../shared/stage.js"></script>
   <script src="../shared/layoutModel.js"></script>
+  <script src="../shared/layoutPresets.js"></script>
   <script src="layout.js"></script>
+  <script src="presets.js"></script>
   <script src="operator.js"></script>
 </body>
 </html>

@@ -88,3 +88,9 @@ dialog::backdrop { background: rgba(0, 0, 0, .6); }
 dialog h3 { margin-top: 0; }
 dialog textarea { margin: 8px 0; font-family: Consolas, monospace; resize: vertical; }
 code { display: block; padding: 10px; background: #0e1014; border-radius: 6px; word-break: break-all; user-select: all; margin-bottom: 8px; }
+
+/* ---------- Presets de layout ---------- */
+.preset-box { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.preset-box select { min-width: 170px; }
+.error { color: var(--danger); min-height: 1.2em; margin: 4px 0; font-size: 12px; }
+header button[hidden] { display: none; }
