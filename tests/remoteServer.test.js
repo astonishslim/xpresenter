@@ -228,3 +228,26 @@ test('remoto aceita setStageMessage curta e recusa a longa', async () => {
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setStageMessage', text: 'x'.repeat(500) })).status, 400);
   } finally { await s.close(); }
 });
+
+test('serve o ícone do controle remoto como image/png', async () => {
+  const path = require('node:path');
+  const server = createRemoteServer({
+    goTo: () => false,
+    token: 'segredo',
+    staticDir: path.join(__dirname, '..', 'src', 'remote'),
+    getState: () => initialState(),
+    dispatch: () => {},
+    subscribe: () => () => {},
+    getPlaylist: () => [],
+  });
+  const port = await server.listen(0);
+  try {
+    const res = await new Promise((resolve, reject) => {
+      http.get({ port, host: '127.0.0.1', path: '/icon.png' }, (r) => { r.resume(); r.on('end', () => resolve(r)); }).on('error', reject);
+    });
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.headers['content-type'], 'image/png');
+  } finally {
+    await server.close();
+  }
+});

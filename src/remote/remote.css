@@ -20,6 +20,8 @@ button.primary, button.on { background: #4f8cff; border-color: #4f8cff; color: #
 .icon { display: block; flex: none; pointer-events: none; }
 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 13px; }
 header a { display: inline-flex; align-items: center; gap: 6px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; }
+.logo { display: block; border-radius: 5px; }
 [hidden] { display: none !important; }
 
 /* Cronômetro: valor grande à esquerda, botões à direita; vermelho quando a regressiva estoura. */

@@ -21,7 +21,7 @@ const MAX_ITEM_ID_CHARS = 100;
 const isGoTo = (a) => typeof a.itemId === 'string' && a.itemId.length > 0 && a.itemId.length <= MAX_ITEM_ID_CHARS
   && Number.isInteger(a.index) && a.index >= 0;
 const TEXT_ACTIONS = new Set(['setAnnouncement', 'setStageMessage']);
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png' };
 
 function send(res, status, body, type = 'application/json; charset=utf-8') {
   res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store' });

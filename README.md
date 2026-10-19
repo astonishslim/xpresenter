@@ -1,3 +1,5 @@
+<p align="center"><img src="logo/logo-xpresenter.png" alt="xpresenter" width="220" /></p>
+
 # xpresenter
 
 Aplicativo desktop (Electron) para projetar **letras de músicas**, **versículos** e **avisos** no culto, com
@@ -66,6 +68,9 @@ nos botões principais (`Projetar`). Todo botão só de ícone tem `title` (dica
 [Lucide](https://lucide.dev) (licença ISC, em `licenses/lucide-LICENSE.txt`), embutidos em `src/renderer/shared/icons.js` só com
 os usados. Para trocar ou acrescentar: edite a lista em `scripts/build-icons.js` e rode `npm run icons` (gera também a cópia
 em `src/remote/icons.js`, usada pelo controle remoto do celular e pelo retorno de palco).
+
+O ícone do app (instalador, barra de tarefas, controle remoto) é gerado a partir de `logo/logo-xpresenter.png` com
+`npm run app-icon`: usa só o símbolo, com o traço engrossado para ficar legível em 16–32 px.
 
 ## Busca de músicas e letras da internet
 
