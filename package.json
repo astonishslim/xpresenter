@@ -1,6 +1,6 @@
 {
   "name": "xpresenter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "xpresenter: letras, versículos e avisos projetados para o culto, com controle remoto pelo celular.",
   "main": "src/main/main.js",
   "license": "MIT",
