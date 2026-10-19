@@ -9,8 +9,25 @@
 .stage .bg::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--bg-dim, 0); transition: opacity .3s; pointer-events: none; }
 .stage .bg video { width: 100%; height: 100%; object-fit: cover; }
 
-.stage .content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6cqh 7cqw; color: var(--text-color, #fff); text-align: center; transition: opacity .25s; }
+.stage .content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6cqh 7cqw; color: var(--text-color, #fff); text-align: center; transition: opacity var(--fade, 400ms) ease; }
 .stage .content.hidden { opacity: 0; }
+/* Crossfade: o slide novo nasce transparente (sem animar) e a cópia do anterior some por cima. */
+.stage .content.entering { opacity: 0; transition: none; }
+.stage .content.ghost { pointer-events: none; }
+
+/* Legenda do tema ({titulo}, {hora}, {cronometro}…) num dos cantos. */
+.stage .caption { inset: auto; max-width: 60cqw; padding: 2.4cqh 3cqw; color: var(--text-color, #fff); font-size: 3cqh; font-weight: 600; opacity: 0; transition: opacity .3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 .2cqh .8cqh rgba(0, 0, 0, .7); }
+.stage .caption.visible { opacity: .85; }
+.stage[data-caption="top-left"] .caption { top: 0; left: 0; }
+.stage[data-caption="top-right"] .caption { top: 0; right: 0; text-align: right; }
+.stage[data-caption="bottom-left"] .caption { bottom: 0; left: 0; }
+.stage[data-caption="bottom-right"] .caption { bottom: 0; right: 0; text-align: right; }
+
+/* Cronômetro: grande no centro sem letra; pequeno no canto com letra. Vermelho quando a regressiva estoura. */
+.stage .timer { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 22cqh; opacity: 0; pointer-events: none; transition: opacity .3s; text-shadow: 0 .4cqh 2cqh rgba(0, 0, 0, .8); }
+.stage .timer.visible { opacity: 1; }
+.stage .timer.corner { inset: auto 0 0 auto; padding: 2cqh 3cqw; font-size: 6cqh; }
+.stage .timer.over { color: #ff5a5f; }
 .stage .label { font-size: 2.2cqh; letter-spacing: .15em; text-transform: uppercase; opacity: .6; margin-bottom: 2cqh; }
 .stage .text { font-weight: 700; line-height: 1.25; white-space: pre-wrap; text-shadow: 0 .2cqh 1cqh rgba(0, 0, 0, .7); max-width: 100%; }
 

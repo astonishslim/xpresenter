@@ -165,6 +165,69 @@ test('isValidAction valida toggleLayer e setBackgroundDim', () => {
   assert.equal(isValidAction({ type: 'setBackgroundDim', value: '40' }), false);
 });
 
+test('cronômetro: definir, iniciar, pausar, retomar, zerar e mostrar na projeção', () => {
+  const { stampAction } = require('../src/core/state');
+  let s = initialState();
+  assert.equal(s.timer.mode, 'countdown');
+  assert.equal(s.timer.startedAt, null);
+  s = reduce(s, { type: 'timerSet', mode: 'countdown', seconds: 600 });
+  assert.equal(s.timer.baseMs, 600000);
+  s = reduce(s, stampAction({ type: 'timerToggle' }, 1000));
+  assert.equal(s.timer.startedAt, 1000);
+  s = reduce(s, stampAction({ type: 'timerToggle' }, 61000)); // pausa depois de 1 min
+  assert.equal(s.timer.startedAt, null);
+  assert.equal(s.timer.baseMs, 540000);
+  s = reduce(s, stampAction({ type: 'timerToggle' }, 100000));
+  assert.equal(s.timer.startedAt, 100000);
+  s = reduce(s, { type: 'timerReset' });
+  assert.deepEqual([s.timer.baseMs, s.timer.startedAt], [600000, null]);
+  s = reduce(s, { type: 'timerVisible' });
+  assert.equal(s.timer.visible, true);
+  s = reduce(s, { type: 'timerSet', mode: 'stopwatch', seconds: 999 });
+  assert.deepEqual([s.timer.mode, s.timer.baseMs, s.timer.setMs, s.timer.visible], ['stopwatch', 0, 0, true]);
+});
+
+test('timerToggle sem horário carimbado não muda nada (reducer continua puro)', () => {
+  const s = initialState();
+  assert.equal(reduce(s, { type: 'timerToggle' }), s);
+});
+
+test('stampAction só carimba ações de cronômetro e não muta a ação', () => {
+  const { stampAction } = require('../src/core/state');
+  const a = { type: 'timerToggle' };
+  assert.deepEqual(stampAction(a, 5), { type: 'timerToggle', now: 5 });
+  assert.equal('now' in a, false);
+  const other = { type: 'clear' };
+  assert.equal(stampAction(other, 5), other);
+});
+
+test('isValidAction valida as ações de cronômetro', () => {
+  assert.equal(isValidAction({ type: 'timerSet', mode: 'countdown', seconds: 300 }), true);
+  assert.equal(isValidAction({ type: 'timerSet', mode: 'stopwatch', seconds: 0 }), true);
+  assert.equal(isValidAction({ type: 'timerSet', mode: 'relógio', seconds: 300 }), false);
+  assert.equal(isValidAction({ type: 'timerSet', mode: 'countdown', seconds: -1 }), false);
+  assert.equal(isValidAction({ type: 'timerSet', mode: 'countdown', seconds: 86401 }), false);
+  assert.equal(isValidAction({ type: 'timerSet', mode: 'countdown', seconds: 1.5 }), false);
+  assert.equal(isValidAction({ type: 'timerToggle' }), true);
+  assert.equal(isValidAction({ type: 'timerReset' }), true);
+  assert.equal(isValidAction({ type: 'timerVisible' }), true);
+});
+
+test('showSlide aceita título opcional no slide (para a legenda {titulo})', () => {
+  assert.equal(isValidAction({ type: 'showSlide', slide: { text: 'x', title: 'Hino' } }), true);
+  assert.equal(isValidAction({ type: 'showSlide', slide: { text: 'x', title: 5 } }), false);
+});
+
+test('showSlide trunca título e rótulo longos em vez de recusar o slide', () => {
+  const long = { type: 'showSlide', slide: { text: 'x', title: 't'.repeat(5000), label: 'l'.repeat(5000) } };
+  assert.equal(isValidAction(long), true, 'o slide continua indo ao ar');
+  const s = reduce(initialState(), long);
+  assert.equal(s.layers.content.slide.title.length, 200);
+  assert.equal(s.layers.content.slide.label.length, 200);
+  assert.equal(long.slide.title.length, 5000, 'não muta a ação');
+  assert.equal(isValidAction({ type: 'showSlide', slide: { text: 'x', label: 5 } }), false);
+});
+
 test('setBackground aceita vídeo local', () => {
   assert.equal(isValidAction({ type: 'setBackground', background: { kind: 'video', value: 'file:///C:/videos/loop.mp4' } }), true);
 });

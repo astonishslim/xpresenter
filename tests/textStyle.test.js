@@ -5,7 +5,24 @@ const { DEFAULT_TEXT_STYLE, FONTS, isValidStylePatch, mergeStyle, normalizeStyle
 test('estilo padrão é válido como patch e tem todos os campos', () => {
   assert.equal(isValidStylePatch(DEFAULT_TEXT_STYLE), true);
   assert.deepEqual(Object.keys(DEFAULT_TEXT_STYLE).sort(),
-    ['align', 'color', 'font', 'position', 'shadow', 'showLabel', 'size', 'uppercase']);
+    ['align', 'caption', 'captionPosition', 'color', 'font', 'position', 'shadow', 'showLabel', 'size', 'transition', 'transitionMs', 'uppercase']);
+});
+
+test('transição: corte ou fade, duração de 100 a 2000 ms em passos de 100', () => {
+  assert.equal(isValidStylePatch({ transition: 'cut' }), true);
+  assert.equal(isValidStylePatch({ transition: 'fade', transitionMs: 800 }), true);
+  for (const bad of [{ transition: 'wipe' }, { transitionMs: 50 }, { transitionMs: 2100 }, { transitionMs: 450 }, { transitionMs: '400' }]) {
+    assert.equal(isValidStylePatch(bad), false, JSON.stringify(bad));
+  }
+});
+
+test('legenda: texto curto sem controle, posição num dos cantos', () => {
+  assert.equal(isValidStylePatch({ caption: '{titulo} · {hora}' }), true);
+  assert.equal(isValidStylePatch({ caption: '' }), true);
+  assert.equal(isValidStylePatch({ captionPosition: 'top-right' }), true);
+  for (const bad of [{ caption: 'x'.repeat(81) }, { caption: 'a\nb' }, { caption: 'a‮b' }, { caption: 5 }, { captionPosition: 'middle' }]) {
+    assert.equal(isValidStylePatch(bad), false, JSON.stringify(bad));
+  }
 });
 
 test('FONTS lista só chaves, e a fonte padrão está entre elas', () => {

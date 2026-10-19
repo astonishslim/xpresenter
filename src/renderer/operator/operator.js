@@ -61,18 +61,41 @@ function selectSlide(index) {
   renderPreview();
 }
 
-function goLive(index) {
+// Quando um item novo (outra música ou passagem) entra ao vivo, aplica o tema dele antes do primeiro slide.
+// Avanços seguidos no mesmo item esperam a MESMA aplicação (não aplicam duas vezes nem passam na frente).
+function applyItemTheme(item) {
+  if (item.key === ui.liveKey) return ui.themePending;
+  ui.liveKey = item.key;
+  ui.themePending = (async () => {
+    const name = themePanel.themeFor(item);
+    if (!name) return;
+    try {
+      const res = await themePanel.apply(name);
+      if (!res.ok) console.error(`[temas] tema automático "${name}": ${res.reason}`);
+    } catch (err) {
+      console.error(`[temas] tema automático "${name}" falhou: ${err.message}`); // o slide vai ao ar mesmo assim
+    }
+  })();
+  return ui.themePending;
+}
+
+let liveSeq = 0;
+async function goLive(index) {
   const slides = slidesOf();
   if (index < 0 || index >= slides.length) return;
+  const item = ui.current;
+  const seq = ++liveSeq;
   ui.index = index;
   ui.selected = Math.min(index + 1, slides.length - 1); // o Preview passa a mostrar o próximo
-  api.dispatch({
-    type: 'showSlide',
-    slide: { ...slides[index], key: `${ui.current.key}:${index}` },
-    next: slideInfo(slides[index + 1]),
-  });
   renderSlides();
   renderPreview();
+  await applyItemTheme(item);
+  if (seq !== liveSeq) return; // outro avanço aconteceu enquanto o tema era aplicado: ele manda o slide certo
+  api.dispatch({
+    type: 'showSlide',
+    slide: { ...slides[index], title: item.title, key: `${item.key}:${index}` },
+    next: slideInfo(slides[index + 1]),
+  });
 }
 
 function renderSlides() {
@@ -142,6 +165,7 @@ function renderPlaylist() {
       slides: item.slides,
       songId: item.kind === 'song' ? item.refId : null,
       song: ui.songs.find((s) => s.id === item.refId),
+      verse: item.kind === 'verse',
       fromPlaylist: true,
       key: item.id,
     }),
@@ -188,13 +212,27 @@ function openEditor(song) {
   const editing = song || { title: '', text: '' };
   $('ed-title').value = editing.title;
   $('ed-text').value = editing.text;
+  $('ed-theme').replaceChildren(
+    h('option', { value: '' }, 'Automático (tema padrão das músicas)'),
+    ...themePanel.names().map((name) => h('option', { value: name }, name)),
+  );
+  // Tema que não existe mais continua visível, para não sumir sem o operador perceber.
+  if (editing.theme && !themePanel.names().includes(editing.theme)) {
+    $('ed-theme').append(h('option', { value: editing.theme }, `${editing.theme} (excluído)`));
+  }
+  $('ed-theme').value = editing.theme || '';
   $('ed-delete').hidden = !(song && song.id); // letra vinda da internet ainda não existe na biblioteca
   $('editor').dataset.id = editing.id || '';
   $('editor').showModal();
 }
 
 async function saveEditor() {
-  const saved = await api.songs.save({ id: $('editor').dataset.id || undefined, title: $('ed-title').value, text: $('ed-text').value });
+  const saved = await api.songs.save({
+    id: $('editor').dataset.id || undefined,
+    title: $('ed-title').value,
+    text: $('ed-text').value,
+    theme: $('ed-theme').value,
+  });
   await refreshSongs();
   await refreshPlaylist();
   openSong(saved);
@@ -210,7 +248,52 @@ function renderLive(state) {
   $('btn-black').classList.toggle('primary', state.blackout);
   $('btn-cover').classList.toggle('primary', state.layers.cover.visible);
   renderLayerButtons(state);
+  renderTimerControls(state.timer);
   if (document.activeElement !== $('bg-dim')) $('bg-dim').value = String(state.layers.background.dim || 0);
+}
+
+// ---------- Cronômetro ----------
+const TIMER_TICK_MS = 250;
+const SECONDS_PER_MINUTE = 60;
+
+function renderTimerReadout() {
+  const timer = ui.state && ui.state.timer;
+  if (!timer) return;
+  const ms = window.liveInfo.timerValueMs(timer, Date.now());
+  $('timer-readout').textContent = window.liveInfo.formatTimer(ms);
+  $('timer-readout').classList.toggle('over', timer.mode === 'countdown' && ms <= 0 && window.liveInfo.isTimerInUse(timer));
+}
+
+function renderTimerControls(timer) {
+  const running = timer.startedAt != null;
+  const toggle = $('btn-timer-toggle');
+  const label = running ? 'Pausar' : 'Iniciar';
+  toggle.title = label;
+  toggle.setAttribute('aria-label', `${label} cronômetro`);
+  if (toggle.dataset.icon !== (running ? 'pause' : 'play')) window.icons.setIcon(toggle, running ? 'pause' : 'play');
+  $('btn-timer-visible').setAttribute('aria-pressed', String(timer.visible));
+  if (document.activeElement !== $('timer-mode')) $('timer-mode').value = timer.mode;
+  $('timer-minutes').disabled = timer.mode !== 'countdown';
+  if (document.activeElement !== $('timer-minutes') && timer.mode === 'countdown') {
+    $('timer-minutes').value = String(Math.round(timer.setMs / 1000 / SECONDS_PER_MINUTE));
+  }
+  renderTimerReadout();
+}
+
+function setTimerFromInputs() {
+  const mode = $('timer-mode').value;
+  const minutes = Math.max(0, Math.min(1440, Math.round(Number($('timer-minutes').value) || 0)));
+  api.dispatch({ type: 'timerSet', mode, seconds: minutes * SECONDS_PER_MINUTE });
+}
+
+function bindTimer() {
+  $('timer-mode').addEventListener('change', setTimerFromInputs);
+  $('timer-minutes').addEventListener('change', setTimerFromInputs);
+  $('timer-minutes').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); setTimerFromInputs(); } });
+  $('btn-timer-toggle').addEventListener('click', () => api.dispatch({ type: 'timerToggle' }));
+  $('btn-timer-reset').addEventListener('click', () => api.dispatch({ type: 'timerReset' }));
+  $('btn-timer-visible').addEventListener('click', () => api.dispatch({ type: 'timerVisible' }));
+  setInterval(renderTimerReadout, TIMER_TICK_MS);
 }
 
 // Botão aceso (pressionado) = camada oculta; o ícone troca para a versão riscada.
@@ -348,6 +431,7 @@ async function init() {
   $('direct').checked = ui.direct;
 
   bindEvents();
+  bindTimer();
   api.onState(renderLive);
   window.addEventListener('focus', syncOutputButtons);
   window.addEventListener('resize', () => ui.state && (programStage.update(ui.state), renderPreview()));

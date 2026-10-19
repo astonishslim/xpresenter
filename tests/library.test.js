@@ -32,6 +32,14 @@ test('saveSong com id existente atualiza em vez de duplicar', () => {
   assert.equal(lib.listSongs()[0].title, 'B');
 });
 
+test('saveSong guarda o tema da música (nome curto) e descarta valor inválido', () => {
+  const lib = createLibrary(tmpFile());
+  assert.equal(lib.saveSong({ title: 'A', text: 'x', theme: '  Louvor ' }).theme, 'Louvor');
+  assert.equal('theme' in lib.saveSong({ title: 'B', text: 'x', theme: '' }), false);
+  assert.equal('theme' in lib.saveSong({ title: 'C', text: 'x', theme: 'x'.repeat(41) }), false);
+  assert.equal('theme' in lib.saveSong({ title: 'D', text: 'x', theme: { nome: 'x' } }), false);
+});
+
 test('saveSong rejeita título vazio', () => {
   assert.throws(() => createLibrary(tmpFile()).saveSong({ title: ' ', text: 'x' }), /título/i);
 });

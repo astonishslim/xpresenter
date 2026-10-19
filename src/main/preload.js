@@ -42,5 +42,7 @@ contextBridge.exposeInMainWorld('apresentador', {
     save: (name) => invoke('themes:save', name),
     apply: (name) => invoke('themes:apply', name),
     remove: (name) => invoke('themes:remove', name),
+    getDefaults: () => invoke('themes:getDefaults'),
+    setDefaults: (patch) => invoke('themes:setDefaults', patch),
   },
 });

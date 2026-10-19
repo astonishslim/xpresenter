@@ -133,6 +133,30 @@ test('persistCurrentLook não derruba se gravar falhar', (t) => {
   assert.equal(console.error.mock.callCount(), 1);
 });
 
+test('temas padrão por tipo: só nomes existentes, guardados com a grafia salva', () => {
+  const file = tmpFile();
+  const lib = createThemeLibrary(file);
+  assert.deepEqual(lib.getDefaults(), { song: null, verse: null });
+  lib.save('Bíblia', look());
+  lib.save('Louvor', look('#222222'));
+  assert.deepEqual(lib.setDefaults({ verse: 'bíblia', song: 'LOUVOR' }), { song: 'Louvor', verse: 'Bíblia' });
+  assert.deepEqual(createThemeLibrary(file).getDefaults(), { song: 'Louvor', verse: 'Bíblia' });
+  assert.throws(() => lib.setDefaults({ song: 'Não existe' }), /não encontrado/i);
+  assert.deepEqual(lib.setDefaults({ song: null }), { song: null, verse: 'Bíblia' });
+  assert.throws(() => lib.setDefaults({ outro: 'Bíblia' }), /tipo/i);
+});
+
+test('excluir um tema tira ele dos padrões; padrão inválido no disco vira null', () => {
+  const file = tmpFile();
+  const lib = createThemeLibrary(file);
+  lib.save('Bíblia', look());
+  lib.setDefaults({ verse: 'Bíblia' });
+  lib.remove('Bíblia');
+  assert.deepEqual(lib.getDefaults(), { song: null, verse: null });
+  fs.writeFileSync(file, JSON.stringify({ themes: [], defaults: { song: 'Fantasma', verse: 42 } }));
+  assert.deepEqual(createThemeLibrary(file).getDefaults(), { song: null, verse: null });
+});
+
 test('validateThemeName apara espaços e explica o erro', () => {
   assert.deepEqual(validateThemeName('  Páscoa  '), { ok: true, name: 'Páscoa' });
   assert.equal(validateThemeName('').ok, false);

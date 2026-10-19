@@ -2,7 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const { timingSafeEqual } = require('node:crypto');
-const { isValidAction } = require('./state');
+const { isValidAction, stampAction } = require('./state');
 
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_SSE_CLIENTS = 20;
@@ -66,7 +66,10 @@ function tokenMatches(given, token) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-function createRemoteServer({ token, staticDir, getState, dispatch, subscribe, getPlaylist }) {
+function createRemoteServer({ token, staticDir, getState: readState, dispatch, subscribe, getPlaylist }) {
+  // serverTime: o retorno num tablet calcula o cronômetro pelo relógio deste computador, não pelo dele.
+  const withServerTime = (state) => ({ ...state, serverTime: Date.now() });
+  const getState = () => withServerTime(readState());
   const clients = new Set();
   const failures = new Map(); // ip -> { count, blockedUntil }
   let heartbeat = null;
@@ -91,7 +94,7 @@ function createRemoteServer({ token, staticDir, getState, dispatch, subscribe, g
       && (typeof action.text !== 'string' || action.text.length > MAX_ANNOUNCEMENT_CHARS)) {
       return send(res, 400, { error: 'aviso inválido' });
     }
-    dispatch(action);
+    dispatch(stampAction(action, Date.now()));
     return send(res, 200, getState());
   };
 
@@ -141,7 +144,7 @@ function createRemoteServer({ token, staticDir, getState, dispatch, subscribe, g
   });
 
   const unsubscribe = subscribe((state) => {
-    const frame = `data: ${JSON.stringify(state)}\n\n`;
+    const frame = `data: ${JSON.stringify(withServerTime(state))}\n\n`;
     clients.forEach((c) => c.write(frame));
   });
 

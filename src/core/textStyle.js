@@ -7,6 +7,16 @@ const SIZE_MIN = 50;
 const SIZE_MAX = 150;
 const SIZE_STEP = 10;
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const TRANSITIONS = ['cut', 'fade'];
+const TRANSITION_MIN_MS = 100;
+const TRANSITION_MAX_MS = 2000;
+const TRANSITION_STEP_MS = 100;
+const CAPTION_POSITIONS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+const MAX_CAPTION_CHARS = 80;
+// Legenda é texto de uma linha (vai por textContent): sem quebras, controle nem marcas invisíveis de direção.
+// eslint-disable-next-line no-control-regex
+const CAPTION_FORBIDDEN = /[\u0000-\u001F\u007F-\u009F​-‏‪-‮⁠-⁩﻿]/;
+const inSteps = (v, min, max, step) => Number.isInteger(v) && v >= min && v <= max && v % step === 0;
 
 const DEFAULT_TEXT_STYLE = Object.freeze({
   font: 'sans',
@@ -17,18 +27,26 @@ const DEFAULT_TEXT_STYLE = Object.freeze({
   uppercase: false,
   shadow: true,
   showLabel: true,
+  transition: 'fade',
+  transitionMs: 400,
+  caption: '',
+  captionPosition: 'top-right',
 });
 
 const isBool = (v) => typeof v === 'boolean';
 const FIELD_CHECKS = {
   font: (v) => FONTS.includes(v),
   color: (v) => typeof v === 'string' && HEX_COLOR.test(v),
-  size: (v) => Number.isInteger(v) && v >= SIZE_MIN && v <= SIZE_MAX && v % SIZE_STEP === 0,
+  size: (v) => inSteps(v, SIZE_MIN, SIZE_MAX, SIZE_STEP),
   align: (v) => ALIGNS.includes(v),
   position: (v) => POSITIONS.includes(v),
   uppercase: isBool,
   shadow: isBool,
   showLabel: isBool,
+  transition: (v) => TRANSITIONS.includes(v),
+  transitionMs: (v) => inSteps(v, TRANSITION_MIN_MS, TRANSITION_MAX_MS, TRANSITION_STEP_MS),
+  caption: (v) => typeof v === 'string' && v.length <= MAX_CAPTION_CHARS && !CAPTION_FORBIDDEN.test(v),
+  captionPosition: (v) => CAPTION_POSITIONS.includes(v),
 };
 
 const isPlainObject = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v)
@@ -55,6 +73,6 @@ function normalizeStyle(input) {
 }
 
 module.exports = {
-  DEFAULT_TEXT_STYLE, FONTS, ALIGNS, POSITIONS, SIZE_MIN, SIZE_MAX, SIZE_STEP,
+  DEFAULT_TEXT_STYLE, FONTS, ALIGNS, POSITIONS, SIZE_MIN, SIZE_MAX, SIZE_STEP, TRANSITIONS, CAPTION_POSITIONS, MAX_CAPTION_CHARS,
   isValidStylePatch, mergeStyle, normalizeStyle,
 };

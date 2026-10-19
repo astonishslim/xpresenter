@@ -169,6 +169,30 @@
             <button id="style-shadow" class="ib" type="button" data-icon="blend" aria-pressed="true" title="Sombra no texto" aria-label="Sombra no texto"></button>
             <button id="style-label" class="ib" type="button" data-icon="tag" aria-pressed="true" title="Mostrar o rótulo (Verso, Refrão, referência)" aria-label="Mostrar rótulo"></button>
           </div>
+          <div class="row">
+            <select id="style-transition" aria-label="Transição entre slides" title="Transição entre slides">
+              <option value="cut">Corte seco</option>
+              <option value="fade-200">Fade rápido</option>
+              <option value="fade-400">Fade</option>
+              <option value="fade-800">Fade lento</option>
+              <option value="fade-1500">Fade muito lento</option>
+            </select>
+          </div>
+          <div class="row">
+            <span class="ico muted" data-icon="captions" title="Legenda do tema"></span>
+            <input id="style-caption" maxlength="80" autocomplete="off" placeholder="Legenda: {titulo} · {hora}" aria-label="Legenda do tema (use {titulo}, {rotulo}, {hora}, {data}, {cronometro})" title="Variáveis: {titulo} {rotulo} {hora} {data} {cronometro}. Enter aplica." />
+            <select id="style-caption-pos" class="narrow" aria-label="Canto da legenda" title="Canto da legenda">
+              <option value="top-left">↖</option>
+              <option value="top-right">↗</option>
+              <option value="bottom-left">↙</option>
+              <option value="bottom-right">↘</option>
+            </select>
+          </div>
+          <div class="row">
+            <span class="ico muted" data-icon="wand-sparkles" title="Tema automático ao entrar ao vivo"></span>
+            <select id="theme-default-song" aria-label="Tema automático das músicas (sem tema próprio)" title="Tema aplicado quando uma música (sem tema próprio) entra ao vivo"></select>
+            <select id="theme-default-verse" aria-label="Tema automático dos versículos" title="Tema aplicado quando um versículo entra ao vivo"></select>
+          </div>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
@@ -188,7 +212,21 @@
             <button id="btn-stage-msg" class="ib" type="button" data-icon="send" title="Enviar mensagem" aria-label="Enviar mensagem"></button>
             <button id="btn-stage-clear" class="ib" type="button" data-icon="x" title="Limpar mensagem" aria-label="Limpar mensagem"></button>
           </div>
-          <p class="muted">Mostra agora, próximo, relógio e mensagem. Também abre em tablet/celular pelo botão de controle remoto.</p>
+          <div class="row timer-row">
+            <span id="timer-readout" class="timer-readout" role="timer" aria-live="off">05:00</span>
+            <select id="timer-mode" aria-label="Tipo de cronômetro" title="Tipo">
+              <option value="countdown">Regressiva</option>
+              <option value="stopwatch">Cronômetro</option>
+            </select>
+            <input id="timer-minutes" type="number" min="0" max="1440" step="1" value="5" aria-label="Minutos da contagem regressiva" title="Minutos (Enter aplica)" class="narrow" />
+          </div>
+          <div class="row">
+            <button id="btn-timer-toggle" class="ib primary" type="button" data-icon="play" title="Iniciar" aria-label="Iniciar cronômetro"></button>
+            <button id="btn-timer-reset" class="ib" type="button" data-icon="timer-reset" title="Zerar" aria-label="Zerar cronômetro"></button>
+            <button id="btn-timer-visible" class="ib" type="button" data-icon="tv" aria-pressed="false" title="Mostrar na projeção" aria-label="Mostrar cronômetro na projeção"></button>
+            <span class="muted">No retorno aparece sempre que estiver em uso.</span>
+          </div>
+          <p class="muted">Mostra agora, próximo, relógio, cronômetro e mensagem. Também abre em tablet/celular pelo botão de controle remoto.</p>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
@@ -210,6 +248,7 @@
     <form method="dialog">
       <h3>Música</h3>
       <input id="ed-title" placeholder="Título" required />
+      <label class="field">Tema desta música <select id="ed-theme" aria-label="Tema desta música"></select></label>
       <textarea id="ed-text" rows="16" placeholder="[Verso 1]&#10;Linha 1&#10;Linha 2&#10;&#10;[Refrão]&#10;…"></textarea>
       <p class="muted">Use [Verso], [Refrão], [Ponte] para marcar seções. Linha em branco separa slides. Acordes como [Am] são ignorados na projeção.</p>
       <div class="row end">
@@ -281,6 +320,7 @@
   </dialog>
 
   <script src="../shared/icons.js"></script>
+  <script src="../shared/liveInfo.js"></script>
   <script src="../shared/stage.js"></script>
   <script src="../shared/layoutModel.js"></script>
   <script src="../shared/layoutPresets.js"></script>

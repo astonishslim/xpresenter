@@ -33,17 +33,32 @@ function sanitizeThemes(list) {
   }).slice(0, MAX_THEMES);
 }
 
+// Tema aplicado sozinho quando um item desse tipo vai ao ar (se a música não tiver tema próprio).
+const DEFAULT_KINDS = ['song', 'verse'];
+const NO_DEFAULTS = Object.freeze({ song: null, verse: null });
+
+const findTheme = (themes, name) => (typeof name === 'string' ? themes.find((t) => sameName(t.name, name)) : undefined);
+
+function sanitizeDefaults(input, themes) {
+  return Object.fromEntries(DEFAULT_KINDS.map((kind) => {
+    const hit = findTheme(themes, input && input[kind]);
+    return [kind, hit ? hit.name : null];
+  }));
+}
+
 function load(file) {
   try {
     const data = JSON.parse(fs.readFileSync(file, 'utf8'));
     const current = toLook(data && data.current);
+    const themes = sanitizeThemes(data && data.themes);
     return {
-      themes: sanitizeThemes(data && data.themes),
+      themes,
       current: current.background ? current : defaultLook(),
+      defaults: sanitizeDefaults(data && data.defaults, themes),
     };
   } catch (err) {
     if (err.code !== 'ENOENT') console.error(`[temas] não foi possível ler ${file}: ${err.message}`);
-    return { themes: [], current: defaultLook() };
+    return { themes: [], current: defaultLook(), defaults: { ...NO_DEFAULTS } };
   }
 }
 
@@ -55,7 +70,7 @@ function persist(file, data) {
 }
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
-const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
+function sameName(a, b) { return a.toLowerCase() === b.toLowerCase(); }
 
 function createThemeLibrary(file) {
   let data = load(file);
@@ -90,7 +105,22 @@ function createThemeLibrary(file) {
 
     remove(name) {
       if (typeof name !== 'string') return;
-      commit({ ...data, themes: data.themes.filter((t) => !sameName(t.name, name)) });
+      const themes = data.themes.filter((t) => !sameName(t.name, name));
+      commit({ ...data, themes, defaults: sanitizeDefaults(data.defaults, themes) });
+    },
+
+    getDefaults: () => ({ ...data.defaults }),
+    // patch: { song?: nome|null, verse?: nome|null }. Nome precisa existir; guarda a grafia salva.
+    setDefaults(patch) {
+      const entries = Object.entries(patch || {});
+      entries.forEach(([kind, name]) => {
+        if (!DEFAULT_KINDS.includes(kind)) throw new Error(`Tipo de conteúdo inválido: ${kind}.`);
+        if (name !== null && !findTheme(data.themes, name)) throw new Error('Tema não encontrado.');
+      });
+      const next = { ...data.defaults };
+      entries.forEach(([kind, name]) => { next[kind] = name === null ? null : findTheme(data.themes, name).name; });
+      commit({ ...data, defaults: next });
+      return { ...next };
     },
 
     getCurrent: () => clone(data.current),

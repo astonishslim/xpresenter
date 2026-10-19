@@ -1,4 +1,17 @@
 const { DEFAULT_TEXT_STYLE, isValidStylePatch, mergeStyle } = require('./textStyle');
+const { timerValueMs } = require('../renderer/shared/liveInfo');
+
+const TIMER_MODES = ['countdown', 'stopwatch'];
+const TIMER_MAX_SECONDS = 24 * 60 * 60;
+const DEFAULT_TIMER_SECONDS = 5 * 60;
+// Ações que dependem do relógio: quem despacha (IPC/remoto) carimba `now`, e o reducer continua puro.
+const TIMED_ACTIONS = new Set(['timerToggle']);
+
+const timerAtStart = (mode, setMs) => ({ mode, setMs, baseMs: mode === 'countdown' ? setMs : 0, startedAt: null });
+
+function stampAction(action, now) {
+  return action && TIMED_ACTIONS.has(action.type) ? { ...action, now } : action;
+}
 
 const DEFAULT_BACKGROUND = { kind: 'color', value: '#000000' };
 // Camadas que o operador pode ocultar sem perder o conteúdo (a capa e o preto já são liga/desliga).
@@ -23,14 +36,37 @@ function initialState(look = {}) {
     },
     textStyle: { ...(look.style || DEFAULT_TEXT_STYLE) },
     stage: { next: null, message: null },
+    timer: { ...timerAtStart('countdown', DEFAULT_TIMER_SECONDS * 1000), visible: false },
   };
 }
+
+const withTimer = (s, patch) => ({ ...s, timer: { ...s.timer, ...patch } });
+
+// Título e rótulo vão para a legenda, recalculada várias vezes por segundo: corta o excesso (sem recusar o slide).
+const MAX_SLIDE_META_CHARS = 200;
+const clampSlideMeta = (slide) => ({
+  ...slide,
+  ...(typeof slide.title === 'string' ? { title: slide.title.slice(0, MAX_SLIDE_META_CHARS) } : {}),
+  ...(typeof slide.label === 'string' ? { label: slide.label.slice(0, MAX_SLIDE_META_CHARS) } : {}),
+});
+
+const TIMER_HANDLERS = {
+  timerSet: (s, a) => withTimer(s, timerAtStart(a.mode, a.mode === 'countdown' ? a.seconds * 1000 : 0)),
+  // Liga/pausa: ao pausar, guarda o valor do instante; ao ligar, marca o início.
+  timerToggle: (s, a) => {
+    if (!Number.isFinite(a.now)) return s;
+    if (s.timer.startedAt == null) return withTimer(s, { startedAt: a.now });
+    return withTimer(s, { baseMs: timerValueMs(s.timer, a.now), startedAt: null });
+  },
+  timerReset: (s) => withTimer(s, timerAtStart(s.timer.mode, s.timer.setMs)),
+  timerVisible: (s) => withTimer(s, { visible: !s.timer.visible }),
+};
 
 const HANDLERS = {
   showSlide: (s, a) => ({
     ...s,
     blackout: false,
-    layers: { ...s.layers, content: { slide: a.slide, hidden: false } }, // slide novo volta a mostrar a letra
+    layers: { ...s.layers, content: { slide: clampSlideMeta(a.slide), hidden: false } }, // slide novo volta a mostrar a letra
     stage: { ...s.stage, next: a.next || null },
   }),
   clear: (s) => ({ ...s, layers: { ...s.layers, content: { slide: null } }, stage: { ...s.stage, next: null } }),
@@ -48,6 +84,7 @@ const HANDLERS = {
     return { ...s, layers: { ...s.layers, [a.layer]: { ...layer, hidden: !layer.hidden } } };
   },
   setBackgroundDim: (s, a) => ({ ...s, layers: { ...s.layers, background: { ...s.layers.background, dim: a.value } } }),
+  ...TIMER_HANDLERS,
   setTextStyle: (s, a) => ({ ...s, textStyle: mergeStyle(s.textStyle, a.style) }),
 };
 
@@ -73,9 +110,13 @@ function isValidBackground(bg) {
   }
 }
 
+const isOptionalText = (v) => v == null || typeof v === 'string';
+
 const REQUIRED_FIELD = {
   showSlide: (a) => a.slide && typeof a.slide.text === 'string'
+    && isOptionalText(a.slide.title) && isOptionalText(a.slide.label)
     && (a.next == null || typeof a.next.text === 'string'),
+  timerSet: (a) => TIMER_MODES.includes(a.mode) && Number.isInteger(a.seconds) && a.seconds >= 0 && a.seconds <= TIMER_MAX_SECONDS,
   setStageMessage: (a) => typeof a.text === 'string',
   setBackground: (a) => isValidBackground(a.background),
   setTextStyle: (a) => isValidStylePatch(a.style),
@@ -94,4 +135,4 @@ function reduce(state, action) {
   return handler ? handler(state, action) : state;
 }
 
-module.exports = { initialState, reduce, isValidAction, isValidBackground, DEFAULT_BACKGROUND };
+module.exports = { initialState, reduce, isValidAction, isValidBackground, stampAction, DEFAULT_BACKGROUND };

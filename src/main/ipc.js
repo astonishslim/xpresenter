@@ -1,6 +1,6 @@
 const { ipcMain, dialog } = require('electron');
 const { pathToFileURL } = require('node:url');
-const { isValidAction } = require('../core/state');
+const { isValidAction, stampAction } = require('../core/state');
 const { parseSong, toSlides } = require('../core/songParser');
 const { listDisplays } = require('./windows');
 const { registerBibleIpc } = require('./bibleIpc');
@@ -23,7 +23,7 @@ function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles
   ipcMain.handle('state:get', () => store.getState());
   ipcMain.handle('state:dispatch', (_e, action) => {
     if (!isValidAction(action)) throw new Error('Ação inválida.');
-    return store.dispatch(action);
+    return store.dispatch(stampAction(action, Date.now()));
   });
 
   ipcMain.handle('songs:list', () => library.listSongs());

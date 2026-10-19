@@ -37,8 +37,28 @@ function render(state) {
   $('message').classList.toggle('visible', Boolean(state.stage.message));
 }
 
+// Diferença entre o relógio do computador do operador e o deste aparelho (0 na janela do próprio app).
+let clockOffsetMs = 0;
+const serverNow = () => Date.now() + clockOffsetMs;
+const WARN_MS = 60 * 1000;
+
+// Cronômetro aparece no retorno sempre que estiver em uso, mesmo oculto na projeção (tempo da pregação).
+function renderTimer() {
+  const timer = lastState && lastState.timer;
+  const { isTimerInUse, timerValueMs, formatTimer } = window.liveInfo;
+  const inUse = isTimerInUse(timer);
+  $('timer').hidden = !inUse;
+  if (!inUse) return;
+  const ms = timerValueMs(timer, serverNow());
+  $('timer-text').textContent = formatTimer(ms);
+  $('timer').classList.toggle('over', timer.mode === 'countdown' && ms <= 0);
+  $('timer').classList.toggle('warn', timer.mode === 'countdown' && ms > 0 && ms <= WARN_MS);
+  $('timer').classList.toggle('paused', timer.startedAt == null);
+}
+
 function tickClock() {
-  $('clock').textContent = new Date().toLocaleTimeString('pt-BR');
+  $('clock').textContent = new Date(serverNow()).toLocaleTimeString('pt-BR');
+  renderTimer();
 }
 
 function connect(onState) {
@@ -54,7 +74,12 @@ function connect(onState) {
 
 let lastState = null;
 window.icons.apply();
-connect((state) => { lastState = state; render(state); });
+connect((state) => {
+  if (Number.isFinite(state.serverTime)) clockOffsetMs = state.serverTime - Date.now();
+  lastState = state;
+  render(state);
+  renderTimer();
+});
 window.addEventListener('resize', () => lastState && render(lastState));
 tickClock();
 setInterval(tickClock, 1000);

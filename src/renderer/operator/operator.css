@@ -95,6 +95,13 @@ ol.list li::before { counter-increment: n; content: counter(n); color: var(--mut
 .preset-box { display: flex; align-items: center; color: var(--muted); }
 .preset-box select { min-width: 150px; }
 .preset-box.dim-box select { min-width: 0; width: auto; flex: none; }
+.row select.narrow, .row input.narrow { flex: none; width: 64px; }
+label.field { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--muted); font-size: 12px; }
+label.field select { flex: 1; }
+
+/* Cronômetro na seção Retorno de palco */
+.timer-readout { flex: 1; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.timer-readout.over { color: var(--danger); }
 .preset-box.theme-box { flex: 1; min-width: 0; }
 
 /* Busca de músicas: trecho da letra abaixo do título; dica para buscar na internet. */

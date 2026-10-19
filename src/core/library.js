@@ -3,6 +3,7 @@ const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 
 const EMPTY = { songs: [], playlist: [] };
+const MAX_THEME_NAME_CHARS = 40;
 
 function load(file) {
   try {
@@ -40,7 +41,10 @@ function createLibrary(file) {
     saveSong(input) {
       const title = String(input.title || '').trim();
       if (!title) throw new Error('O título da música é obrigatório.');
+      const theme = typeof input.theme === 'string' ? input.theme.trim() : '';
       const song = { id: input.id || randomUUID(), title, text: String(input.text || '') };
+      // Tema próprio da música (nome); aplicado quando ela vai ao ar. Inválido é descartado.
+      if (theme && theme.length <= MAX_THEME_NAME_CHARS) song.theme = theme;
       const exists = data.songs.some((s) => s.id === song.id);
       const songs = exists ? data.songs.map((s) => (s.id === song.id ? song : s)) : [...data.songs, song];
       commit({ ...data, songs });

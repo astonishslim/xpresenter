@@ -31,6 +31,17 @@ function request(port, method, path, body) {
   });
 }
 
+test('o estado enviado ao remoto leva o horário do servidor (cronômetro em aparelhos com relógio diferente)', async () => {
+  const s = setup();
+  const port = await s.listen(0);
+  try {
+    const before = Date.now();
+    const body = JSON.parse((await request(port, 'GET', '/api/state?t=segredo')).body);
+    assert.ok(body.serverTime >= before && body.serverTime <= Date.now());
+    assert.ok(body.timer, 'cronômetro no estado');
+  } finally { await s.close(); }
+});
+
 test('rejeita requisições sem token', async () => {
   const s = setup();
   const port = await s.listen(0);
@@ -162,6 +173,7 @@ test('remoto só aceita ações da whitelist (setBackground é recusado)', async
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', bg)).status, 403);
     const style = { type: 'setTextStyle', style: { size: 150 } };
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', style)).status, 403);
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'timerToggle' })).status, 403);
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setAnnouncement', text: 'x'.repeat(500) })).status, 400);
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setAnnouncement', text: 'Oi' })).status, 200);
   } finally { await s.close(); }

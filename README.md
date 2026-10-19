@@ -108,9 +108,30 @@ Na seção **Aviso, fundo e tema**:
 - O controle remoto do celular não altera fundo nem estilo. Os valores do estilo são fechados (listas, cor hex e números),
   então um `themes.json` editado à mão não consegue injetar CSS: campos inválidos voltam ao padrão.
 
+## Transições, legenda e tema automático
+
+- **Transição** (em "Aviso, fundo e tema"): corte seco ou fade (rápido, normal, lento, muito lento). No fade, o slide
+  anterior some enquanto o novo aparece (crossfade). A transição faz parte do tema.
+- **Legenda**: uma linha num canto da tela, com variáveis: `{titulo}` (música ou passagem), `{rotulo}` (Verso, Refrão…),
+  `{hora}`, `{data}` e `{cronometro}`. Ex.: `{titulo} · {hora}` ou `Faltam {cronometro}`. Variável vazia some junto com o
+  separador. Enter ou sair do campo aplica. Também faz parte do tema.
+- **Tema automático**: escolha o tema das **músicas** e o dos **versículos**. Quando um item novo entra ao vivo, o tema dele é
+  aplicado antes do primeiro slide. Cada música pode ter **tema próprio** (no editor da música), que vale mais que o padrão.
+  Avançar dentro do mesmo item não reaplica, então ajustes feitos à mão durante a música são mantidos.
+
+## Cronômetro
+
+Na seção **Retorno de palco**: **regressiva** (minutos) ou **cronômetro** (conta para cima), com iniciar/pausar e zerar.
+- **No retorno** aparece no cabeçalho sempre que estiver em uso: amarelo no último minuto, vermelho e negativo quando estoura
+  (ex.: `-01:20`, tempo da pregação). Em tablet, usa o relógio do computador do operador, não o do aparelho.
+- **Na projeção**, só se você ligar o botão de TV: grande no centro quando não há letra (contagem antes do culto, inclusive
+  sobre a capa) e pequeno no canto quando há letra. Também pode entrar na legenda com `{cronometro}`.
+
 ## Camadas da projeção
 
-Fundo (cor/imagem) → Conteúdo (slide) → Capa → Aviso (rodapé) → Preto. Estado central em `src/core/state.js`.
+Fundo (cor/imagem/vídeo) → Conteúdo (slide) → Legenda → Capa → Cronômetro → Aviso (rodapé) → Preto. Estado central em
+`src/core/state.js`. `src/renderer/shared/liveInfo.js` (cronômetro e variáveis da legenda) tem uma cópia idêntica em
+`src/remote/` (o servidor remoto só serve aquela pasta); um teste confere.
 
 ## Arquitetura
 
@@ -135,5 +156,5 @@ permitidas (o celular não troca fundo). Use apenas em Wi-Fi confiável.
 
 ## Próximos passos sugeridos
 
-Transições (fade) entre slides, biblioteca de mídia com miniaturas, tema por música, cronômetro/contagem regressiva,
-várias saídas com conteúdo diferente, NDI, importação de PPTX/PDF, atualização automática do instalador.
+Biblioteca de mídia com miniaturas (e vídeo como item do culto), várias saídas com conteúdo diferente, NDI, importação de
+PPTX/PDF, atualização automática do instalador.

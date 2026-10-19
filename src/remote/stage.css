@@ -17,7 +17,12 @@ small { font-size: 2.2vh; letter-spacing: .15em; color: #8a93a3; margin-bottom: 
 /* ---------- Ícones ---------- */
 .icon { display: block; flex: none; pointer-events: none; }
 .ico { display: inline-flex; align-items: center; margin-right: .6vh; }
-.clock-box, #status { display: inline-flex; align-items: center; }
+.clock-box, #status, .timer-box { display: inline-flex; align-items: center; }
+.timer-box { color: #fff; font-weight: 700; font-size: 4.4vh; }
+.timer-box[hidden] { display: none; }
+.timer-box.paused { opacity: .55; }
+.timer-box.warn { color: #ffd479; }
+.timer-box.over { color: #ff5a5f; }
 #status[hidden] { display: none; }
 small { display: flex; align-items: center; }
 #message { display: none; align-items: center; justify-content: center; gap: 1.5vh; }
