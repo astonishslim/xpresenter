@@ -3,7 +3,10 @@
 .stage { position: relative; width: 100%; height: 100%; overflow: hidden; container-type: size; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; }
 .stage .layer { position: absolute; inset: 0; }
 
-.stage .bg { background-size: cover; background-position: center; }
+.stage .bg { background-size: cover; background-position: center; transition: opacity .3s; }
+.stage .bg.off { opacity: 0; }
+/* Escurecer o fundo (0–80%) para a letra ler melhor sobre imagem ou vídeo. */
+.stage .bg::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--bg-dim, 0); transition: opacity .3s; pointer-events: none; }
 .stage .bg video { width: 100%; height: 100%; object-fit: cover; }
 
 .stage .content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6cqh 7cqw; color: var(--text-color, #fff); text-align: center; transition: opacity .25s; }

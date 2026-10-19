@@ -129,6 +129,42 @@ test('setBackground recusa caminhos UNC disfarçados de URL local (vazam NTLM)',
   assert.equal(ok('file:///C:/Users/x/a%20b.png'), true);
 });
 
+test('toggleLayer oculta e mostra fundo, letra e aviso sem perder o conteúdo', () => {
+  let s = reduce(initialState(), { type: 'showSlide', slide });
+  s = reduce(s, { type: 'setAnnouncement', text: 'Culto às 19h' });
+  for (const layer of ['background', 'content', 'announcement']) {
+    const hidden = reduce(s, { type: 'toggleLayer', layer });
+    assert.equal(hidden.layers[layer].hidden, true, layer);
+    assert.equal(reduce(hidden, { type: 'toggleLayer', layer }).layers[layer].hidden, false, layer);
+  }
+  const noLyrics = reduce(s, { type: 'toggleLayer', layer: 'content' });
+  assert.deepEqual(noLyrics.layers.content.slide, slide, 'a letra continua lá para voltar');
+  assert.equal(noLyrics.layers.announcement.text, 'Culto às 19h');
+});
+
+test('enviar um slide novo volta a mostrar a letra; trocar o fundo mantém a ocultação e o escurecimento', () => {
+  let s = reduce(initialState(), { type: 'toggleLayer', layer: 'content' });
+  s = reduce(s, { type: 'showSlide', slide });
+  assert.equal(s.layers.content.hidden, false);
+  s = reduce(s, { type: 'toggleLayer', layer: 'background' });
+  s = reduce(s, { type: 'setBackgroundDim', value: 40 });
+  s = reduce(s, { type: 'setBackground', background: { kind: 'color', value: '#123456' } });
+  assert.equal(s.layers.background.hidden, true);
+  assert.equal(s.layers.background.dim, 40);
+  assert.equal(s.layers.background.value, '#123456');
+});
+
+test('isValidAction valida toggleLayer e setBackgroundDim', () => {
+  assert.equal(isValidAction({ type: 'toggleLayer', layer: 'content' }), true);
+  assert.equal(isValidAction({ type: 'toggleLayer', layer: 'cover' }), false);
+  assert.equal(isValidAction({ type: 'toggleLayer', layer: '__proto__' }), false);
+  assert.equal(isValidAction({ type: 'setBackgroundDim', value: 0 }), true);
+  assert.equal(isValidAction({ type: 'setBackgroundDim', value: 80 }), true);
+  assert.equal(isValidAction({ type: 'setBackgroundDim', value: 90 }), false);
+  assert.equal(isValidAction({ type: 'setBackgroundDim', value: 15 }), false);
+  assert.equal(isValidAction({ type: 'setBackgroundDim', value: '40' }), false);
+});
+
 test('setBackground aceita vídeo local', () => {
   assert.equal(isValidAction({ type: 'setBackground', background: { kind: 'video', value: 'file:///C:/videos/loop.mp4' } }), true);
 });

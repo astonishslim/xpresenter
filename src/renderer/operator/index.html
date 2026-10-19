@@ -19,6 +19,13 @@
       <button id="btn-cover" class="ib" type="button" data-icon="layers" title="Capa" aria-label="Capa"></button>
     </div>
 
+    <!-- Camadas: ocultar sem perder o conteúdo (a letra volta no mesmo ponto). -->
+    <div class="toolbar" role="toolbar" aria-label="Camadas">
+      <button id="btn-layer-content" class="ib layer-btn" type="button" data-icon="captions" data-layer="content" data-name="letra" data-on="captions" data-off="captions-off" aria-pressed="false" title="Ocultar letra (L)" aria-label="Ocultar letra (L)"></button>
+      <button id="btn-layer-background" class="ib layer-btn" type="button" data-icon="image" data-layer="background" data-name="fundo" data-on="image" data-off="image-off" aria-pressed="false" title="Ocultar fundo" aria-label="Ocultar fundo"></button>
+      <button id="btn-layer-announcement" class="ib layer-btn" type="button" data-icon="megaphone" data-layer="announcement" data-name="aviso" data-on="megaphone" data-off="megaphone-off" aria-pressed="false" title="Ocultar aviso" aria-label="Ocultar aviso"></button>
+    </div>
+
     <div class="spacer"></div>
 
     <div class="toolbar" role="toolbar" aria-label="Layout">
@@ -46,8 +53,9 @@
         <details class="fold" data-key="songs" open>
           <summary><span class="fold-title"><span class="ico" data-icon="audio-lines"></span>Músicas</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Músicas" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
-            <input id="search" type="search" placeholder="Buscar música…" aria-label="Buscar música" />
+            <input id="search" type="search" placeholder="Título ou trecho da letra…" aria-label="Buscar música por título ou trecho da letra" />
             <button id="btn-new" class="ib" type="button" data-icon="plus" title="Nova música" aria-label="Nova música"></button>
+            <button id="btn-lyrics-online" class="ib" type="button" data-icon="globe" title="Buscar letra na internet" aria-label="Buscar letra na internet"></button>
           </div>
           <ul id="songs" class="list"></ul>
         </details>
@@ -122,6 +130,10 @@
             <label class="color-box" title="Cor de fundo"><span class="ico" data-icon="palette"></span><input id="bg-color" type="color" value="#000000" aria-label="Cor de fundo" /></label>
             <button id="btn-bg-image" class="ib" type="button" data-icon="image" title="Imagem de fundo…" aria-label="Imagem de fundo"></button>
             <button id="btn-bg-video" class="ib" type="button" data-icon="video" title="Vídeo de fundo (em loop, sem som)…" aria-label="Vídeo de fundo"></button>
+            <label class="preset-box dim-box" title="Escurecer o fundo para a letra ler melhor">
+              <span class="ico" data-icon="sun-dim"></span>
+              <select id="bg-dim" aria-label="Escurecer o fundo"></select>
+            </label>
           </div>
           <div class="row">
             <label class="preset-box theme-box" title="Tema: fundo e estilo do texto salvos com um nome">
@@ -221,6 +233,28 @@
     </form>
   </dialog>
 
+  <dialog id="lyrics-dialog" class="wide">
+    <form id="lyrics-form" method="dialog">
+      <h3>Buscar letra na internet</h3>
+      <div class="row">
+        <input id="lyrics-title" placeholder="Nome da música" aria-label="Nome da música" maxlength="200" autocomplete="off" />
+        <input id="lyrics-artist" placeholder="Artista (opcional)" aria-label="Artista" maxlength="200" autocomplete="off" />
+        <button id="lyrics-go" class="primary" type="submit" data-icon="search">Buscar</button>
+      </div>
+      <p id="lyrics-msg" class="muted" role="status"></p>
+      <div class="lyrics-split">
+        <ul id="lyrics-results" class="list results" aria-label="Resultados"></ul>
+        <pre id="lyrics-preview" class="lyrics-preview" aria-label="Letra selecionada"></pre>
+      </div>
+      <p class="muted">Letras do <b>LRCLIB</b> (lrclib.net), base aberta mantida pela comunidade: confira o texto antes de projetar.
+        Letras de músicas têm direitos autorais; projete só o que a sua igreja tem licença para usar (ex.: CCLI).</p>
+      <div class="row end">
+        <button id="lyrics-cancel" type="button">Fechar</button>
+        <button id="lyrics-use" type="button" class="primary" disabled data-icon="pencil">Revisar e salvar…</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="theme-dialog">
     <form id="theme-form" method="dialog">
       <h3>Salvar tema</h3>
@@ -241,6 +275,8 @@
     <code id="remote-url"></code>
     <p class="muted">Monitor de retorno (palco)</p>
     <code id="remote-stage-url"></code>
+    <p class="muted">Transmissão (OBS: Browser Source 1920×1080; vMix: Web Browser). Fundo transparente; acrescente <b>&amp;fundo=verde</b> para chroma key.</p>
+    <code id="remote-live-url"></code>
     <div class="row end"><button id="remote-close">Fechar</button></div>
   </dialog>
 
@@ -252,6 +288,7 @@
   <script src="presets.js"></script>
   <script src="bible-panel.js"></script>
   <script src="theme-panel.js"></script>
+  <script src="lyrics-panel.js"></script>
   <script src="operator.js"></script>
 </body>
 </html>

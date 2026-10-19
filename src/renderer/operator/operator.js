@@ -23,6 +23,8 @@ const ui = { songs: [], playlist: [], current: null, index: -1, selected: -1, st
 let previewStage = null;
 let programStage = null;
 let themePanel = null;
+let lyricsPanel = null;
+const DIM_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80];
 
 const slidesOf = () => (ui.current ? ui.current.slides : []);
 const slideInfo = (slide) => (slide ? { label: slide.label, text: slide.text } : null);
@@ -82,12 +84,44 @@ function renderSlides() {
 }
 
 // ---------- Biblioteca ----------
-function renderSongs() {
-  const term = ui.filter.trim().toLowerCase();
-  const items = ui.songs.filter((s) => s.title.toLowerCase().includes(term));
-  $('songs').replaceChildren(...items.map((song) => h('li', { onclick: () => openSong(song) },
-    h('span', {}, song.title),
-    miniButton('plus', 'Adicionar ao culto', (e) => { e.stopPropagation(); addSongToPlaylist(song); }))));
+// Busca por título ou trecho da letra (no processo principal, sem acentos). Quem acha pela letra mostra a linha.
+let songSearchSeq = 0;
+const SONG_SEARCH_DELAY_MS = 120;
+let songSearchTimer = null;
+const scheduleSongSearch = () => {
+  clearTimeout(songSearchTimer);
+  songSearchTimer = setTimeout(renderSongs, SONG_SEARCH_DELAY_MS);
+};
+
+// Se a busca falhar, cai para o filtro simples por título, para a lista nunca ficar parada.
+async function findSongs(term) {
+  try {
+    return await api.songs.search(term);
+  } catch (err) {
+    console.error(`[músicas] busca falhou: ${err.message}`);
+    const t = term.toLowerCase();
+    return ui.songs.filter((s) => s.title.toLowerCase().includes(t)).map((s) => ({ id: s.id, snippet: null }));
+  }
+}
+
+async function renderSongs() {
+  const seq = ++songSearchSeq;
+  const term = ui.filter.trim();
+  const hits = await findSongs(term);
+  if (seq !== songSearchSeq) return; // chegou uma busca mais nova enquanto esta rodava
+  const byId = new Map(ui.songs.map((s) => [s.id, s]));
+  const items = hits.filter((hit) => byId.has(hit.id)).map((hit) => {
+    const song = byId.get(hit.id);
+    const label = hit.snippet ? h('span', { class: 'two-lines' }, song.title, h('small', {}, hit.snippet)) : h('span', {}, song.title);
+    return h('li', { onclick: () => openSong(song) },
+      label,
+      miniButton('plus', 'Adicionar ao culto', (e) => { e.stopPropagation(); addSongToPlaylist(song); }));
+  });
+  if (!items.length && term) {
+    items.push(h('li', { class: 'hint', onclick: () => lyricsPanel.open(term) },
+      icon('globe'), h('span', {}, `Buscar “${term}” na internet`)));
+  }
+  $('songs').replaceChildren(...items);
 }
 
 async function openSong(song) {
@@ -154,7 +188,7 @@ function openEditor(song) {
   const editing = song || { title: '', text: '' };
   $('ed-title').value = editing.title;
   $('ed-text').value = editing.text;
-  $('ed-delete').hidden = !song;
+  $('ed-delete').hidden = !(song && song.id); // letra vinda da internet ainda não existe na biblioteca
   $('editor').dataset.id = editing.id || '';
   $('editor').showModal();
 }
@@ -175,6 +209,21 @@ function renderLive(state) {
   if (state.layers.background.kind === 'color' && document.activeElement !== $('bg-color')) $('bg-color').value = state.layers.background.value;
   $('btn-black').classList.toggle('primary', state.blackout);
   $('btn-cover').classList.toggle('primary', state.layers.cover.visible);
+  renderLayerButtons(state);
+  if (document.activeElement !== $('bg-dim')) $('bg-dim').value = String(state.layers.background.dim || 0);
+}
+
+// Botão aceso (pressionado) = camada oculta; o ícone troca para a versão riscada.
+function renderLayerButtons(state) {
+  document.querySelectorAll('.layer-btn').forEach((btn) => {
+    const hidden = Boolean(state.layers[btn.dataset.layer].hidden);
+    const label = `${hidden ? 'Mostrar' : 'Ocultar'} ${btn.dataset.name}${btn.dataset.layer === 'content' ? ' (L)' : ''}`;
+    btn.setAttribute('aria-pressed', String(hidden));
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+    const iconName = hidden ? btn.dataset.off : btn.dataset.on;
+    if (btn.dataset.icon !== iconName) window.icons.setIcon(btn, iconName);
+  });
 }
 
 async function syncOutputButtons() {
@@ -201,8 +250,13 @@ async function loadDisplays() {
 
 // ---------- Ligações ----------
 function bindEvents() {
-  $('search').addEventListener('input', (e) => { ui.filter = e.target.value; renderSongs(); });
+  $('search').addEventListener('input', (e) => { ui.filter = e.target.value; scheduleSongSearch(); });
   $('btn-new').addEventListener('click', () => openEditor(null));
+  $('btn-lyrics-online').addEventListener('click', () => lyricsPanel.open(ui.filter.trim()));
+  const toggleLayer = (layer) => api.dispatch({ type: 'toggleLayer', layer });
+  document.querySelectorAll('.layer-btn').forEach((btn) => btn.addEventListener('click', () => toggleLayer(btn.dataset.layer)));
+  $('bg-dim').replaceChildren(...DIM_STEPS.map((v) => h('option', { value: String(v) }, v ? `Escurecer ${v}%` : 'Fundo normal')));
+  $('bg-dim').addEventListener('change', (e) => api.dispatch({ type: 'setBackgroundDim', value: Number(e.target.value) }));
   $('btn-edit').addEventListener('click', () => ui.current && ui.current.song && openEditor(ui.current.song));
   $('btn-add-playlist').addEventListener('click', async () => {
     const cur = ui.current;
@@ -257,6 +311,7 @@ function bindEvents() {
     const info = await api.remote.info();
     $('remote-url').textContent = info.url;
     $('remote-stage-url').textContent = info.stageUrl;
+    $('remote-live-url').textContent = info.liveUrl;
     $('remote-dialog').showModal();
   });
   $('remote-close').addEventListener('click', () => $('remote-dialog').close());
@@ -274,6 +329,7 @@ function bindEvents() {
       ArrowLeft: () => goLive(ui.index - 1),
       Enter: () => goLive(ui.selected),
       b: () => api.dispatch({ type: 'blackout' }),
+      l: () => toggleLayer('content'),
       Escape: () => api.dispatch({ type: 'clear' }),
     };
     const act = actions[e.key.length === 1 ? e.key.toLowerCase() : e.key];
@@ -287,6 +343,7 @@ async function init() {
   previewStage = window.createStage($('mon-preview'));
   programStage = window.createStage($('mon-program'));
   themePanel = window.initThemePanel({ api });
+  lyricsPanel = window.initLyricsPanel({ api, openEditor });
   try { ui.direct = localStorage.getItem(DIRECT_KEY) === '1'; } catch { ui.direct = false; }
   $('direct').checked = ui.direct;
 

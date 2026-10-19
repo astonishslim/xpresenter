@@ -94,7 +94,23 @@ ol.list li::before { counter-increment: n; content: counter(n); color: var(--mut
 /* ---------- Presets de layout ---------- */
 .preset-box { display: flex; align-items: center; color: var(--muted); }
 .preset-box select { min-width: 150px; }
+.preset-box.dim-box select { min-width: 0; width: auto; flex: none; }
 .preset-box.theme-box { flex: 1; min-width: 0; }
+
+/* Busca de músicas: trecho da letra abaixo do título; dica para buscar na internet. */
+.list li .two-lines { display: flex; flex-direction: column; }
+.list li .two-lines small { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list li.hint { color: var(--accent); gap: 6px; }
+
+/* Diálogo "Buscar letra na internet": resultados à esquerda, letra à direita. */
+dialog.wide { width: min(900px, 94vw); }
+.lyrics-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px; height: min(52vh, 460px); }
+.lyrics-split .list { overflow: auto; margin: 0; border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+.lyrics-split .list li { flex-direction: column; align-items: flex-start; gap: 2px; }
+.lyrics-split .list li span, .lyrics-split .list li small { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lyrics-split .list li small { color: var(--muted); font-size: 11px; }
+.lyrics-preview { margin: 0; overflow: auto; white-space: pre-wrap; background: #0e1014; border: 1px solid var(--line); border-radius: 6px; padding: 10px; font: inherit; line-height: 1.4; }
+dialog .row input { padding: 4px 8px; }
 .preset-box.theme-box select { min-width: 0; }
 .error { color: var(--danger); min-height: 1.2em; margin: 4px 0; font-size: 12px; }
 [hidden] { display: none !important; }

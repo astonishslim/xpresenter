@@ -66,6 +66,33 @@ nos botões principais (`Projetar`). Todo botão só de ícone tem `title` (dica
 os usados. Para trocar ou acrescentar: edite a lista em `scripts/build-icons.js` e rode `npm run icons` (gera também a cópia
 em `src/remote/icons.js`, usada pelo controle remoto do celular e pelo retorno de palco).
 
+## Busca de músicas e letras da internet
+
+- A busca de **Músicas** procura no **título e na letra**, sem diferenciar acentos e maiúsculas, pelo início das palavras
+  (`aguas` acha "águas", `perd` acha "perdoar"). Use `"entre aspas"` para frase exata. Quem foi achado pela letra mostra a
+  linha encontrada abaixo do título. Marcadores de seção e acordes não entram na busca.
+- **Buscar letra na internet** (ícone de globo, ou o atalho que aparece quando nada é encontrado na biblioteca): digite o nome
+  e, se quiser, o artista. As letras vêm do [LRCLIB](https://lrclib.net), uma base aberta e gratuita mantida pela comunidade,
+  sem cadastro. Resultados repetidos são agrupados. Escolha um, confira a letra e clique em **Revisar e salvar…**: ela abre
+  no editor para você marcar as seções (`[Refrão]`…) antes de salvar.
+- Letras de músicas têm direitos autorais. Projete só o que sua igreja tem licença para usar (ex.: CCLI).
+- Se o serviço estiver ocupado ou sem internet, o app avisa e não trava; a busca na biblioteca continua funcionando offline.
+
+## Camadas: ocultar letra, fundo e aviso
+
+- No cabeçalho, o grupo **Camadas** oculta e mostra a **letra** (atalho `L`), o **fundo** e o **aviso** sem perder o
+  conteúdo: a letra volta no mesmo slide, o aviso volta com o mesmo texto. Botão aceso = camada oculta.
+- Enviar outro slide ao vivo volta a mostrar a letra. Trocar o fundo mantém se ele está oculto.
+- **Escurecer** (em "Aviso, fundo e tema"): 10% a 80% de escurecimento sobre a imagem ou o vídeo, para a letra ler melhor.
+- O retorno de palco mostra "LETRA OCULTA" enquanto a letra estiver escondida.
+
+## Transmissão (OBS / vMix)
+
+O botão de controle remoto mostra também o endereço da **Transmissão** (`/live.html?t=…`): uma página com **fundo
+transparente** e a letra ou o versículo ao vivo numa faixa inferior. No OBS, adicione uma **Fonte de navegador**
+(Browser Source) de 1920×1080 com esse endereço; no vMix, uma entrada **Web Browser**. Para softwares sem transparência,
+acrescente `&fundo=verde` e use chroma key. A faixa some com tela preta, letra oculta ou conteúdo limpo.
+
 ## Fundo, estilo do texto e temas
 
 Na seção **Aviso, fundo e tema**:
@@ -88,10 +115,10 @@ Fundo (cor/imagem) → Conteúdo (slide) → Capa → Aviso (rodapé) → Preto.
 ## Arquitetura
 
 ```
-src/core/      lógica pura e testada (songParser, bible, state, textStyle, themeLibrary, store, library, remoteServer)
+src/core/      lógica pura e testada (songParser, songSearch, lyricsOnline, bible, state, textStyle, themeLibrary, store, library, remoteServer)
 src/main/      processo principal Electron (janelas, IPC, preload)
 src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa; layoutModel.js com o modelo puro da grade bento)
-src/remote/    controle remoto e retorno de palco (HTTP + SSE, sem dependências)
+src/remote/    controle remoto, retorno de palco e página de transmissão (HTTP + SSE, sem dependências)
 ```
 
 ## Testes
@@ -108,4 +135,5 @@ permitidas (o celular não troca fundo). Use apenas em Wi-Fi confiável.
 
 ## Próximos passos sugeridos
 
-NDI, importação de PPTX/PDF, tema por música (aplicar automaticamente ao abrir), atualização automática do instalador.
+Transições (fade) entre slides, biblioteca de mídia com miniaturas, tema por música, cronômetro/contagem regressiva,
+várias saídas com conteúdo diferente, NDI, importação de PPTX/PDF, atualização automática do instalador.

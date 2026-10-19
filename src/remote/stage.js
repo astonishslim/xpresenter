@@ -30,8 +30,9 @@ function render(state) {
   $('next-label').textContent = next && next.label ? `PRÓXIMO · ${next.label.toUpperCase()}` : 'PRÓXIMO';
   show('next-text', next, '—');
 
-  $('status').hidden = !state.blackout;
-  $('status-text').textContent = state.blackout ? 'TELA EM PRETO' : '';
+  const lyricsHidden = Boolean(content.slide && content.hidden);
+  $('status').hidden = !state.blackout && !lyricsHidden;
+  $('status-text').textContent = state.blackout ? 'TELA EM PRETO' : (lyricsHidden ? 'LETRA OCULTA' : '');
   $('message-text').textContent = state.stage.message || '';
   $('message').classList.toggle('visible', Boolean(state.stage.message));
 }

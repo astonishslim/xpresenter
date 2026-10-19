@@ -1,6 +1,15 @@
 const { DEFAULT_TEXT_STYLE, isValidStylePatch, mergeStyle } = require('./textStyle');
 
 const DEFAULT_BACKGROUND = { kind: 'color', value: '#000000' };
+// Camadas que o operador pode ocultar sem perder o conteúdo (a capa e o preto já são liga/desliga).
+const TOGGLEABLE_LAYERS = ['background', 'content', 'announcement'];
+const DIM_MAX = 80;
+const DIM_STEP = 10;
+
+const pickLayerFlags = (layer) => ({
+  ...(layer.hidden ? { hidden: true } : {}),
+  ...(layer.dim ? { dim: layer.dim } : {}),
+});
 
 // `look` (opcional) é o visual restaurado do disco: { background, style }, já validado.
 function initialState(look = {}) {
@@ -21,15 +30,24 @@ const HANDLERS = {
   showSlide: (s, a) => ({
     ...s,
     blackout: false,
-    layers: { ...s.layers, content: { slide: a.slide } },
+    layers: { ...s.layers, content: { slide: a.slide, hidden: false } }, // slide novo volta a mostrar a letra
     stage: { ...s.stage, next: a.next || null },
   }),
   clear: (s) => ({ ...s, layers: { ...s.layers, content: { slide: null } }, stage: { ...s.stage, next: null } }),
   setStageMessage: (s, a) => ({ ...s, stage: { ...s.stage, message: a.text || null } }),
   blackout: (s) => ({ ...s, blackout: !s.blackout }),
   toggleCover: (s) => ({ ...s, layers: { ...s.layers, cover: { visible: !s.layers.cover.visible } } }),
-  setBackground: (s, a) => ({ ...s, layers: { ...s.layers, background: { ...a.background } } }),
-  setAnnouncement: (s, a) => ({ ...s, layers: { ...s.layers, announcement: { text: a.text || null } } }),
+  // Trocar o fundo mantém se ele está oculto e quanto está escurecido.
+  setBackground: (s, a) => ({
+    ...s,
+    layers: { ...s.layers, background: { ...pickLayerFlags(s.layers.background), kind: a.background.kind, value: a.background.value } },
+  }),
+  setAnnouncement: (s, a) => ({ ...s, layers: { ...s.layers, announcement: { ...s.layers.announcement, text: a.text || null } } }),
+  toggleLayer: (s, a) => {
+    const layer = s.layers[a.layer];
+    return { ...s, layers: { ...s.layers, [a.layer]: { ...layer, hidden: !layer.hidden } } };
+  },
+  setBackgroundDim: (s, a) => ({ ...s, layers: { ...s.layers, background: { ...s.layers.background, dim: a.value } } }),
   setTextStyle: (s, a) => ({ ...s, textStyle: mergeStyle(s.textStyle, a.style) }),
 };
 
@@ -61,6 +79,8 @@ const REQUIRED_FIELD = {
   setStageMessage: (a) => typeof a.text === 'string',
   setBackground: (a) => isValidBackground(a.background),
   setTextStyle: (a) => isValidStylePatch(a.style),
+  toggleLayer: (a) => TOGGLEABLE_LAYERS.includes(a.layer),
+  setBackgroundDim: (a) => Number.isInteger(a.value) && a.value >= 0 && a.value <= DIM_MAX && a.value % DIM_STEP === 0,
 };
 
 function isValidAction(action) {

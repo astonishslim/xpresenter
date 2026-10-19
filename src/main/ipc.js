@@ -6,6 +6,11 @@ const { listDisplays } = require('./windows');
 const { registerBibleIpc } = require('./bibleIpc');
 
 const { registerThemeIpc } = require('./themeIpc');
+const { searchSongs } = require('../core/songSearch');
+const { createLyricsClient } = require('../core/lyricsOnline');
+
+const MAX_LYRICS_FIELD_CHARS = 200;
+const lyricsClient = createLyricsClient();
 
 const BACKGROUND_PICKERS = {
   image: { title: 'Escolher imagem de fundo', filters: [{ name: 'Imagens', extensions: ['jpg', 'jpeg', 'png', 'webp'] }] },
@@ -29,6 +34,13 @@ function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles
   });
   ipcMain.handle('songs:remove', (_e, id) => library.deleteSong(id));
   ipcMain.handle('songs:slides', (_e, song) => slidesFor(song));
+  ipcMain.handle('songs:search', (_e, query) => searchSongs(library.listSongs(), query));
+
+  // Busca na internet (LRCLIB). O resultado só vira música depois que o operador revisa e salva no editor.
+  ipcMain.handle('lyrics:search', (_e, { title, artist } = {}) => {
+    const fit = (v) => (typeof v === 'string' ? v.slice(0, MAX_LYRICS_FIELD_CHARS) : '');
+    return lyricsClient.search({ title: fit(title), artist: fit(artist) });
+  });
 
   ipcMain.handle('playlist:list', () => library.getPlaylist());
   ipcMain.handle('playlist:add', (_e, item) => library.addToPlaylist(item));

@@ -1,0 +1,14 @@
+/* Página de transmissão: fundo transparente, só a faixa com a letra/versículo na parte de baixo. */
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
+.bar {
+  position: fixed; left: 5vw; right: 5vw; bottom: 5vh; padding: 1.6vh 3vw;
+  background: rgba(0, 0, 0, .72); border-radius: 1vh; color: #fff; text-align: center;
+  opacity: 0; transform: translateY(2vh); transition: opacity .3s, transform .3s;
+}
+.bar.visible { opacity: 1; transform: translateY(0); }
+.label { font-size: 1.8vh; letter-spacing: .15em; text-transform: uppercase; opacity: .7; margin-bottom: .6vh; }
+.label:empty { display: none; }
+.text { font-size: 4.2vh; font-weight: 700; line-height: 1.25; white-space: pre-wrap; text-shadow: 0 .2vh .8vh rgba(0, 0, 0, .6); }
+.bar.upper .text { text-transform: uppercase; }
+/* ?fundo=verde: para softwares sem transparência (chroma key). */
+body.chroma { background: #00b140; }

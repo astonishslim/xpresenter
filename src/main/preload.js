@@ -15,7 +15,9 @@ contextBridge.exposeInMainWorld('apresentador', {
     save: (song) => invoke('songs:save', song),
     remove: (id) => invoke('songs:remove', id),
     slides: (song) => invoke('songs:slides', song),
+    search: (query) => invoke('songs:search', query),
   },
+  lyrics: { search: (title, artist) => invoke('lyrics:search', { title, artist }) },
   playlist: {
     list: () => invoke('playlist:list'),
     add: (item) => invoke('playlist:add', item),

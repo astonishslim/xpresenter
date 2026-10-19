@@ -112,7 +112,7 @@ async function start() {
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;
-      return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}` };
+      return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}`, liveUrl: `${base}/live.html?t=${token}` };
     },
   });
   operator = createOperatorWindow();

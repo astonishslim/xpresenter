@@ -75,11 +75,14 @@
     return {
       update(state) {
         const { background, content, cover, announcement } = state.layers;
-        const bgKey = JSON.stringify(background);
+        // Só recria o fundo (e reinicia um vídeo) quando o arquivo/cor muda; ocultar e escurecer não.
+        const bgKey = `${background.kind}|${background.value}`;
         if (bgKey !== lastBg) {
           lastBg = bgKey;
           setBackground(layers.bg, background);
         }
+        layers.bg.classList.toggle('off', Boolean(background.hidden));
+        layers.bg.style.setProperty('--bg-dim', String((background.dim || 0) / 100));
 
         const style = state.textStyle || FALLBACK_STYLE;
         const styleKey = JSON.stringify(style);
@@ -90,7 +93,7 @@
 
         // O encaixe depende do texto, do tamanho do palco e do estilo (fonte, maiúsculas, tamanho, rótulo).
         const slide = content.slide;
-        layers.content.classList.toggle('hidden', !slide);
+        layers.content.classList.toggle('hidden', !slide || Boolean(content.hidden));
         const slideKey = slide ? `${slide.label}|${slide.text}|${container.clientWidth}x${container.clientHeight}|${styleKey}` : '';
         if (slide && slideKey !== lastSlide) {
           lastSlide = slideKey;
@@ -101,7 +104,7 @@
 
         layers.cover.classList.toggle('visible', cover.visible);
         layers.announcement.textContent = announcement.text || '';
-        layers.announcement.classList.toggle('visible', Boolean(announcement.text));
+        layers.announcement.classList.toggle('visible', Boolean(announcement.text) && !announcement.hidden);
         layers.blackout.classList.toggle('visible', state.blackout);
       },
     };
