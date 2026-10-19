@@ -23,6 +23,8 @@ function createStore(state = initialState(), { now = Date.now } = {}) {
   let past = [];
   let future = [];
   let stepStartedAt = -Infinity;
+  // Travado (seguindo outro computador): só o estado recebido de lá (replace) muda a projeção.
+  let locked = false;
   const listeners = new Set();
 
   const notify = () => listeners.forEach((listener) => {
@@ -57,6 +59,7 @@ function createStore(state = initialState(), { now = Date.now } = {}) {
   return {
     getState: () => current,
     dispatch(action) {
+      if (locked) return current;
       const next = reduce(current, action);
       if (next === current) return current;
       record(action);
@@ -65,11 +68,26 @@ function createStore(state = initialState(), { now = Date.now } = {}) {
       return current;
     },
     undo() {
+      if (locked) return current;
       ({ from: past, to: future } = travel(past, future));
       return current;
     },
     redo() {
+      if (locked) return current;
       ({ from: future, to: past } = travel(future, past));
+      return current;
+    },
+    lock(on) {
+      locked = Boolean(on);
+    },
+    isLocked: () => locked,
+    // Troca o estado inteiro (vindo de outro computador). Zera o histórico: não há para onde desfazer.
+    replace(next) {
+      current = next;
+      past = [];
+      future = [];
+      stepStartedAt = -Infinity;
+      notify();
       return current;
     },
     history: () => ({ canUndo: past.length > 0, canRedo: future.length > 0 }),

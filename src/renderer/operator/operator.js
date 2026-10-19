@@ -346,6 +346,30 @@ async function renderSongs() {
   $('songs').replaceChildren(...items);
 }
 
+// Resultado da importação de letras: o que entrou e o que foi recusado (com o motivo de cada um).
+async function reportImport({ imported, skipped }) {
+  const parts = [];
+  if (imported.length) parts.push(`${imported.length} ${imported.length === 1 ? 'música importada' : 'músicas importadas'}`);
+  if (skipped.length) {
+    const reasons = skipped.map((s) => `${s.name} (${s.reason})`).join('; ');
+    parts.push(`${skipped.length} ${skipped.length === 1 ? 'ignorado' : 'ignorados'}: ${reasons}`);
+  }
+  $('songs-msg').textContent = parts.join(' · ');
+  if (imported.length) await refreshSongs();
+}
+
+// Arquivos soltos sobre a seção Músicas.
+function bindSongDrop() {
+  const fold = document.querySelector('details[data-key="songs"]');
+  fold.addEventListener('dragover', (e) => { e.preventDefault(); fold.classList.add('file-over'); });
+  fold.addEventListener('dragleave', () => fold.classList.remove('file-over'));
+  fold.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    fold.classList.remove('file-over');
+    if (e.dataTransfer && e.dataTransfer.files.length) reportImport(await api.songs.importFiles([...e.dataTransfer.files]));
+  });
+}
+
 async function openSong(song, arrangement = defaultArrangement(song), options = {}) {
   const slides = await api.songs.slides(song, arrangement);
   setCurrent({ title: song.title, slides, songId: song.id, song, arrangement, key: `lib-${song.id}` }, options);
@@ -638,6 +662,19 @@ async function syncOutputButtons() {
   window.icons.setIcon(stageBtn, stage ? 'monitor-off' : 'monitor-up');
 }
 
+// Layouts do retorno (letra, banda com acordes, pregador): o escolhido fica salvo neste computador.
+const STAGE_LAYOUT_KEY = 'apresentador.stageLayout';
+function loadStageLayouts() {
+  const { LAYOUTS, LAYOUT_NAMES, DEFAULT_LAYOUT } = window.stageLayouts;
+  $('stage-layout').replaceChildren(...LAYOUT_NAMES.map((name) => h('option', { value: name }, LAYOUTS[name].label)));
+  let saved = DEFAULT_LAYOUT;
+  try { saved = localStorage.getItem(STAGE_LAYOUT_KEY) || DEFAULT_LAYOUT; } catch { /* sem persistência */ }
+  $('stage-layout').value = LAYOUT_NAMES.includes(saved) ? saved : DEFAULT_LAYOUT;
+  $('stage-layout').addEventListener('change', () => {
+    try { localStorage.setItem(STAGE_LAYOUT_KEY, $('stage-layout').value); } catch { /* sem persistência */ }
+  });
+}
+
 async function loadDisplays() {
   const displays = await api.displays.list();
   $('stage-display').replaceChildren(
@@ -651,6 +688,8 @@ function bindEvents() {
   $('search').addEventListener('input', (e) => { ui.filter = e.target.value; scheduleSongSearch(); });
   $('btn-new').addEventListener('click', () => openEditor(null));
   $('btn-lyrics-online').addEventListener('click', () => lyricsPanel.open(ui.filter.trim()));
+  $('btn-import-songs').addEventListener('click', async () => reportImport(await api.songs.import()));
+  bindSongDrop();
   const toggleLayer = (layer) => api.dispatch({ type: 'toggleLayer', layer });
   document.querySelectorAll('.layer-btn').forEach((btn) => btn.addEventListener('click', () => toggleLayer(btn.dataset.layer)));
   $('bg-dim').replaceChildren(...DIM_STEPS.map((v) => h('option', { value: String(v) }, v ? `Escurecer ${v}%` : 'Fundo normal')));
@@ -719,7 +758,7 @@ function bindEvents() {
   $('btn-stage-clear').addEventListener('click', () => { $('stage-msg').value = ''; stageMessage(''); });
   $('btn-stage').addEventListener('click', async () => {
     const id = Number($('stage-display').value);
-    await api.stage.toggle(Number.isInteger(id) && id > 0 ? id : undefined);
+    await api.stage.toggle(Number.isInteger(id) && id > 0 ? id : undefined, $('stage-layout').value);
     syncOutputButtons();
   });
 
@@ -785,6 +824,7 @@ async function init() {
   propsPanel = window.initPropsPanel({ api });
   audioPanel = window.initAudioPanel({ api });
   window.initCameraPanel({ api });
+  window.initSyncPanel({ api });
   macrosPanel = window.initMacrosPanel({ api, sources: { themes: () => themePanel.names(), props: () => propsPanel.names(), messages: () => messagesPanel.names() } });
   bindUpdate();
   // OSC: avançar/voltar precisam do contexto de slides daqui.
@@ -799,6 +839,7 @@ async function init() {
   try { ui.direct = localStorage.getItem(DIRECT_KEY) === '1'; } catch { ui.direct = false; }
   $('direct').checked = ui.direct;
 
+  loadStageLayouts();
   bindEvents();
   bindTimer();
   api.onState(renderLive);

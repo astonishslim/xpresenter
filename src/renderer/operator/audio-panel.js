@@ -192,7 +192,7 @@
     fold.addEventListener('drop', async (e) => {
       e.preventDefault();
       fold.classList.remove('file-over');
-      if (e.dataTransfer && e.dataTransfer.files.length) report(await api.audio.addFiles(e.dataTransfer.files));
+      if (e.dataTransfer && e.dataTransfer.files.length) report(await api.audio.addFiles([...e.dataTransfer.files]));
     });
 
     // ---------- Ajustes ----------

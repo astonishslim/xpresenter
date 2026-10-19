@@ -59,6 +59,53 @@ npm start
   Cronômetro, controle de vídeo, aviso e mensagem do palco não entram no desfazer e ficam como estão (um aviso que já saiu
   do ar não volta). Guarda os últimos 50 passos, só na memória.
 
+## Acordes e layouts do retorno de palco
+
+- Os acordes escritos na letra como `[Am]`, `[C#m7]`, `[G/B]` continuam **ocultos na projeção**, mas agora o app guarda a
+  **coluna** de cada um e os leva até o retorno de palco. Ex.: `[G]Grande é o [D]Senhor` põe G sobre o "G" e D sobre o "S".
+- O retorno tem **três layouts**, no seletor ao lado do monitor (fica salvo) ou pelo parâmetro `&layout=` do endereço (tablet):
+  - **Letra** (padrão): agora e próximo, com relógio e cronômetro.
+  - **Banda** (`&layout=banda`): a letra com os **acordes em amarelo sobre as sílabas**, em fonte de largura fixa; o texto
+    encolhe sozinho até caber. Slides sem acordes aparecem como texto normal.
+  - **Pregador** (`&layout=pregador`): o **cronômetro grande** no centro e o relógio; sem letra. A mensagem do palco continua.
+- Só o retorno mostra acordes; a projeção, o Preview e o Programa seguem só com a letra.
+
+## Importar letras de outros programas
+
+Botão de importar (seta para cima) na seção **Músicas**, ou **arraste os arquivos** para a seção. Aceita vários de uma vez:
+
+- **OpenLyrics** (`.xml`, o formato do OpenLP): título, autores, CCLI, versos, **acordes** (`<chord/>`) e a ordem (`verseOrder`).
+- **OpenSong** (arquivo sem extensão ou `.xml`): título, autor, CCLI, seções `[V1] [C] [B] [P] [T]`, **linhas de acordes**
+  (`.Am    F` sobre a letra, que viram acordes na coluna certa), versos numerados e a **ordem de apresentação**.
+- **ChordPro** (`.cho`, `.crd`, `.chordpro`): `{title}`, `{artist}`, `{ccli}`, `{soc}…{eoc}` (refrão), `{comment: Ponte}`,
+  blocos viram versos numerados; tablatura (`{sot}…{eot}`) é ignorada.
+- **Texto simples** (`.txt`): usa o nome do arquivo como título; marcadores `[Verso 1]` e acordes `[Am]` são mantidos.
+- A ordem de apresentação do arquivo vira o arranjo **"Original"** (o padrão da música). Músicas com o mesmo título (sem
+  diferenciar acento e maiúsculas) **não são duplicadas**. O app diz quantas entraram e, para cada arquivo recusado, o motivo.
+- Limites: até 50 arquivos por vez, 1 MB cada; caminho de rede não é aceito. Os formatos **Holyrics** e **ProPresenter (.pro)**
+  não são suportados (são proprietários): exporte para texto ou OpenLyrics.
+
+## Seguir outro computador (espelho e redundância)
+
+Botão de setas circulares no cabeçalho. Um segundo xpresenter **espelha** o primeiro: projeção, retorno de palco, controle do
+celular e tela do operador mostram o mesmo que lá. Serve de **reserva** (se o primeiro cair, a projeção do segundo continua
+como estava) ou de **sala de transmissão** separada.
+
+1. No computador principal, abra o botão do celular (controle remoto) e copie o endereço do **Controle remoto**.
+2. No segundo, abra **Seguir outro computador**, cole o endereço e clique em **Seguir**. A faixa laranja **SEGUINDO** aparece no cabeçalho.
+3. **Parar de seguir** devolve o controle (e mantém o que estava no ar).
+
+- Enquanto segue, os **controles deste computador ficam bloqueados** (slides, tela preta, desfazer, macros e OSC entram no
+  bloqueio). Se o principal sumir, a faixa vira **SEM SINAL**, a projeção fica como estava e o app tenta reconectar sozinho.
+- O estado recebido é **validado campo a campo** (fundo, slide, acordes, props, estilo, cronômetro…) antes de entrar: um
+  computador ou rede com problema não consegue pôr arquivo de rede nem texto malformado na sua projeção. O próprio endereço
+  é recusado (evita um laço), e o endereço só vale com o token (que muda a cada vez que o principal abre).
+- **O cronômetro bate** mesmo com os relógios dos dois computadores diferentes.
+- **Arquivos** (fundos, imagens, vídeos, PDFs, props) precisam estar **nos mesmos caminhos** nos dois computadores, ou numa
+  pasta sincronizada; senão o segundo mostra o fundo preto no lugar. Câmera e áudio de fundo são locais de cada computador.
+- As **regras de saída OSC** do segundo também disparam (ele "vê" as mudanças): desligue-as lá se o principal já as envia.
+- Use só em **rede confiável** (HTTP simples, como o controle remoto).
+
 ## Câmera e placa de captura
 
 Câmera USB, **placa de captura (HDMI)** ou a câmera virtual do OBS como imagem ao vivo. Botão de câmera em **Aviso e fundo**:

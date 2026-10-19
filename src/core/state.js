@@ -1,6 +1,7 @@
 const { DEFAULT_TEXT_STYLE, isValidStylePatch, mergeStyle } = require('./textStyle');
 const { timerValueMs } = require('../renderer/shared/liveInfo');
 const { isValidPropFields, itemOf, MAX_ACTIVE_PROPS } = require('./propModel');
+const { isChord, MAX_CHORD_LINES, MAX_CHORDS_PER_LINE, MAX_CHORD_COLUMN } = require('./chords');
 
 const TIMER_MODES = ['countdown', 'stopwatch'];
 const TIMER_MAX_SECONDS = 24 * 60 * 60;
@@ -178,13 +179,21 @@ function isValidBackground(bg) {
 }
 
 const isOptionalText = (v) => v == null || typeof v === 'string';
+
+// Acordes do slide (opcional): uma lista por linha do texto, cada acorde com a coluna e o nome.
+const isChordEntry = (e) => Boolean(e) && typeof e === 'object' && Number.isInteger(e.at) && e.at >= 0 && e.at <= MAX_CHORD_COLUMN && isChord(e.chord);
+function isValidSlideChords(chords, text) {
+  if (chords == null) return true;
+  if (!Array.isArray(chords) || chords.length > MAX_CHORD_LINES || chords.length > String(text).split('\n').length) return false;
+  return chords.every((line) => Array.isArray(line) && line.length <= MAX_CHORDS_PER_LINE && line.every(isChordEntry));
+}
 // Prop: campos fechados; a imagem precisa ser um arquivo local sem host (mesma regra do fundo).
 const isValidProp = (prop) => isValidPropFields(prop) && (prop.kind !== 'image' || isLocalFileUrl(prop.value));
 const MEDIA_COMMANDS = ['play', 'pause', 'restart'];
 
 const REQUIRED_FIELD = {
   showSlide: (a) => a.slide && typeof a.slide.text === 'string'
-    && isOptionalText(a.slide.title) && isOptionalText(a.slide.label)
+    && isOptionalText(a.slide.title) && isOptionalText(a.slide.label) && isValidSlideChords(a.slide.chords, a.slide.text)
     && (a.slide.image == null || isValidBackground({ kind: 'image', value: a.slide.image }))
     && (a.next == null || typeof a.next.text === 'string'),
   showMedia: (a) => a.media && isValidBackground(a.media) && isOptionalText(a.media.title) && isOptionalText(a.media.key)

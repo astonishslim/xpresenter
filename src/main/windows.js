@@ -1,5 +1,6 @@
 const { BrowserWindow, screen } = require('electron');
 const path = require('node:path');
+const { LAYOUT_NAMES, DEFAULT_LAYOUT } = require('../renderer/shared/stageLayouts');
 
 const PRELOAD = path.join(__dirname, 'preload.js');
 const RENDERER = path.join(__dirname, '..', 'renderer');
@@ -74,7 +75,7 @@ function getDisplays() {
 const listDisplays = () => getDisplays().map(({ id, primary, label }) => ({ id, primary, label }));
 
 // Monitor de retorno: tela cheia no monitor escolhido, ou janela comum se não houver escolha.
-function createStageWindow(displayId) {
+function createStageWindow(displayId, layout) {
   const display = screen.getAllDisplays().find((d) => d.id === displayId);
   const win = new BrowserWindow({
     ...(display
@@ -87,7 +88,7 @@ function createStageWindow(displayId) {
     webPreferences: WINDOW_PREFS,
   });
   hardenWindow(win);
-  win.loadFile(path.join(__dirname, '..', 'remote', 'stage.html'));
+  win.loadFile(path.join(__dirname, '..', 'remote', 'stage.html'), { query: { layout: LAYOUT_NAMES.includes(layout) ? layout : DEFAULT_LAYOUT } });
   return win;
 }
 

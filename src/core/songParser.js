@@ -1,9 +1,9 @@
 const { normalize, matchesToken, parseOrder } = require('../renderer/shared/sections');
 
-const SECTION_RE =/^\s*\[([^\]]+)\]\s*$/;
-const CHORD = '[A-G][#b]?(?:maj|min|dim|aug|sus|add|m)?\\d*(?:\\/[A-G][#b]?)?';
+const { CHORD, CHORD_TOKEN_RE, fitChords } = require('./chords');
+
+const SECTION_RE = /^\s*\[([^\]]+)\]\s*$/;
 const INLINE_CHORD_RE = new RegExp(`\\[${CHORD}\\]`, 'g');
-const CHORD_TOKEN_RE = new RegExp(`^${CHORD}$`);
 const DEFAULT_LABEL = 'Letra';
 const DEFAULT_MAX_LINES = 4;
 
@@ -11,13 +11,27 @@ function cleanLine(line) {
   return line.replace(INLINE_CHORD_RE, '').replace(/\s+/g, ' ').trim();
 }
 
-// Linha da letra: marcador de seção, em branco, só acordes, ou texto (já sem acordes).
+// Posição (coluna na linha já limpa) de cada acorde inline: "[G]Grande é o [D]Senhor" -> G em 0, D em 11.
+function chordsOf(raw, clean) {
+  const found = [];
+  let before = '';
+  let last = 0;
+  for (const m of raw.matchAll(INLINE_CHORD_RE)) {
+    before += raw.slice(last, m.index);
+    // o texto até aqui, com os espaços repetidos e o das pontas tratados como na linha limpa
+    found.push({ at: Math.min(before.replace(/\s+/g, ' ').replace(/^ /, '').length, clean.length), chord: m[0].slice(1, -1) });
+    last = m.index + m[0].length;
+  }
+  return found;
+}
+
+// Linha da letra: marcador de seção, em branco, só acordes, ou texto (já sem acordes, com a posição dos acordes).
 function classifyLine(raw) {
   const marker = raw.match(SECTION_RE);
   if (marker && !CHORD_TOKEN_RE.test(marker[1].trim())) return { kind: 'marker', label: marker[1].trim() };
   if (!raw.trim()) return { kind: 'blank' };
   const clean = cleanLine(raw);
-  return clean ? { kind: 'text', clean } : { kind: 'chords' };
+  return clean ? { kind: 'text', clean, chords: chordsOf(raw, clean) } : { kind: 'chords' };
 }
 
 function parseSong(title, text) {
@@ -25,7 +39,7 @@ function parseSong(title, text) {
   let current = null;
 
   const open = (label) => {
-    current = { label, lines: [] };
+    current = { label, lines: [], chords: [] }; // chords[i] = acordes da linha i
     sections.push(current);
   };
 
@@ -40,6 +54,7 @@ function parseSong(title, text) {
     if (line.kind !== 'text') continue;
     if (!current) open(sections.length ? sections[sections.length - 1].label : DEFAULT_LABEL);
     current.lines.push(line.clean);
+    current.chords.push(line.chords);
   }
 
   return { title, sections: sections.filter((s) => s.lines.length) };
@@ -49,10 +64,12 @@ function toSlides(song, { maxLines = DEFAULT_MAX_LINES } = {}) {
   const slides = [];
   for (const section of song.sections) {
     for (let i = 0; i < section.lines.length; i += maxLines) {
+      const chords = fitChords(section.chords.slice(i, i + maxLines));
       slides.push({
         index: slides.length,
         label: section.label,
         text: section.lines.slice(i, i + maxLines).join('\n'),
+        ...(chords.some((c) => c.length) ? { chords } : {}), // só quando a música tem acordes
       });
     }
   }
@@ -85,7 +102,7 @@ function arrange(song, order) {
   for (const token of order) {
     const group = groups.find((g) => g.key === normalize(token)) || groups.find((g) => matchesToken(g.label, token));
     if (!group) unknown.push(token);
-    else group.sections.forEach((s) => sections.push({ label: s.label, lines: [...s.lines] }));
+    else group.sections.forEach((s) => sections.push({ label: s.label, lines: [...s.lines], chords: s.chords.map((line) => line.map((c) => ({ ...c }))) }));
   }
   return { song: { title: song.title, sections }, unknown };
 }

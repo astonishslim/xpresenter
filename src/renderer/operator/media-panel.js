@@ -80,7 +80,7 @@
       if (!e.dataTransfer.files.length) return;
       e.preventDefault();
       zone.classList.remove('drop-target');
-      report(await api.media.addFiles(e.dataTransfer.files));
+      report(await api.media.addFiles([...e.dataTransfer.files]));
     });
 
     // ---------- Barra do vídeo ao vivo (sob o Programa) ----------

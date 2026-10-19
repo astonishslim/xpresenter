@@ -27,3 +27,16 @@ small { font-size: 2.2vh; letter-spacing: .15em; color: #8a93a3; margin-bottom: 
 small { display: flex; align-items: center; }
 #message { display: none; align-items: center; justify-content: center; gap: 1.5vh; }
 #message.visible { display: flex; }
+
+/* ---------- Layouts do retorno e acordes ---------- */
+section[hidden], main[hidden], .clock-box[hidden] { display: none; }
+#now-text.chorded { flex-direction: column; justify-content: center; align-items: center; }
+.cline { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: .6em; }
+.cline pre { margin: 0; font-family: Consolas, 'Courier New', monospace; line-height: 1.15; white-space: pre; text-align: left; }
+.chord-row { color: #ffd479; font-weight: 800; min-height: 1.15em; }
+.lyric-row { font-weight: 700; }
+/* Pregador: o tempo ocupa a tela */
+body[data-layout="pregador"] header { flex: 1; flex-direction: column; justify-content: center; gap: 3vh; }
+body[data-layout="pregador"] .timer-box { font-size: 30vh; order: -1; }
+body[data-layout="pregador"] .clock-box { font-size: 9vh; }
+body[data-layout="pregador"] #status { font-size: 6vh; }

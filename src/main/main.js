@@ -20,6 +20,7 @@ const { registerAutomationIpc } = require('./automationIpc');
 const { registerMessageIpc } = require('./messageIpc');
 const { registerPropIpc } = require('./propIpc');
 const { registerAudioIpc } = require('./audioIpc');
+const { registerSyncIpc } = require('./syncIpc');
 const { createAudioLibrary } = require('../core/audioLibrary');
 const { isMediaPermissionAllowed } = require('../core/permissions');
 const { registerMacroIpc } = require('./macroIpc');
@@ -105,13 +106,13 @@ function createStageManager() {
   let win = null;
   return {
     isOpen: () => Boolean(win) && !win.isDestroyed(),
-    toggle(displayId) {
+    toggle(displayId, layout) {
       if (win && !win.isDestroyed()) {
         win.close();
         win = null;
         return false;
       }
-      win = createStageWindow(displayId);
+      win = createStageWindow(displayId, layout);
       win.on('closed', () => { win = null; });
       return true;
     },
@@ -198,6 +199,7 @@ async function start() {
     getState: store.getState,
     dispatch: store.dispatch,
     subscribe: store.subscribe,
+    isFollowing: store.isLocked,
     getPlaylist: library.getPlaylist,
     goTo: (target) => goToPlaylistSlide({ store, library, themes }, target),
   });
@@ -248,6 +250,7 @@ async function start() {
     messages: messageRunner,
   });
   registerMacroIpc({ macros, runner: macroRunner });
+  const sync = registerSyncIpc({ store, ownToken: token });
 
   const automation = registerAutomationIpc({
     store,
@@ -268,7 +271,7 @@ async function start() {
   setupUpdater({ getWindow: () => operator });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());
-  app.on('before-quit', () => { flushLook(); automation.stop(); messageRunner.stop(); remote.close(); });
+  app.on('before-quit', () => { flushLook(); automation.stop(); messageRunner.stop(); sync.stop(); remote.close(); });
 }
 
 app.whenReady().then(start).catch((err) => {

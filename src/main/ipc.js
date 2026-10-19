@@ -4,6 +4,7 @@ const { isValidAction, stampAction } = require('../core/state');
 const { missingFileOf } = require('../core/fileCheck');
 const { slidesForSong } = require('../core/songParser');
 const { replaceSlideText } = require('../core/songEdit');
+const { importFiles } = require('../core/songImport');
 const { listDisplays } = require('./windows');
 const { registerBibleIpc } = require('./bibleIpc');
 
@@ -46,6 +47,18 @@ function registerIpc({ store, library, outputs, outputSettings, stageMonitor, re
   ipcMain.handle('songs:list', () => library.listSongs());
   ipcMain.handle('songs:save', (_e, song) => saveSongAndRefresh(isRecord(song) ? song : {}));
   ipcMain.handle('songs:remove', (_e, id) => library.deleteSong(id));
+  // Importar letras de outros programas (OpenLyrics, OpenSong, ChordPro, texto). Cada arquivo é lido e validado aqui.
+  const EMPTY_IMPORT = { imported: [], skipped: [] };
+  ipcMain.handle('songs:import', async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog(getWindow(), {
+      title: 'Importar letras',
+      filters: [{ name: 'Letras (OpenLyrics, OpenSong, ChordPro, texto)', extensions: ['xml', 'cho', 'crd', 'chordpro', 'txt'] }, { name: 'Todos os arquivos', extensions: ['*'] }],
+      properties: ['openFile', 'multiSelections'],
+    });
+    return canceled ? EMPTY_IMPORT : importFiles(filePaths, library);
+  });
+  // Arquivos soltos sobre a seção Músicas: caminhos obtidos no preload (webUtils), validados de novo aqui.
+  ipcMain.handle('songs:importPaths', (_e, paths) => (Array.isArray(paths) ? importFiles(paths.filter((p) => typeof p === 'string'), library) : EMPTY_IMPORT));
   ipcMain.handle('songs:slides', (_e, song, arrangement) => (
     isRecord(song) ? slidesForSong(song, typeof arrangement === 'string' ? arrangement : '') : []));
   // Edição rápida de um slide de música: corrige o trecho na letra (vale para todas as repetições).
@@ -107,7 +120,7 @@ function registerIpc({ store, library, outputs, outputSettings, stageMonitor, re
   });
   ipcMain.handle('remote:info', () => remoteInfo());
   ipcMain.handle('displays:list', () => listDisplays());
-  ipcMain.handle('stage:toggle', (_e, displayId) => stageMonitor.toggle(Number.isInteger(displayId) ? displayId : undefined));
+  ipcMain.handle('stage:toggle', (_e, displayId, layout) => stageMonitor.toggle(Number.isInteger(displayId) ? displayId : undefined, layout));
   ipcMain.handle('stage:isOpen', () => stageMonitor.isOpen());
 
   const pickBackground = async ({ title, filters }) => {

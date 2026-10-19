@@ -18,7 +18,20 @@ contextBridge.exposeInMainWorld('apresentador', {
     remove: (id) => invoke('songs:remove', id),
     slides: (song, arrangement) => invoke('songs:slides', song, arrangement || ''),
     search: (query) => invoke('songs:search', query),
+    import: () => invoke('songs:import'),
+    // Arquivos arrastados (lista de File: a ponte do preload não passa um FileList); o caminho só existe aqui (webUtils).
+    importFiles: (files) => invoke('songs:importPaths', [...files].map((f) => webUtils.getPathForFile(f)).filter(Boolean)),
     editSlide: (songId, label, oldText, newText) => invoke('songs:editSlide', { songId, label, oldText, newText }),
+  },
+  sync: {
+    status: () => invoke('sync:status'),
+    start: (url) => invoke('sync:start', url),
+    stop: () => invoke('sync:stop'),
+    onStatus(callback) {
+      const handler = (_event, status) => callback(status);
+      ipcRenderer.on('sync:status', handler);
+      return () => ipcRenderer.removeListener('sync:status', handler);
+    },
   },
   props: {
     list: () => invoke('props:list'),
@@ -67,7 +80,7 @@ contextBridge.exposeInMainWorld('apresentador', {
   },
   remote: { info: () => invoke('remote:info') },
   displays: { list: () => invoke('displays:list') },
-  stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },
+  stage: { toggle: (displayId, layout) => invoke('stage:toggle', displayId, layout), isOpen: () => invoke('stage:isOpen') },
   update: {
     status: () => invoke('update:status'),
     install: () => invoke('update:install'),
@@ -95,14 +108,14 @@ contextBridge.exposeInMainWorld('apresentador', {
   media: {
     list: () => invoke('media:list'),
     add: () => invoke('media:add'),
-    // Arquivos arrastados: o caminho só existe aqui no preload (webUtils); a validação é no processo principal.
+    // Arquivos arrastados (lista de File: a ponte do preload não passa um FileList); o caminho só existe aqui (webUtils).
     addFiles: (files) => invoke('media:addPaths', [...files].map((f) => webUtils.getPathForFile(f)).filter(Boolean)),
     remove: (id) => invoke('media:remove', id),
   },
   audio: {
     list: () => invoke('audio:list'),
     add: () => invoke('audio:add'),
-    // Arquivos arrastados: o caminho só existe aqui no preload (webUtils); a validação é no processo principal.
+    // Arquivos arrastados (lista de File: a ponte do preload não passa um FileList); o caminho só existe aqui (webUtils).
     addFiles: (files) => invoke('audio:addPaths', [...files].map((f) => webUtils.getPathForFile(f)).filter(Boolean)),
     move: (id, index) => invoke('audio:move', { id, index }),
     remove: (id) => invoke('audio:remove', id),

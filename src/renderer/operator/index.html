@@ -28,6 +28,8 @@
       <button id="btn-layer-announcement" class="ib layer-btn" type="button" data-icon="megaphone" data-layer="announcement" data-name="aviso" data-on="megaphone" data-off="megaphone-off" aria-pressed="false" title="Ocultar aviso" aria-label="Ocultar aviso"></button>
     </div>
 
+    <span id="sync-badge" class="sync-badge" role="status" hidden></span>
+
     <div class="spacer"></div>
 
     <div class="toolbar" role="toolbar" aria-label="Layout">
@@ -43,6 +45,7 @@
 
     <div class="toolbar" role="toolbar" aria-label="Saída">
       <button id="btn-update" class="update-ready" type="button" data-icon="download" hidden title="Atualização baixada: instala ao fechar o app, ou clique para reiniciar agora" aria-label="Reiniciar e atualizar"><span class="label">Atualizar</span></button>
+      <button id="btn-sync" class="ib" type="button" data-icon="refresh-cw" aria-pressed="false" title="Seguir outro computador (espelho / redundância)" aria-label="Seguir outro computador"></button>
       <button id="btn-automation" class="ib" type="button" data-icon="workflow" title="Automação: OSC (Companion, Stream Deck, mesa de luz) e regras" aria-label="Automação OSC"></button>
       <button id="btn-outputs-config" class="ib" type="button" data-icon="monitor-cog" title="Configurar saídas: o que cada monitor mostra, panorâmico e edge blending" aria-label="Configurar saídas"></button>
       <button id="btn-remote" class="ib" type="button" data-icon="smartphone" title="Controle remoto e retorno pelo celular/tablet" aria-label="Controle remoto"></button>
@@ -61,7 +64,9 @@
             <input id="search" type="search" placeholder="Título ou trecho da letra…" aria-label="Buscar música por título ou trecho da letra" />
             <button id="btn-new" class="ib" type="button" data-icon="plus" title="Nova música" aria-label="Nova música"></button>
             <button id="btn-lyrics-online" class="ib" type="button" data-icon="globe" title="Buscar letra na internet" aria-label="Buscar letra na internet"></button>
+            <button id="btn-import-songs" class="ib" type="button" data-icon="file-up" title="Importar letras de outros programas (OpenLyrics, OpenSong, ChordPro, texto). Você também pode soltar os arquivos aqui." aria-label="Importar letras"></button>
           </div>
+          <p id="songs-msg" class="muted" role="status"></p>
           <ul id="songs" class="list"></ul>
         </details>
         <details class="fold" data-key="bible" open>
@@ -105,7 +110,7 @@
             <label class="check" title="Volta à primeira faixa no fim da lista"><input id="audio-loop" type="checkbox" aria-label="Repetir a lista" />Repetir</label>
           </div>
           <p id="audio-status" class="muted error-soft" role="status"></p>
-          <ol id="audio-list" class="list audio-list"></ol>
+          <ul id="audio-list" class="list audio-list"></ul>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
@@ -291,6 +296,7 @@
           <summary><span class="fold-title"><span class="ico" data-icon="monitor-speaker"></span>Retorno de palco</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Retorno de palco" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
             <select id="stage-display" aria-label="Monitor do retorno"></select>
+            <select id="stage-layout" aria-label="Layout do retorno" title="O que o retorno mostra: letra, banda (com acordes) ou pregador (tempo grande)"></select>
             <button id="btn-stage" class="ib" type="button" data-icon="monitor-up" title="Abrir retorno" aria-label="Abrir retorno"></button>
           </div>
           <div class="row">
@@ -405,6 +411,29 @@
       <div class="row end">
         <button id="msg-ed-cancel" type="button">Cancelar</button>
         <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="sync-dialog" class="wide">
+    <form id="sync-form" method="dialog">
+      <h3>Seguir outro computador</h3>
+      <p class="muted">Este computador <b>espelha</b> o outro: a projeção, o retorno de palco e o celular daqui mostram o mesmo que lá. Serve de
+        <b>reserva</b> (se o outro cair, a projeção daqui continua como estava) ou para uma <b>sala de transmissão</b> separada.
+        No outro computador, abra o botão do celular (controle remoto) e copie o endereço do <b>Controle remoto</b>.</p>
+      <input id="sync-url" placeholder="http://192.168.0.10:5151/?t=…" autocomplete="off" spellcheck="false" aria-label="Endereço do outro computador" />
+      <p id="sync-status" class="muted" role="status"></p>
+      <ul class="muted sync-notes">
+        <li>Enquanto segue, os controles deste computador ficam <b>bloqueados</b>. "Parar de seguir" devolve o controle.</li>
+        <li>Fundos, imagens, vídeos e PDFs precisam estar <b>nos mesmos caminhos</b> nos dois computadores (ou numa pasta sincronizada).</li>
+        <li>O cronômetro acompanha o horário do outro computador, mesmo com os relógios diferentes.</li>
+        <li>As regras de saída OSC deste computador também disparam: desligue-as aqui se o outro já as envia.</li>
+        <li>O endereço tem um token que muda a cada vez que o outro app abre. Use só em rede confiável.</li>
+      </ul>
+      <div class="row end">
+        <button id="sync-close" type="button">Fechar</button>
+        <button id="sync-stop" type="button" class="danger" disabled>Parar de seguir</button>
+        <button id="sync-start" type="submit" class="primary">Seguir</button>
       </div>
     </form>
   </dialog>
@@ -597,6 +626,7 @@
     <code id="remote-url"></code>
     <p class="muted">Monitor de retorno (palco)</p>
     <code id="remote-stage-url"></code>
+    <p class="muted">Acrescente <b>&amp;layout=banda</b> (acordes sobre a letra) ou <b>&amp;layout=pregador</b> (cronômetro grande) ao endereço do retorno.</p>
     <p class="muted">Transmissão (OBS: Browser Source 1920×1080; vMix: Web Browser). Fundo transparente, letra numa faixa embaixo.
       Acrescente <b>&amp;modo=tela</b> para a letra em tela cheia, ou <b>&amp;fundo=verde</b> para chroma key.
       <b>NDI:</b> no OBS com o plugin DistroAV, publique a cena como NDI (veja o README).</p>
@@ -620,11 +650,13 @@
   <script src="automation-panel.js"></script>
   <script src="../shared/macroSteps.js"></script>
   <script src="../shared/audioPlayer.js"></script>
+  <script src="../shared/stageLayouts.js"></script>
   <script src="messages-panel.js"></script>
   <script src="props-panel.js"></script>
   <script src="macros-panel.js"></script>
   <script src="audio-panel.js"></script>
   <script src="camera-panel.js"></script>
+  <script src="sync-panel.js"></script>
   <script src="usage-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>

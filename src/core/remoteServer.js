@@ -74,9 +74,10 @@ function tokenMatches(given, token) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-function createRemoteServer({ token, staticDir, getState: readState, dispatch, subscribe, getPlaylist, goTo = () => false }) {
+function createRemoteServer({ token, staticDir, getState: readState, dispatch, subscribe, getPlaylist, goTo = () => false, isFollowing = () => false }) {
   // serverTime: o retorno num tablet calcula o cronômetro pelo relógio deste computador, não pelo dele.
-  const withServerTime = (state) => ({ ...state, serverTime: Date.now() });
+  // `following`: este computador espelha outro; quem o seguir recusa (senão A segue B e B segue A, para sempre).
+  const withServerTime = (state) => ({ ...state, serverTime: Date.now(), following: Boolean(isFollowing()) });
   const getState = () => withServerTime(readState());
   const clients = new Set();
   const failures = new Map(); // ip -> { count, blockedUntil }
