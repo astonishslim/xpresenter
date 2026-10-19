@@ -10,8 +10,16 @@ const MAX_ANNOUNCEMENT_CHARS = 200;
 const MAX_FAILURES = 10;
 const BLOCK_MS = 60 * 1000;
 const HEARTBEAT_MS = 25 * 1000;
-// O celular só controla a projeção; fundo e outros ajustes ficam no operador.
-const REMOTE_ACTIONS = new Set(['showSlide', 'clear', 'blackout', 'toggleCover', 'setAnnouncement', 'setStageMessage']);
+// O celular só controla a projeção; fundo, estilo e ajustes ficam no operador. Slides vão por "goTo"
+// (item e índice): o conteúdo vem do culto salvo no computador, nunca do celular.
+const REMOTE_ACTIONS = new Set([
+  'clear', 'blackout', 'toggleCover', 'setAnnouncement', 'setStageMessage',
+  'toggleLayer', 'timerToggle', 'timerReset', 'mediaControl',
+]);
+const REMOTE_LAYERS = new Set(['content', 'announcement']);
+const MAX_ITEM_ID_CHARS = 100;
+const isGoTo = (a) => typeof a.itemId === 'string' && a.itemId.length > 0 && a.itemId.length <= MAX_ITEM_ID_CHARS
+  && Number.isInteger(a.index) && a.index >= 0;
 const TEXT_ACTIONS = new Set(['setAnnouncement', 'setStageMessage']);
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 
@@ -66,7 +74,7 @@ function tokenMatches(given, token) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-function createRemoteServer({ token, staticDir, getState: readState, dispatch, subscribe, getPlaylist }) {
+function createRemoteServer({ token, staticDir, getState: readState, dispatch, subscribe, getPlaylist, goTo = () => false }) {
   // serverTime: o retorno num tablet calcula o cronômetro pelo relógio deste computador, não pelo dele.
   const withServerTime = (state) => ({ ...state, serverTime: Date.now() });
   const getState = () => withServerTime(readState());
@@ -88,8 +96,16 @@ function createRemoteServer({ token, staticDir, getState: readState, dispatch, s
     } catch (err) {
       return send(res, err.status || 400, { error: err.status ? err.message : 'JSON inválido' });
     }
+    if (action && action.type === 'goTo') {
+      if (!isGoTo(action)) return send(res, 400, { error: 'slide inválido' });
+      return goTo({ itemId: action.itemId, index: action.index })
+        ? send(res, 200, getState())
+        : send(res, 404, { error: 'slide não encontrado no culto' });
+    }
     if (!isValidAction(action)) return send(res, 400, { error: 'ação inválida' });
-    if (!REMOTE_ACTIONS.has(action.type)) return send(res, 403, { error: 'ação não permitida no remoto' });
+    if (!REMOTE_ACTIONS.has(action.type) || (action.type === 'toggleLayer' && !REMOTE_LAYERS.has(action.layer))) {
+      return send(res, 403, { error: 'ação não permitida no remoto' });
+    }
     if (TEXT_ACTIONS.has(action.type)
       && (typeof action.text !== 'string' || action.text.length > MAX_ANNOUNCEMENT_CHARS)) {
       return send(res, 400, { error: 'aviso inválido' });

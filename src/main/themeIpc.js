@@ -1,5 +1,5 @@
 const { ipcMain } = require('electron');
-const { lookOf } = require('../core/themeLibrary');
+const { lookOf, themeActions } = require('../core/themeLibrary');
 
 function registerThemeIpc({ store, themes }) {
   const result = (fn) => {
@@ -19,8 +19,7 @@ function registerThemeIpc({ store, themes }) {
   ipcMain.handle('themes:apply', (_e, name) => result(() => {
     const theme = themes.get(name);
     if (!theme) throw new Error('Tema não encontrado.');
-    store.dispatch({ type: 'setBackground', background: theme.background });
-    store.dispatch({ type: 'setTextStyle', style: theme.style });
+    themeActions(theme).forEach((a) => store.dispatch(a));
     return { theme };
   }));
 }

@@ -22,9 +22,20 @@
     <button id="clear" type="button" data-icon="eraser" data-icon-size="22" aria-label="Limpar conteúdo"><span class="label">Limpar</span></button>
     <button id="black" type="button" data-icon="eye-off" data-icon-size="22" aria-label="Tela preta"><span class="label">Preto</span></button>
     <button id="cover" type="button" data-icon="layers" data-icon-size="22" aria-label="Capa"><span class="label">Capa</span></button>
+    <button id="lyrics" type="button" data-icon="captions-off" data-icon-size="22" aria-label="Ocultar ou mostrar a letra"><span class="label">Letra</span></button>
+  </div>
+  <div id="media-bar" class="bar" hidden>
+    <button id="media-toggle" type="button" data-icon="pause" data-icon-size="22" aria-label="Pausar ou tocar o vídeo"><span class="label">Pausar vídeo</span></button>
+    <button id="media-restart" type="button" data-icon="rotate-ccw" data-icon-size="22" aria-label="Voltar o vídeo ao início"><span class="label">Do início</span></button>
+  </div>
+  <div class="bar timer-bar">
+    <span id="timer-text" class="timer-text" role="timer">00:00</span>
+    <button id="timer-toggle" type="button" data-icon="play" data-icon-size="22" aria-label="Iniciar ou pausar o cronômetro"><span class="label">Iniciar</span></button>
+    <button id="timer-reset" type="button" data-icon="timer-reset" data-icon-size="22" aria-label="Zerar o cronômetro"><span class="label">Zerar</span></button>
   </div>
   <div id="playlist"></div>
   <script src="icons.js"></script>
+  <script src="liveInfo.js"></script>
   <script src="remote.js"></script>
 </body>
 </html>

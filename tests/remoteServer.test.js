@@ -4,10 +4,11 @@ const http = require('node:http');
 const { createRemoteServer } = require('../src/core/remoteServer');
 const { initialState, reduce } = require('../src/core/state');
 
-function setup() {
+function setup(goToCalls = []) {
   let state = initialState();
   const listeners = new Set();
   const server = createRemoteServer({
+    goTo: (target) => { goToCalls.push(target); return target.itemId !== 'inexistente'; },
     token: 'segredo',
     staticDir: __dirname,
     getState: () => state,
@@ -68,6 +69,33 @@ test('POST /api/action aplica ação válida', async () => {
     const r = await request(port, 'POST', '/api/action?t=segredo', { type: 'blackout' });
     assert.equal(r.status, 200);
     assert.equal(JSON.parse(r.body).blackout, true);
+  } finally { await s.close(); }
+});
+
+test('goTo: o celular só indica item e slide; o computador monta o slide (showSlide direto é recusado)', async () => {
+  const calls = [];
+  const s = setup(calls);
+  const port = await s.listen(0);
+  try {
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'goTo', itemId: 'p1', index: 2 })).status, 200);
+    assert.deepEqual(calls, [{ itemId: 'p1', index: 2 }]);
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'goTo', itemId: 'inexistente', index: 0 })).status, 404);
+    for (const bad of [{ type: 'goTo', itemId: 5, index: 0 }, { type: 'goTo', itemId: 'p1', index: -1 }, { type: 'goTo', itemId: 'x'.repeat(200), index: 0 }]) {
+      assert.equal((await request(port, 'POST', '/api/action?t=segredo', bad)).status, 400, JSON.stringify(bad));
+    }
+    const direct = { type: 'showSlide', slide: { text: 'texto qualquer' } };
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', direct)).status, 403);
+  } finally { await s.close(); }
+});
+
+test('remoto completo: ocultar letra, cronômetro e controle do vídeo', async () => {
+  const s = setup();
+  const port = await s.listen(0);
+  try {
+    for (const action of [{ type: 'toggleLayer', layer: 'content' }, { type: 'timerToggle' }, { type: 'timerReset' }, { type: 'mediaControl', command: 'pause' }]) {
+      assert.equal((await request(port, 'POST', '/api/action?t=segredo', action)).status, 200, action.type);
+    }
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'toggleLayer', layer: 'background' })).status, 403, 'fundo continua só no operador');
   } finally { await s.close(); }
 });
 
@@ -173,7 +201,7 @@ test('remoto só aceita ações da whitelist (setBackground é recusado)', async
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', bg)).status, 403);
     const style = { type: 'setTextStyle', style: { size: 150 } };
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', style)).status, 403);
-    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'timerToggle' })).status, 403);
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'timerVisible' })).status, 403);
     const media = { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4' } };
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', media)).status, 403);
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setAnnouncement', text: 'x'.repeat(500) })).status, 400);

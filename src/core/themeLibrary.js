@@ -163,4 +163,10 @@ function persistCurrentLook({ store, themes, delayMs = SAVE_DEBOUNCE_MS }) {
   };
 }
 
-module.exports = { createThemeLibrary, validateThemeName, persistCurrentLook, lookOf, MAX_THEMES };
+// Ações que aplicam um tema salvo (usadas pelo IPC do operador e pelo controle remoto).
+const themeActions = (theme) => [
+  { type: 'setBackground', background: theme.background },
+  { type: 'setTextStyle', style: theme.style },
+];
+
+module.exports = { createThemeLibrary, validateThemeName, persistCurrentLook, lookOf, themeActions, MAX_THEMES };

@@ -20,3 +20,9 @@ button.primary, button.on { background: #4f8cff; border-color: #4f8cff; color: #
 .icon { display: block; flex: none; pointer-events: none; }
 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 13px; }
 header a { display: inline-flex; align-items: center; gap: 6px; }
+[hidden] { display: none !important; }
+
+/* Cronômetro: valor grande à esquerda, botões à direita; vermelho quando a regressiva estoura. */
+.timer-bar { align-items: stretch; }
+.timer-text { flex: 1.2; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; background: #000; border-radius: 10px; }
+.timer-text.over { color: #ff5a5f; }

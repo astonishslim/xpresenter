@@ -9,7 +9,8 @@ const { createRemoteServer } = require('../core/remoteServer');
 const { createOperatorWindow, createOutputWindows, createStageWindow, getDisplays } = require('./windows');
 const { sanitizeConfig, planOutputs } = require('../core/outputConfig');
 const { createBibleLibrary } = require('../core/bibleLibrary');
-const { createThemeLibrary, persistCurrentLook } = require('../core/themeLibrary');
+const { createThemeLibrary, persistCurrentLook, themeActions } = require('../core/themeLibrary');
+const { slideActionFor, themeNameFor, findItem } = require('../core/playlistNav');
 const { createMediaLibrary } = require('../core/mediaLibrary');
 const { createImportStore } = require('../core/importStore');
 const { initialState } = require('../core/state');
@@ -100,6 +101,22 @@ function createStageManager() {
   };
 }
 
+// Pedido do controle remoto: aplica o tema do item quando ele muda (como o operador faz) e põe o slide no ar.
+function goToPlaylistSlide({ store, library, themes }, { itemId, index }) {
+  const playlist = library.getPlaylist();
+  const action = slideActionFor(playlist, itemId, index);
+  if (!action) return false;
+  const live = store.getState().layers.content.slide;
+  const liveItem = live && typeof live.key === 'string' ? live.key.replace(/:\d+$/, '') : null;
+  if (liveItem !== itemId) {
+    const name = themeNameFor(findItem(playlist, itemId), library.listSongs(), themes.getDefaults(), themes.list().map((t) => t.name));
+    const theme = name && themes.get(name);
+    if (theme) themeActions(theme).forEach((a) => store.dispatch(a));
+  }
+  store.dispatch(action);
+  return true;
+}
+
 // A versão anterior guardava uma única Bíblia importada em userData/bible.json: passa a ser mais uma versão.
 function migrateLegacyBible(bibles, userDataDir) {
   const legacy = path.join(userDataDir, 'bible.json');
@@ -132,6 +149,7 @@ async function start() {
     dispatch: store.dispatch,
     subscribe: store.subscribe,
     getPlaylist: library.getPlaylist,
+    goTo: (target) => goToPlaylistSlide({ store, library, themes }, target),
   });
 
   let port = REMOTE_PORT;

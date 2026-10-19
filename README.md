@@ -201,7 +201,13 @@ npm run coverage    # com cobertura
 ## Segurança do controle remoto
 
 HTTP simples em rede local, com token de 128 bits por execução, bloqueio após 10 tentativas erradas e lista de ações
-permitidas (o celular não troca fundo). Use apenas em Wi-Fi confiável.
+permitidas. Use apenas em Wi-Fi confiável.
+
+- O celular **não envia conteúdo**: ao tocar num slide ele pede "item X, slide N" e o computador busca o slide no culto salvo
+  (aplicando o **tema automático** do item, como o operador). Assim ninguém com o link injeta texto nem caminho de arquivo.
+- Pode: anterior/próximo, limpar, preto, capa, **ocultar letra**, aviso, mensagem do palco, **cronômetro** (iniciar, pausar,
+  zerar) e **vídeo** (tocar, pausar, do início). Não pode: fundo, estilo/tema, mostrar cronômetro na projeção, camadas de
+  fundo, saídas, automação.
 
 ## Próximos passos sugeridos
 
