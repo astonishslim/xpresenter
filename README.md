@@ -230,6 +230,12 @@ permitidas. Use apenas em Wi-Fi confiável.
   zerar) e **vídeo** (tocar, pausar, do início). Não pode: fundo, estilo/tema, mostrar cronômetro na projeção, camadas de
   fundo, saídas, automação.
 
+## Licença
+
+Código sob a licença [MIT](LICENSE). Componentes de terceiros mantêm as próprias licenças (pasta `licenses/` e
+`data/bibles/SOURCES.md`): ícones Lucide (ISC), pdf.js (Apache-2.0), fflate (MIT) e Bíblia Livre (CC BY 3.0 BR, com
+atribuição exibida no app). TB e Almeida 1911 são de domínio público.
+
 ## Próximos passos sugeridos
 
 NDI nativo (hoje via OBS + DistroAV; nativo depende do SDK proprietário da NDI), atualização automática do instalador (precisa de um lugar para

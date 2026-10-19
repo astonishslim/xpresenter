@@ -19,7 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Third-party components keep their own licenses (see the licenses/ folder and
-data/bibles/SOURCES.md): Lucide icons (ISC), pdf.js (Apache-2.0), fflate (MIT),
-Bíblia Livre (CC BY 3.0 BR, attribution shown in the app).
