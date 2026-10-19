@@ -99,6 +99,40 @@ test('setStageMessage define e limpa a mensagem do retorno', () => {
   assert.equal(reduce(s, { type: 'setStageMessage', text: '' }).stage.message, null);
 });
 
+test('estado inicial usa o estilo de texto padrão, ou o visual informado', () => {
+  const { DEFAULT_TEXT_STYLE } = require('../src/core/textStyle');
+  assert.deepEqual(initialState().textStyle, DEFAULT_TEXT_STYLE);
+  const s = initialState({ background: { kind: 'color', value: '#101010' }, style: { ...DEFAULT_TEXT_STYLE, size: 70 } });
+  assert.equal(s.layers.background.value, '#101010');
+  assert.equal(s.textStyle.size, 70);
+});
+
+test('setTextStyle aplica um patch do estilo sem mexer no slide ao vivo', () => {
+  const live = reduce(initialState(), { type: 'showSlide', slide });
+  const s = reduce(live, { type: 'setTextStyle', style: { uppercase: true, color: '#ffee00' } });
+  assert.equal(s.textStyle.uppercase, true);
+  assert.equal(s.textStyle.color, '#ffee00');
+  assert.deepEqual(s.layers.content.slide, slide);
+});
+
+test('isValidAction valida o patch de setTextStyle', () => {
+  assert.equal(isValidAction({ type: 'setTextStyle', style: { size: 110 } }), true);
+  assert.equal(isValidAction({ type: 'setTextStyle', style: { color: 'url(x)' } }), false);
+  assert.equal(isValidAction({ type: 'setTextStyle' }), false);
+});
+
+test('setBackground recusa caminhos UNC disfarçados de URL local (vazam NTLM)', () => {
+  const ok = (value) => isValidAction({ type: 'setBackground', background: { kind: 'image', value } });
+  assert.equal(ok('file:////atacante/share/a.png'), false);
+  assert.equal(ok('file:///%5C%5Catacante/share/a.png'), false);
+  assert.equal(ok('file:///%2F%2Fatacante/share/a.png'), false);
+  assert.equal(ok('file:///C:/Users/x/a%20b.png'), true);
+});
+
+test('setBackground aceita vídeo local', () => {
+  assert.equal(isValidAction({ type: 'setBackground', background: { kind: 'video', value: 'file:///C:/videos/loop.mp4' } }), true);
+});
+
 test('isValidAction valida next e setStageMessage', () => {
   assert.equal(isValidAction({ type: 'showSlide', slide, next: { text: 'ok' } }), true);
   assert.equal(isValidAction({ type: 'showSlide', slide, next: { text: 5 } }), false);

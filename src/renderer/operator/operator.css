@@ -94,6 +94,8 @@ ol.list li::before { counter-increment: n; content: counter(n); color: var(--mut
 /* ---------- Presets de layout ---------- */
 .preset-box { display: flex; align-items: center; color: var(--muted); }
 .preset-box select { min-width: 150px; }
+.preset-box.theme-box { flex: 1; min-width: 0; }
+.preset-box.theme-box select { min-width: 0; }
 .error { color: var(--danger); min-height: 1.2em; margin: 4px 0; font-size: 12px; }
 [hidden] { display: none !important; }
 

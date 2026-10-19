@@ -5,9 +5,14 @@ const { parseSong, toSlides } = require('../core/songParser');
 const { listDisplays } = require('./windows');
 const { registerBibleIpc } = require('./bibleIpc');
 
-const IMAGE_FILTERS = [{ name: 'Imagens', extensions: ['jpg', 'jpeg', 'png', 'webp'] }];
+const { registerThemeIpc } = require('./themeIpc');
 
-function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles, getWindow }) {
+const BACKGROUND_PICKERS = {
+  image: { title: 'Escolher imagem de fundo', filters: [{ name: 'Imagens', extensions: ['jpg', 'jpeg', 'png', 'webp'] }] },
+  video: { title: 'Escolher vídeo de fundo', filters: [{ name: 'Vídeos', extensions: ['mp4', 'webm', 'm4v', 'ogv'] }] },
+};
+
+function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles, themes, getWindow }) {
   const slidesFor = ({ title, text }) => toSlides(parseSong(title, text));
 
   ipcMain.handle('state:get', () => store.getState());
@@ -31,6 +36,7 @@ function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles
   ipcMain.handle('playlist:move', (_e, { id, index }) => library.movePlaylistItem(id, index));
 
   registerBibleIpc({ bibles, getWindow });
+  registerThemeIpc({ store, themes });
 
   ipcMain.handle('outputs:toggle', () => outputs.toggle());
   ipcMain.handle('outputs:isOpen', () => outputs.isOpen());
@@ -39,14 +45,12 @@ function registerIpc({ store, library, outputs, stageMonitor, remoteInfo, bibles
   ipcMain.handle('stage:toggle', (_e, displayId) => stageMonitor.toggle(Number.isInteger(displayId) ? displayId : undefined));
   ipcMain.handle('stage:isOpen', () => stageMonitor.isOpen());
 
-  ipcMain.handle('background:pickImage', async () => {
-    const { canceled, filePaths } = await dialog.showOpenDialog(getWindow(), {
-      title: 'Escolher imagem de fundo',
-      filters: IMAGE_FILTERS,
-      properties: ['openFile'],
-    });
+  const pickBackground = async ({ title, filters }) => {
+    const { canceled, filePaths } = await dialog.showOpenDialog(getWindow(), { title, filters, properties: ['openFile'] });
     return canceled || !filePaths[0] ? null : pathToFileURL(filePaths[0]).href;
-  });
+  };
+  ipcMain.handle('background:pickImage', () => pickBackground(BACKGROUND_PICKERS.image));
+  ipcMain.handle('background:pickVideo', () => pickBackground(BACKGROUND_PICKERS.video));
 }
 
 module.exports = { registerIpc };

@@ -8,7 +8,7 @@ const ICONS = [
   'save', 'trash', 'rotate-ccw', 'smartphone', 'monitor-play', 'skip-back', 'skip-forward', 'eraser', 'eye-off',
   'layers', 'megaphone', 'send', 'image', 'palette', 'circle-play', 'plus', 'search', 'file-up', 'list-plus',
   'pencil', 'zap', 'monitor-up', 'monitor-off', 'x', 'arrow-up', 'grip', 'grip-vertical', 'move-diagonal-2', 'check',
-  'layout-dashboard', 'clock',
+  'layout-dashboard', 'clock', 'video', 'type', 'case-upper', 'blend', 'tag', 'swatch-book',
 ];
 
 const root = path.join(__dirname, '..');

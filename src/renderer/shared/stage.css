@@ -6,10 +6,22 @@
 .stage .bg { background-size: cover; background-position: center; }
 .stage .bg video { width: 100%; height: 100%; object-fit: cover; }
 
-.stage .content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6cqh 7cqw; color: #fff; text-align: center; transition: opacity .25s; }
+.stage .content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6cqh 7cqw; color: var(--text-color, #fff); text-align: center; transition: opacity .25s; }
 .stage .content.hidden { opacity: 0; }
 .stage .label { font-size: 2.2cqh; letter-spacing: .15em; text-transform: uppercase; opacity: .6; margin-bottom: 2cqh; }
 .stage .text { font-weight: 700; line-height: 1.25; white-space: pre-wrap; text-shadow: 0 .2cqh 1cqh rgba(0, 0, 0, .7); max-width: 100%; }
+
+/* Estilo do texto (tema): só fontes do sistema, para funcionar sem internet. */
+.stage[data-font="serif"] .content { font-family: Georgia, 'Times New Roman', serif; }
+.stage[data-font="condensed"] .content { font-family: 'Bahnschrift SemiCondensed', 'Arial Narrow', 'Segoe UI', sans-serif; }
+.stage[data-font="slab"] .content { font-family: Rockwell, 'Roboto Slab', Georgia, serif; }
+.stage[data-align="left"] .content { align-items: flex-start; text-align: left; }
+.stage[data-align="right"] .content { align-items: flex-end; text-align: right; }
+.stage[data-position="top"] .content { justify-content: flex-start; }
+.stage[data-position="bottom"] .content { justify-content: flex-end; }
+.stage.upper .text { text-transform: uppercase; }
+.stage.no-shadow .text { text-shadow: none; }
+.stage.no-label .label { display: none; }
 
 .stage .cover { background: #0b0d12; opacity: 0; pointer-events: none; transition: opacity .3s; }
 .stage .cover.visible { opacity: 1; }

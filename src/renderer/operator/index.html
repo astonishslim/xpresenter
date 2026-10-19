@@ -113,7 +113,7 @@
       <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="controls" open>
-          <summary><span class="fold-title"><span class="ico" data-icon="sliders-horizontal"></span>Aviso e fundo</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Aviso e fundo" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="sliders-horizontal"></span>Aviso, fundo e tema</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Aviso, fundo e tema" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
             <input id="announce" placeholder="Aviso na parte inferior…" aria-label="Aviso na parte inferior" />
             <button id="btn-announce" class="ib" type="button" data-icon="megaphone" title="Enviar aviso" aria-label="Enviar aviso"></button>
@@ -121,6 +121,41 @@
           <div class="row wrap">
             <label class="color-box" title="Cor de fundo"><span class="ico" data-icon="palette"></span><input id="bg-color" type="color" value="#000000" aria-label="Cor de fundo" /></label>
             <button id="btn-bg-image" class="ib" type="button" data-icon="image" title="Imagem de fundo…" aria-label="Imagem de fundo"></button>
+            <button id="btn-bg-video" class="ib" type="button" data-icon="video" title="Vídeo de fundo (em loop, sem som)…" aria-label="Vídeo de fundo"></button>
+          </div>
+          <div class="row">
+            <label class="preset-box theme-box" title="Tema: fundo e estilo do texto salvos com um nome">
+              <span class="ico" data-icon="swatch-book"></span>
+              <select id="theme-select" aria-label="Tema"></select>
+            </label>
+            <button id="btn-theme-save" class="ib" type="button" data-icon="save" title="Salvar o fundo e o estilo atuais como tema" aria-label="Salvar tema"></button>
+            <button id="btn-theme-delete" class="ib danger" type="button" data-icon="trash" hidden title="Excluir o tema selecionado" aria-label="Excluir tema"></button>
+          </div>
+          <div class="row">
+            <span class="ico muted" data-icon="type" title="Estilo do texto"></span>
+            <select id="style-font" aria-label="Fonte do texto" title="Fonte">
+              <option value="sans">Sem serifa</option>
+              <option value="serif">Serifada</option>
+              <option value="condensed">Condensada</option>
+              <option value="slab">Slab</option>
+            </select>
+            <select id="style-size" aria-label="Tamanho do texto" title="Tamanho máximo do texto"></select>
+            <label class="color-box" title="Cor do texto"><input id="style-color" type="color" value="#ffffff" aria-label="Cor do texto" /></label>
+          </div>
+          <div class="row">
+            <select id="style-align" aria-label="Alinhamento do texto" title="Alinhamento">
+              <option value="left">Esquerda</option>
+              <option value="center">Centro</option>
+              <option value="right">Direita</option>
+            </select>
+            <select id="style-position" aria-label="Posição do texto na tela" title="Posição na tela">
+              <option value="top">Topo</option>
+              <option value="middle">Meio</option>
+              <option value="bottom">Base</option>
+            </select>
+            <button id="style-uppercase" class="ib" type="button" data-icon="case-upper" aria-pressed="false" title="Tudo em maiúsculas" aria-label="Tudo em maiúsculas"></button>
+            <button id="style-shadow" class="ib" type="button" data-icon="blend" aria-pressed="true" title="Sombra no texto" aria-label="Sombra no texto"></button>
+            <button id="style-label" class="ib" type="button" data-icon="tag" aria-pressed="true" title="Mostrar o rótulo (Verso, Refrão, referência)" aria-label="Mostrar rótulo"></button>
           </div>
         </details>
       </div>
@@ -186,6 +221,19 @@
     </form>
   </dialog>
 
+  <dialog id="theme-dialog">
+    <form id="theme-form" method="dialog">
+      <h3>Salvar tema</h3>
+      <input id="theme-name" placeholder="Nome do tema (ex.: Culto da noite)" maxlength="40" autocomplete="off" />
+      <p id="theme-error" class="error" role="alert"></p>
+      <p class="muted">Guarda o fundo (cor, imagem ou vídeo) e o estilo do texto que estão na saída agora. Salvar com um nome já existente substitui o tema.</p>
+      <div class="row end">
+        <button id="theme-cancel" type="button">Cancelar</button>
+        <button id="theme-save" class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="remote-dialog">
     <h3>Controle remoto e retorno</h3>
     <p>Abra no celular ou tablet (mesma rede Wi-Fi):</p>
@@ -203,6 +251,7 @@
   <script src="layout.js"></script>
   <script src="presets.js"></script>
   <script src="bible-panel.js"></script>
+  <script src="theme-panel.js"></script>
   <script src="operator.js"></script>
 </body>
 </html>

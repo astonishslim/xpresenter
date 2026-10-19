@@ -34,5 +34,11 @@ contextBridge.exposeInMainWorld('apresentador', {
   remote: { info: () => invoke('remote:info') },
   displays: { list: () => invoke('displays:list') },
   stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },
-  background: { pickImage: () => invoke('background:pickImage') },
+  background: { pickImage: () => invoke('background:pickImage'), pickVideo: () => invoke('background:pickVideo') },
+  themes: {
+    list: () => invoke('themes:list'),
+    save: (name) => invoke('themes:save', name),
+    apply: (name) => invoke('themes:apply', name),
+    remove: (name) => invoke('themes:remove', name),
+  },
 });

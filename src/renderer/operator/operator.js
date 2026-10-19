@@ -22,6 +22,7 @@ const DIRECT_KEY = 'apresentador.direct';
 const ui = { songs: [], playlist: [], current: null, index: -1, selected: -1, state: null, filter: '', direct: false };
 let previewStage = null;
 let programStage = null;
+let themePanel = null;
 
 const slidesOf = () => (ui.current ? ui.current.slides : []);
 const slideInfo = (slide) => (slide ? { label: slide.label, text: slide.text } : null);
@@ -170,6 +171,8 @@ function renderLive(state) {
   ui.state = state;
   programStage.update(state);
   renderPreview();
+  themePanel.render(state);
+  if (state.layers.background.kind === 'color' && document.activeElement !== $('bg-color')) $('bg-color').value = state.layers.background.value;
   $('btn-black').classList.toggle('primary', state.blackout);
   $('btn-cover').classList.toggle('primary', state.layers.cover.visible);
 }
@@ -232,10 +235,12 @@ function bindEvents() {
   $('btn-announce').addEventListener('click', () => announce($('announce').value.trim()));
   $('announce').addEventListener('keydown', (e) => e.key === 'Enter' && announce($('announce').value.trim()));
   $('bg-color').addEventListener('input', (e) => api.dispatch({ type: 'setBackground', background: { kind: 'color', value: e.target.value } }));
-  $('btn-bg-image').addEventListener('click', async () => {
-    const url = await api.background.pickImage();
-    if (url) api.dispatch({ type: 'setBackground', background: { kind: 'image', value: url } });
-  });
+  const pickBackground = (kind, pick) => async () => {
+    const url = await pick();
+    if (url) api.dispatch({ type: 'setBackground', background: { kind, value: url } });
+  };
+  $('btn-bg-image').addEventListener('click', pickBackground('image', api.background.pickImage));
+  $('btn-bg-video').addEventListener('click', pickBackground('video', api.background.pickVideo));
 
   const stageMessage = (text) => api.dispatch({ type: 'setStageMessage', text });
   $('btn-stage-msg').addEventListener('click', () => stageMessage($('stage-msg').value.trim()));
@@ -281,6 +286,7 @@ async function init() {
   window.initPresets(window.initLayout());
   previewStage = window.createStage($('mon-preview'));
   programStage = window.createStage($('mon-program'));
+  themePanel = window.initThemePanel({ api });
   try { ui.direct = localStorage.getItem(DIRECT_KEY) === '1'; } catch { ui.direct = false; }
   $('direct').checked = ui.direct;
 
@@ -289,7 +295,7 @@ async function init() {
   window.addEventListener('focus', syncOutputButtons);
   window.addEventListener('resize', () => ui.state && (programStage.update(ui.state), renderPreview()));
   renderLive(await api.getState());
-  await Promise.all([window.initBiblePanel({ api, showVerses }), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
+  await Promise.all([window.initBiblePanel({ api, showVerses }), themePanel.load(), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
 }
 
 init();

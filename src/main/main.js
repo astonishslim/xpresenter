@@ -8,6 +8,8 @@ const { createLibrary } = require('../core/library');
 const { createRemoteServer } = require('../core/remoteServer');
 const { createOperatorWindow, createOutputWindows, createStageWindow } = require('./windows');
 const { createBibleLibrary } = require('../core/bibleLibrary');
+const { createThemeLibrary, persistCurrentLook } = require('../core/themeLibrary');
+const { initialState } = require('../core/state');
 const { registerIpc } = require('./ipc');
 
 const REMOTE_PORT = 5151;
@@ -72,7 +74,9 @@ function migrateLegacyBible(bibles, userDataDir) {
 
 async function start() {
   const userDataDir = app.getPath('userData');
-  const store = createStore();
+  const themes = createThemeLibrary(path.join(userDataDir, 'themes.json'));
+  const store = createStore(initialState(themes.getCurrent()));
+  const flushLook = persistCurrentLook({ store, themes });
   const library = createLibrary(path.join(userDataDir, 'library.json'));
   const bibles = createBibleLibrary({ builtinDir: BUILTIN_BIBLES, userDir: path.join(userDataDir, 'bibles') });
   migrateLegacyBible(bibles, userDataDir);
@@ -104,6 +108,7 @@ async function start() {
     outputs,
     stageMonitor,
     bibles,
+    themes,
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;
@@ -112,7 +117,7 @@ async function start() {
   });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());
-  app.on('before-quit', () => remote.close());
+  app.on('before-quit', () => { flushLook(); remote.close(); });
 }
 
 app.whenReady().then(start).catch((err) => {

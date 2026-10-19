@@ -66,6 +66,21 @@ nos botões principais (`Projetar`). Todo botão só de ícone tem `title` (dica
 os usados. Para trocar ou acrescentar: edite a lista em `scripts/build-icons.js` e rode `npm run icons` (gera também a cópia
 em `src/remote/icons.js`, usada pelo controle remoto do celular e pelo retorno de palco).
 
+## Fundo, estilo do texto e temas
+
+Na seção **Aviso, fundo e tema**:
+
+- **Fundo**: cor, imagem ou **vídeo** (MP4, WebM, M4V, OGV; toca em loop e sem som). Só arquivos locais.
+- **Estilo do texto**: fonte (sem serifa, serifada, condensada, slab; só fontes do sistema, funciona sem internet), tamanho
+  máximo (50–150%, o texto continua encaixando automaticamente), cor, alinhamento, posição (topo, meio, base), tudo em
+  maiúsculas, sombra e rótulo (Verso, Refrão, referência). Vale na saída, no Preview e no Programa na hora.
+- **Temas**: **Salvar tema** guarda o fundo e o estilo que estão na saída agora, com um nome (até 30; mesmo nome substitui).
+  Escolher um tema aplica os dois de uma vez, sem mexer no slide ao vivo. Se você mudar algo, o seletor mostra
+  "Sem tema (personalizado)". Excluir pede um segundo clique.
+- O app **reabre com o último fundo e estilo** usados (arquivo `themes.json` na pasta de dados do app).
+- O controle remoto do celular não altera fundo nem estilo. Os valores do estilo são fechados (listas, cor hex e números),
+  então um `themes.json` editado à mão não consegue injetar CSS: campos inválidos voltam ao padrão.
+
 ## Camadas da projeção
 
 Fundo (cor/imagem) → Conteúdo (slide) → Capa → Aviso (rodapé) → Preto. Estado central em `src/core/state.js`.
@@ -73,7 +88,7 @@ Fundo (cor/imagem) → Conteúdo (slide) → Capa → Aviso (rodapé) → Preto.
 ## Arquitetura
 
 ```
-src/core/      lógica pura e testada (songParser, bible, state, store, library, remoteServer)
+src/core/      lógica pura e testada (songParser, bible, state, textStyle, themeLibrary, store, library, remoteServer)
 src/main/      processo principal Electron (janelas, IPC, preload)
 src/renderer/  operator/ (operador), output/ (projeção), shared/ (palco reutilizado por saída, Preview e Programa; layoutModel.js com o modelo puro da grade bento)
 src/remote/    controle remoto e retorno de palco (HTTP + SSE, sem dependências)
@@ -93,4 +108,4 @@ permitidas (o celular não troca fundo). Use apenas em Wi-Fi confiável.
 
 ## Próximos passos sugeridos
 
-Vídeo de fundo na interface, temas salvos, NDI, importação de PPTX/PDF, empacotamento com `electron-builder`.
+NDI, importação de PPTX/PDF, tema por música (aplicar automaticamente ao abrir), atualização automática do instalador.

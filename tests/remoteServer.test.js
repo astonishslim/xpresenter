@@ -160,6 +160,8 @@ test('remoto só aceita ações da whitelist (setBackground é recusado)', async
   try {
     const bg = { type: 'setBackground', background: { kind: 'color', value: '#112233' } };
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', bg)).status, 403);
+    const style = { type: 'setTextStyle', style: { size: 150 } };
+    assert.equal((await request(port, 'POST', '/api/action?t=segredo', style)).status, 403);
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setAnnouncement', text: 'x'.repeat(500) })).status, 400);
     assert.equal((await request(port, 'POST', '/api/action?t=segredo', { type: 'setAnnouncement', text: 'Oi' })).status, 200);
   } finally { await s.close(); }
