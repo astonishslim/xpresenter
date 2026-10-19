@@ -41,6 +41,16 @@ contextBridge.exposeInMainWorld('apresentador', {
   remote: { info: () => invoke('remote:info') },
   displays: { list: () => invoke('displays:list') },
   stage: { toggle: (displayId) => invoke('stage:toggle', displayId), isOpen: () => invoke('stage:isOpen') },
+  automation: {
+    get: () => invoke('automation:get'),
+    set: (settings) => invoke('automation:set', settings),
+    // Comandos OSC que precisam do operador (avançar/voltar slide).
+    onCommand(callback) {
+      const handler = (_event, command) => callback(command);
+      ipcRenderer.on('automation:command', handler);
+      return () => ipcRenderer.removeListener('automation:command', handler);
+    },
+  },
   imports: {
     pick: () => invoke('import:pick'),
     savePage: (importId, index, bytes) => invoke('import:savePage', { importId, index, bytes }),

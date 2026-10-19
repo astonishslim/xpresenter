@@ -133,6 +133,19 @@ Botão **Configurar saídas** (ícone de monitor com engrenagem, no grupo Saída
     brilho do resto.
 - Salvar com a projeção aberta reabre as janelas no novo arranjo. O som dos vídeos sai só pela primeira saída que mostra mídia.
 
+## Automação (OSC) e avanço automático
+
+Botão **Automação** (grupo Saída):
+- **Receber comandos OSC** (Bitfocus Companion, Stream Deck, TouchOSC, mesa de luz): desligado por padrão. Ligado, escuta só
+  **este computador** (127.0.0.1) na porta escolhida; marque "de qualquer aparelho da rede" só em rede confiável (OSC não tem
+  senha). Comandos aceitos (lista fechada): `/apresentador/next`, `/prev`, `/clear`, `/black`, `/cover`, `/lyrics`,
+  `/background`, `/timer/toggle`, `/timer/reset`, `/media/play`, `/media/pause`, `/media/restart`. No máximo 100 mensagens
+  por segundo.
+- **Regras de saída**: "quando **slide ao vivo / item novo / tela preta liga ou desliga / conteúdo limpo / vídeo no ar**,
+  enviar o endereço OSC X (com argumentos) para IP:porta". Ex.: item novo → `/cue/5/go` para a mesa de luz.
+- **Avanço automático** (seção Slides): a cada 3 s a 1 min, com **Loop** para avisos rodando antes do culto. Avançar à mão
+  reinicia a contagem; sem loop, para no último slide.
+
 ## Importar apresentação (PDF e PowerPoint)
 
 Botão de apresentação na seção **Culto**:

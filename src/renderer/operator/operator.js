@@ -82,10 +82,35 @@ function applyItemTheme(item) {
   return ui.themePending;
 }
 
+// ---------- Avanço automático ----------
+// A cada N s manda o próximo slide do item aberto; em loop volta ao primeiro. Avançar à mão reinicia a contagem.
+let autoTimer = null;
+const autoSeconds = () => Number($('auto-advance').value);
+
+function stopAuto() {
+  clearInterval(autoTimer);
+  autoTimer = null;
+}
+
+function restartAuto() {
+  stopAuto();
+  if (!autoSeconds()) return;
+  autoTimer = setInterval(() => {
+    const next = window.liveInfo.nextAutoIndex(ui.index, slidesOf().length, $('auto-loop').checked);
+    if (next < 0) {
+      $('auto-advance').value = '0';
+      stopAuto();
+      return;
+    }
+    goLive(next, { auto: true });
+  }, autoSeconds() * 1000);
+}
+
 let liveSeq = 0;
-async function goLive(index) {
+async function goLive(index, { auto = false } = {}) {
   const slides = slidesOf();
   if (index < 0 || index >= slides.length) return;
+  if (!auto && autoTimer) restartAuto();
   const item = ui.current;
   const seq = ++liveSeq;
   ui.index = index;
@@ -357,6 +382,7 @@ function bindEvents() {
     refreshPlaylist();
   });
 
+  $('auto-advance').addEventListener('change', restartAuto);
   $('direct').addEventListener('change', (e) => {
     ui.direct = e.target.checked;
     try { localStorage.setItem(DIRECT_KEY, ui.direct ? '1' : '0'); } catch { /* sem persistência */ }
@@ -442,6 +468,12 @@ async function init() {
     getProgramVideo: () => programStage.mediaVideo(),
   });
   window.initOutputsPanel({ api });
+  window.initAutomationPanel({ api });
+  // OSC: avançar/voltar precisam do contexto de slides daqui.
+  api.automation.onCommand((command) => {
+    if (command === 'next') goLive(ui.index + 1);
+    if (command === 'prev') goLive(ui.index - 1);
+  });
   // O import-panel é um módulo (carrega depois): liga quando ele estiver pronto.
   const bindImport = () => window.bindImport({ api, onImported: async (item) => { await api.playlist.add(item); refreshPlaylist(); } });
   if (window.bindImport) bindImport(); else window.addEventListener('import-panel-ready', bindImport, { once: true });

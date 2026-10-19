@@ -40,6 +40,7 @@
     </div>
 
     <div class="toolbar" role="toolbar" aria-label="Saída">
+      <button id="btn-automation" class="ib" type="button" data-icon="workflow" title="Automação: OSC (Companion, Stream Deck, mesa de luz) e regras" aria-label="Automação OSC"></button>
       <button id="btn-outputs-config" class="ib" type="button" data-icon="monitor-cog" title="Configurar saídas: o que cada monitor mostra, panorâmico e edge blending" aria-label="Configurar saídas"></button>
       <button id="btn-remote" class="ib" type="button" data-icon="smartphone" title="Controle remoto e retorno pelo celular/tablet" aria-label="Controle remoto"></button>
       <button id="btn-output" class="primary" type="button" data-icon="monitor-play"><span class="label">Projetar</span></button>
@@ -124,6 +125,16 @@
           <div class="row wrap">
             <button id="btn-add-playlist" class="ib" type="button" data-icon="list-plus" disabled title="Adicionar ao culto" aria-label="Adicionar ao culto"></button>
             <button id="btn-edit" class="ib" type="button" data-icon="pencil" disabled title="Editar música" aria-label="Editar música"></button>
+            <label class="preset-box dim-box" title="Avanço automático dos slides (avisos em loop, contagem antes do culto)">
+              <span class="ico" data-icon="timer"></span>
+              <select id="auto-advance" aria-label="Avanço automático">
+                <option value="0">Manual</option>
+                <option value="3">A cada 3 s</option><option value="5">A cada 5 s</option><option value="8">A cada 8 s</option>
+                <option value="10">A cada 10 s</option><option value="15">A cada 15 s</option><option value="30">A cada 30 s</option>
+                <option value="60">A cada 1 min</option>
+              </select>
+            </label>
+            <label class="check" title="No fim, volta ao primeiro slide"><input id="auto-loop" type="checkbox" aria-label="Repetir em loop" />Loop</label>
             <label class="check" title="Clique envia direto ao vivo (sem passar pelo Preview)"><input id="direct" type="checkbox" aria-label="Clique envia direto ao vivo" /><span class="ico" data-icon="zap"></span>Direto</label>
           </div>
           <div id="slides" class="grid"></div>
@@ -316,6 +327,30 @@
     </form>
   </dialog>
 
+  <dialog id="automation-dialog" class="wide">
+    <form id="automation-form" method="dialog">
+      <h3>Automação (OSC)</h3>
+      <h4>Receber comandos</h4>
+      <div class="row">
+        <label class="check-left"><input id="osc-in-enabled" type="checkbox" /> Aceitar comandos OSC na porta</label>
+        <input id="osc-in-port" type="number" min="1024" max="65535" class="narrow" aria-label="Porta OSC de entrada" />
+        <label class="check-left" title="Desligado: só programas neste computador (ex.: Companion aqui). Ligado: qualquer aparelho da rede."><input id="osc-in-network" type="checkbox" /> de qualquer aparelho da rede</label>
+      </div>
+      <p id="osc-in-status" class="muted" role="status"></p>
+      <details class="osc-help"><summary>Comandos aceitos</summary><code id="osc-commands"></code></details>
+      <h4>Enviar quando…</h4>
+      <div id="osc-rules"></div>
+      <button id="osc-rule-add" type="button" data-icon="plus">Adicionar regra</button>
+      <p class="muted">Ex.: quando um <b>item novo</b> entra ao vivo, enviar <code class="inline">/cue/5/go</code> para a mesa de luz em 192.168.0.20:53000.
+        Argumentos separados por espaço (números viram int/float, o resto texto).</p>
+      <p id="automation-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="automation-cancel" type="button">Fechar</button>
+        <button id="automation-save" class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="outputs-dialog" class="wide">
     <form id="outputs-form" method="dialog">
       <h3>Saídas de projeção</h3>
@@ -382,6 +417,7 @@
   <script src="lyrics-panel.js"></script>
   <script src="media-panel.js"></script>
   <script src="outputs-panel.js"></script>
+  <script src="automation-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>
 </body>

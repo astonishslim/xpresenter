@@ -45,5 +45,12 @@
     return filled.replace(REPEATED_SEP, (m) => ` ${m.trim().charAt(0)} `).replace(EDGE_SEP, '').replace(/\s{2,}/g, ' ');
   }
 
-  return { VARIABLES, timerValueMs, isTimerInUse, formatTimer, fillTemplate };
+  // Avanço automático de slides: próximo índice, ou -1 para parar (sem loop, no fim).
+  function nextAutoIndex(index, count, loop) {
+    if (count <= 0) return -1;
+    if (index + 1 < count) return Math.max(0, index + 1);
+    return loop ? 0 : -1;
+  }
+
+  return { VARIABLES, timerValueMs, isTimerInUse, formatTimer, fillTemplate, nextAutoIndex };
 }));

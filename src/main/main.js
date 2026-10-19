@@ -14,6 +14,7 @@ const { createMediaLibrary } = require('../core/mediaLibrary');
 const { createImportStore } = require('../core/importStore');
 const { initialState } = require('../core/state');
 const { registerIpc } = require('./ipc');
+const { registerAutomationIpc } = require('./automationIpc');
 
 const REMOTE_PORT = 5151;
 
@@ -158,9 +159,10 @@ async function start() {
       return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}`, liveUrl: `${base}/live.html?t=${token}` };
     },
   });
+  const automation = registerAutomationIpc({ store, file: path.join(userDataDir, 'automation.json'), getWindow: () => operator });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());
-  app.on('before-quit', () => { flushLook(); remote.close(); });
+  app.on('before-quit', () => { flushLook(); automation.stop(); remote.close(); });
 }
 
 app.whenReady().then(start).catch((err) => {
