@@ -1,6 +1,7 @@
 const { ipcMain, dialog } = require('electron');
 const { pathToFileURL } = require('node:url');
 const { isValidAction, stampAction } = require('../core/state');
+const { missingFileOf } = require('../core/fileCheck');
 const { parseSong, toSlides } = require('../core/songParser');
 const { listDisplays } = require('./windows');
 const { registerBibleIpc } = require('./bibleIpc');
@@ -25,6 +26,8 @@ function registerIpc({ store, library, outputs, outputSettings, stageMonitor, re
   ipcMain.handle('state:get', () => store.getState());
   ipcMain.handle('state:dispatch', (_e, action) => {
     if (!isValidAction(action)) throw new Error('Ação inválida.');
+    const missing = missingFileOf(action);
+    if (missing) throw new Error(`Arquivo não encontrado: ${decodeURIComponent(missing.replace(/^file:\/\/\//, ''))}`);
     return store.dispatch(stampAction(action, Date.now()));
   });
 
@@ -45,7 +48,11 @@ function registerIpc({ store, library, outputs, outputSettings, stageMonitor, re
   });
 
   ipcMain.handle('playlist:list', () => library.getPlaylist());
-  ipcMain.handle('playlist:add', (_e, item) => library.addToPlaylist(item));
+  ipcMain.handle('playlist:add', (_e, item) => {
+    const entry = library.addToPlaylist(item);
+    if (entry.importId) settle(entry.importId); // a importação terminou: agora vale a regra do prune
+    return entry;
+  });
   ipcMain.handle('playlist:remove', (_e, id) => {
     library.removeFromPlaylist(id);
     pruneUnused(); // páginas de PDF que ninguém mais usa
@@ -55,7 +62,7 @@ function registerIpc({ store, library, outputs, outputSettings, stageMonitor, re
   registerBibleIpc({ bibles, getWindow });
   registerThemeIpc({ store, themes });
   registerMediaIpc({ media, getWindow });
-  const { pruneUnused } = registerImportIpc({ imports, library, getWindow });
+  const { pruneUnused, settle } = registerImportIpc({ imports, library, store, getWindow });
 
   ipcMain.handle('outputs:toggle', () => outputs.toggle());
   ipcMain.handle('outputs:isOpen', () => outputs.isOpen());

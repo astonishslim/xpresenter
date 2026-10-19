@@ -78,16 +78,24 @@ function createAutomationService({ store, sendToOperator }) {
     });
   });
 
+  const applyNow = async (settings) => {
+    rules = sanitizeSettings({ rules: settings && settings.rules }).rules;
+    await closeIn();
+    const oscIn = (settings && settings.oscIn) || {};
+    if (oscIn.enabled !== true || !Number.isInteger(oscIn.port) || oscIn.port < 0 || oscIn.port > 65535) {
+      return { port: null, error: null };
+    }
+    return openIn({ port: oscIn.port, allowNetwork: oscIn.allowNetwork === true });
+  };
+  // Em fila: dois "Salvar" seguidos (ou o da abertura) não abrem dois sockets nem deixam um vazado.
+  let queue = Promise.resolve();
+
   return {
     // Aplica a configuração (regras já validadas por sanitizeSettings; porta 0 = qualquer livre, para testes).
-    async apply(settings) {
-      rules = sanitizeSettings({ rules: settings && settings.rules }).rules;
-      await closeIn();
-      const oscIn = (settings && settings.oscIn) || {};
-      if (oscIn.enabled !== true || !Number.isInteger(oscIn.port) || oscIn.port < 0 || oscIn.port > 65535) {
-        return { port: null, error: null };
-      }
-      return openIn({ port: oscIn.port, allowNetwork: oscIn.allowNetwork === true });
+    apply(settings) {
+      const run = queue.then(() => applyNow(settings));
+      queue = run.catch(() => {});
+      return run;
     },
     stop() {
       unsubscribe();

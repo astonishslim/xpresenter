@@ -11,9 +11,10 @@ const { sanitizeConfig, planOutputs } = require('../core/outputConfig');
 const { createBibleLibrary } = require('../core/bibleLibrary');
 const { createThemeLibrary, persistCurrentLook, themeActions } = require('../core/themeLibrary');
 const { slideActionFor, themeNameFor, findItem } = require('../core/playlistNav');
+const { missingFileOf } = require('../core/fileCheck');
 const { createMediaLibrary } = require('../core/mediaLibrary');
 const { createImportStore } = require('../core/importStore');
-const { initialState } = require('../core/state');
+const { initialState, liveKeyOf, isValidAction } = require('../core/state');
 const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
 
@@ -104,16 +105,29 @@ function createStageManager() {
 // Pedido do controle remoto: aplica o tema do item quando ele muda (como o operador faz) e põe o slide no ar.
 function goToPlaylistSlide({ store, library, themes }, { itemId, index }) {
   const playlist = library.getPlaylist();
-  const action = slideActionFor(playlist, itemId, index);
+  const action = slideActionFor(playlist, itemId, index); // já validada (o culto vem de library.json)
   if (!action) return false;
-  const live = store.getState().layers.content.slide;
-  const liveItem = live && typeof live.key === 'string' ? live.key.replace(/:\d+$/, '') : null;
-  if (liveItem !== itemId) {
+  const missing = missingFileOf(action);
+  if (missing) {
+    console.error(`[remoto] arquivo não encontrado: ${missing}`);
+    return false;
+  }
+  const liveKey = liveKeyOf(store.getState());
+  if (!liveKey || liveKey.replace(/:\d+$/, '') !== itemId) {
     const name = themeNameFor(findItem(playlist, itemId), library.listSongs(), themes.getDefaults(), themes.list().map((t) => t.name));
     const theme = name && themes.get(name);
-    if (theme) themeActions(theme).forEach((a) => store.dispatch(a));
+    if (theme) themeActions(theme).filter(isValidAction).forEach((a) => store.dispatch(a));
   }
   store.dispatch(action);
+  return true;
+}
+
+// Próximo/anterior pelo que está no ar (OSC): se veio do culto, navega aqui mesmo; senão o operador decide.
+function stepLive(ctx, delta) {
+  const key = liveKeyOf(ctx.store.getState());
+  const match = key && key.match(/^(.*):(\d+)$/);
+  if (!match || !findItem(ctx.library.getPlaylist(), match[1])) return false;
+  goToPlaylistSlide(ctx, { itemId: match[1], index: Number(match[2]) + delta });
   return true;
 }
 
@@ -177,7 +191,12 @@ async function start() {
       return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}`, liveUrl: `${base}/live.html?t=${token}` };
     },
   });
-  const automation = registerAutomationIpc({ store, file: path.join(userDataDir, 'automation.json'), getWindow: () => operator });
+  const automation = registerAutomationIpc({
+    store,
+    file: path.join(userDataDir, 'automation.json'),
+    getWindow: () => operator,
+    step: (delta) => stepLive({ store, library, themes }, delta),
+  });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());
   app.on('before-quit', () => { flushLook(); automation.stop(); remote.close(); });

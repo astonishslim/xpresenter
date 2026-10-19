@@ -46,10 +46,12 @@
       },
       el('button', {
         class: 'media-pick', type: 'button', 'aria-label': `Usar ${m.name} como fundo`,
-        onclick: () => !m.missing && api.dispatch({ type: 'setBackground', background: { kind: m.kind, value: m.url } }),
+        onclick: () => !m.missing && api.dispatch({ type: 'setBackground', background: { kind: m.kind, value: m.url } })
+          .catch(() => { setMessage(`Arquivo não encontrado: ${m.name}.`); refresh(); }),
       }, thumb(m), el('span', { class: 'media-name' }, m.kind === 'video' ? root.icons.create('film', 10) : '', m.name)),
       el('div', { class: 'media-actions' },
-        iconButton('circle-play', 'Mostrar agora em tela cheia (com som, se for vídeo)', () => !m.missing && api.dispatch({ type: 'showMedia', media: mediaSlide(m).media })),
+        iconButton('circle-play', 'Mostrar agora em tela cheia (com som, se for vídeo)', () => !m.missing
+          && api.dispatch({ type: 'showMedia', media: mediaSlide(m).media }).catch(() => { setMessage(`Arquivo não encontrado: ${m.name}.`); refresh(); })),
         iconButton('list-plus', 'Adicionar ao culto', () => addToPlaylist({ kind: 'media', refId: m.id, title: m.name, slides: [mediaSlide(m)] })),
         iconButton('x', 'Tirar da biblioteca (o arquivo continua no disco)', async () => { await api.media.remove(m.id); refresh(); })))));
     };

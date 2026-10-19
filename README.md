@@ -144,7 +144,11 @@ Botão **Automação** (grupo Saída):
 - **Regras de saída**: "quando **slide ao vivo / item novo / tela preta liga ou desliga / conteúdo limpo / vídeo no ar**,
   enviar o endereço OSC X (com argumentos) para IP:porta". Ex.: item novo → `/cue/5/go` para a mesa de luz.
 - **Avanço automático** (seção Slides): a cada 3 s a 1 min, com **Loop** para avisos rodando antes do culto. Avançar à mão
-  reinicia a contagem; sem loop, para no último slide.
+  reinicia a contagem; sem loop, para no último slide. Com **tela preta**, **letra oculta** ou conteúdo **limpo**, o avanço
+  espera (não traz o slide de volta). Abrir **outro item** desliga o avanço automático.
+- `next`/`prev` por OSC seguem o slide que está **no ar** (inclusive se foi escolhido pelo celular); o operador acompanha.
+- Vídeo, imagem ou página de PDF cujo **arquivo sumiu** não vai ao ar: o operador vê "Arquivo não encontrado" e o celular
+  recebe erro, em vez de a projeção ficar vazia.
 
 ## Importar apresentação (PDF e PowerPoint)
 

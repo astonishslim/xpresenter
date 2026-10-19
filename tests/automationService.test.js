@@ -64,6 +64,23 @@ test('aplicar de novo troca a porta; desligar fecha a entrada', async (t) => {
   assert.equal(store.getState().blackout, false, 'porta antiga não escuta mais');
 });
 
+test('apply simultâneos são feitos em fila: só a última configuração fica escutando', async (t) => {
+  const store = createStore();
+  const svc = createAutomationService({ store, sendToOperator: () => {} });
+  t.after(() => svc.stop());
+  const [a, b] = await Promise.all([
+    svc.apply({ oscIn: { enabled: true, port: 0 }, rules: [] }),
+    svc.apply({ oscIn: { enabled: true, port: 0 }, rules: [] }),
+  ]);
+  assert.ok(a.port && b.port && a.port !== b.port);
+  await sendTo(a.port, '/apresentador/black');
+  await wait(100);
+  assert.equal(store.getState().blackout, false, 'o socket da primeira foi fechado (não vazou)');
+  await sendTo(b.port, '/apresentador/black');
+  await wait(100);
+  assert.equal(store.getState().blackout, true);
+});
+
 test('porta ocupada: devolve erro legível em vez de derrubar', async (t) => {
   const busy = await udpListener();
   const svc = createAutomationService({ store: createStore(), sendToOperator: () => {} });

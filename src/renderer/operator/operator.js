@@ -47,6 +47,12 @@ function renderPreview() {
 
 // ---------- Slides ----------
 function setCurrent(item) {
+  // Abrir outro item só para ver não pode colocá-lo no ar pelo avanço automático.
+  if (autoTimer && (!item || !ui.current || item.key !== ui.current.key)) {
+    stopAuto();
+    $('auto-advance').value = '0';
+    setSlidesMessage('Avanço automático desligado: outro item foi aberto.');
+  }
   ui.current = item;
   ui.index = -1;
   ui.selected = item && item.slides.length ? 0 : -1;
@@ -96,6 +102,9 @@ function restartAuto() {
   stopAuto();
   if (!autoSeconds()) return;
   autoTimer = setInterval(() => {
+    // Tela preta, letra oculta ou conteúdo limpo: o operador tirou do ar de propósito; não traz de volta.
+    const live = ui.state && ui.state.layers;
+    if (!live || ui.state.blackout || live.content.hidden || (!live.content.slide && !live.media)) return;
     const next = window.liveInfo.nextAutoIndex(ui.index, slidesOf().length, $('auto-loop').checked);
     if (next < 0) {
       $('auto-advance').value = '0';
@@ -119,15 +128,21 @@ async function goLive(index, { auto = false } = {}) {
   renderPreview();
   await applyItemTheme(item);
   if (seq !== liveSeq) return; // outro avanço aconteceu enquanto o tema era aplicado: ele manda o slide certo
-  if (slides[index].media) {
-    api.dispatch({ type: 'showMedia', media: slides[index].media });
-    return;
+  const key = `${item.key}:${index}`;
+  const action = slides[index].media
+    ? { type: 'showMedia', media: { ...slides[index].media, key } }
+    : { type: 'showSlide', slide: { ...slides[index], title: item.title, key }, next: slideInfo(slides[index + 1]) };
+  try {
+    await api.dispatch(action);
+    setSlidesMessage('');
+  } catch (err) {
+    // ex.: vídeo ou página de PDF cujo arquivo foi movido/apagado: avisa em vez de projetar tela vazia
+    setSlidesMessage(err.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
   }
-  api.dispatch({
-    type: 'showSlide',
-    slide: { ...slides[index], title: item.title, key: `${item.key}:${index}` },
-    next: slideInfo(slides[index + 1]),
-  });
+}
+
+function setSlidesMessage(text) {
+  $('slides-msg').textContent = text;
 }
 
 function renderSlides() {
@@ -225,6 +240,7 @@ async function movePlaylist(id, index) {
 }
 
 async function removePlaylist(id) {
+  if (ui.current && ui.current.key === id) setCurrent(null); // o item aberto saiu do culto
   await api.playlist.remove(id);
   refreshPlaylist();
 }
@@ -272,8 +288,23 @@ async function saveEditor() {
 }
 
 // ---------- Estado ao vivo ----------
+// O slide ao vivo pode ter mudado por fora (celular, OSC): se é do item aberto, acompanha o índice.
+function syncLiveIndex(state) {
+  if (!ui.current) return;
+  const { content, media } = state.layers;
+  const key = media ? media.key : content.slide && content.slide.key;
+  const prefix = `${ui.current.key}:`;
+  if (typeof key !== 'string' || !key.startsWith(prefix)) return;
+  const index = Number(key.slice(prefix.length));
+  if (!Number.isInteger(index) || index === ui.index) return;
+  ui.index = index;
+  ui.selected = Math.min(index + 1, slidesOf().length - 1);
+  renderSlides();
+}
+
 function renderLive(state) {
   ui.state = state;
+  syncLiveIndex(state);
   programStage.update(state);
   renderPreview();
   themePanel.render(state);

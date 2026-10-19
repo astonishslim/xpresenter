@@ -32,6 +32,13 @@ test('decodifica entidades XML e ignora slides sem texto', () => {
   assert.equal(slides[0].text, 'Pão & vinho <3 "ok" é');
 });
 
+test('slide malicioso com muitos <a:t> sem fechamento é processado em tempo linear', () => {
+  const evil = `<p:sld><a:p>${'<a:t>x'.repeat(200000)}</a:p></p:sld>`;
+  const start = Date.now();
+  extractPptxSlides(pptx({ 'ppt/slides/slide1.xml': evil, 'ppt/slides/slide2.xml': slideXml(['ok']) }));
+  assert.ok(Date.now() - start < 1000, `levou ${Date.now() - start} ms`);
+});
+
 test('recusa arquivo que não é PPTX e protege contra bomba de descompressão', () => {
   assert.throws(() => extractPptxSlides(Buffer.from('não é zip')), /PPTX/i);
   assert.throws(() => extractPptxSlides(pptx({ 'word/document.xml': '<x/>' })), /nenhum slide/i);

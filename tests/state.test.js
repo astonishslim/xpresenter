@@ -254,6 +254,18 @@ test('mediaControl pausa, toca e reinicia (reinício muda o contador para as tel
   assert.equal(reduce(none, { type: 'mediaControl', command: 'play' }), none, 'sem mídia não muda nada');
 });
 
+test('liveKeyOf: chave do slide ou da mídia no ar', () => {
+  const { liveKeyOf } = require('../src/core/state');
+  let s = initialState();
+  assert.equal(liveKeyOf(s), null);
+  s = reduce(s, { type: 'showSlide', slide: { text: 'a', key: 'p1:2' } });
+  assert.equal(liveKeyOf(s), 'p1:2');
+  s = reduce(s, { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4', key: 'p3:0' } });
+  assert.equal(liveKeyOf(s), 'p3:0');
+  s = reduce(s, { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4' } });
+  assert.equal(liveKeyOf(s), null, 'mídia da biblioteca (fora do culto)');
+});
+
 test('isValidAction valida showMedia e mediaControl', () => {
   assert.equal(isValidAction({ type: 'showMedia', media: { kind: 'image', value: 'file:///C:/a.png' } }), true);
   assert.equal(isValidAction({ type: 'showMedia', media: { kind: 'video', value: 'file:////host/s/a.mp4' } }), false);

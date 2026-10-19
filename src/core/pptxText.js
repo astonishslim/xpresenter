@@ -24,7 +24,8 @@ function decodeXml(text) {
 // Um parágrafo (<a:p>) por linha; os trechos (<a:t>) de um parágrafo são juntados.
 function slideText(xml) {
   const paragraphs = xml.split(/<a:p[\s>]/).slice(1).map((p) => {
-    const runs = [...p.matchAll(/<a:t(?:\s[^>]*)?>([\s\S]*?)<\/a:t>/g)].map((m) => decodeXml(m[1]));
+    // [^<]* (e não [\s\S]*?): linear mesmo com milhares de <a:t> sem fechamento (XML não tem "<" cru no texto).
+    const runs = [...p.matchAll(/<a:t(?:\s[^>]*)?>([^<]*)<\/a:t>/g)].map((m) => decodeXml(m[1]));
     return runs.join('').replace(/\s+/g, ' ').trim();
   });
   return paragraphs.filter(Boolean).join('\n');

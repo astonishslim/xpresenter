@@ -92,7 +92,11 @@
     }
     layer.classList.toggle('visible', Boolean(media));
     const video = layer.querySelector('video');
+    const resumed = Boolean(media && media.playing && !last.playing); // pausado → tocar
+    last.playing = Boolean(media && media.playing);
     if (!video) return;
+    // Vídeo que já terminou: "Tocar" recomeça do início (sem isso, só "Reiniciar" funcionava).
+    if (resumed && video.ended) video.currentTime = 0;
     if (media.playing && video.paused && !video.ended) {
       video.play().catch((err) => console.warn(`[mídia] não foi possível tocar ${media.title || media.value}: ${err.message}`));
     }

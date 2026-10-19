@@ -2,6 +2,7 @@
 // e o avanço automático de slides. Tudo puro; o processo principal cuida da rede.
 const { ADDRESS_RE } = require('./osc');
 const { nextAutoIndex } = require('../renderer/shared/liveInfo'); // também usado pelo operador
+const { liveKeyOf } = require('./state');
 
 const EVENTS = ['slide', 'item', 'blackoutOn', 'blackoutOff', 'clear', 'media'];
 const EVENT_LABELS = {
@@ -63,7 +64,7 @@ function sanitizeSettings(raw) {
   };
 }
 
-const itemKey = (slide) => (slide && typeof slide.key === 'string' ? slide.key.replace(/:\d+$/, '') : null);
+const itemOf = (key) => (key ? key.replace(/:\d+$/, '') : null);
 
 // Eventos entre dois estados (para as regras de saída).
 function eventsBetween(prev, next) {
@@ -71,10 +72,12 @@ function eventsBetween(prev, next) {
   const events = [];
   const before = prev.layers.content.slide;
   const after = next.layers.content.slide;
-  if (after && after !== before) {
-    events.push({ type: 'slide' });
-    if (itemKey(after) !== itemKey(before) || !before) events.push({ type: 'item' });
-  }
+  const itemBefore = itemOf(liveKeyOf(prev));
+  const itemAfter = itemOf(liveKeyOf(next));
+  const changedLive = (after && after !== before) || (next.layers.media && next.layers.media !== prev.layers.media);
+  if (after && after !== before) events.push({ type: 'slide' });
+  // "Item novo" só para o que veio do culto/slides (tem chave); vídeo avulso da biblioteca é só "media".
+  if (changedLive && itemAfter && itemAfter !== itemBefore) events.push({ type: 'item' });
   if (!after && before && !next.layers.media) events.push({ type: 'clear' });
   if (next.blackout !== prev.blackout) events.push({ type: next.blackout ? 'blackoutOn' : 'blackoutOff' });
   const mediaBefore = prev.layers.media;

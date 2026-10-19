@@ -41,6 +41,16 @@ test('remove apaga a pasta da importação; id inválido não apaga nada', () =>
   assert.equal(fs.existsSync(path.join(dir, id)), false);
 });
 
+test('prune não apaga importação em andamento (criada e ainda não adicionada ao culto)', () => {
+  const dir = tmp();
+  const store = createImportStore(dir);
+  const pending = store.create();
+  store.savePage(pending, 0, PNG);
+  assert.deepEqual(store.prune(new Set()), []);
+  store.settle(pending); // entrou no culto (ou foi descartada): volta a valer a regra normal
+  assert.deepEqual(store.prune(new Set()), [pending]);
+});
+
 test('prune apaga importações que nenhum item do culto usa mais', () => {
   const dir = tmp();
   const store = createImportStore(dir);
@@ -48,6 +58,8 @@ test('prune apaga importações que nenhum item do culto usa mais', () => {
   const drop = store.create();
   store.savePage(keep, 0, PNG);
   store.savePage(drop, 0, PNG);
+  store.settle(keep);
+  store.settle(drop);
   fs.mkdirSync(path.join(dir, 'pasta-estranha'));
   assert.deepEqual(store.prune(new Set([keep])), [drop]);
   assert.ok(fs.existsSync(path.join(dir, keep)));

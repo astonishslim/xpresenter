@@ -21,13 +21,20 @@ function toBuffer(bytes) {
 
 function createImportStore(dir) {
   const folderOf = (id) => path.join(dir, id);
+  // Importações em andamento (ainda não entraram no culto): o prune não pode apagá-las.
+  const pending = new Set();
 
   return {
     MAX_PAGES,
     create() {
       const id = randomUUID();
       fs.mkdirSync(folderOf(id), { recursive: true });
+      pending.add(id);
       return id;
+    },
+    // A importação terminou (entrou no culto ou foi descartada).
+    settle(id) {
+      pending.delete(id);
     },
 
     savePage(id, index, bytes) {
@@ -44,10 +51,12 @@ function createImportStore(dir) {
     },
 
     remove(id) {
-      if (isValidImportId(id)) fs.rmSync(folderOf(id), { recursive: true, force: true });
+      if (!isValidImportId(id)) return;
+      pending.delete(id);
+      fs.rmSync(folderOf(id), { recursive: true, force: true });
     },
 
-    // Apaga as importações (só pastas com id válido) que não estão em `inUse`; devolve as apagadas.
+    // Apaga as importações (só pastas com id válido) fora de `inUse` e que não estão em andamento.
     prune(inUse) {
       let names = [];
       try {
@@ -55,7 +64,7 @@ function createImportStore(dir) {
       } catch {
         return [];
       }
-      const removed = names.filter((n) => isValidImportId(n) && !inUse.has(n));
+      const removed = names.filter((n) => isValidImportId(n) && !inUse.has(n) && !pending.has(n));
       removed.forEach((n) => fs.rmSync(folderOf(n), { recursive: true, force: true }));
       return removed;
     },

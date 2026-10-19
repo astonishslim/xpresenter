@@ -4,7 +4,7 @@ const { createAutomationService } = require('../core/automationService');
 const { sanitizeSettings, INPUT_COMMANDS, EVENT_LABELS } = require('../core/automation');
 
 // Configuração da automação (OSC) em automation.json; aplicada ao abrir e a cada "Salvar".
-function registerAutomationIpc({ store, file, getWindow }) {
+function registerAutomationIpc({ store, file, getWindow, step }) {
   let settings = sanitizeSettings(null);
   try {
     settings = sanitizeSettings(JSON.parse(fs.readFileSync(file, 'utf8')));
@@ -15,6 +15,8 @@ function registerAutomationIpc({ store, file, getWindow }) {
   const service = createAutomationService({
     store,
     sendToOperator: (command) => {
+      // Se o que está no ar veio do culto, avança/volta por ele aqui; senão, o operador decide pelos Slides abertos.
+      if (step(command === 'next' ? 1 : -1)) return;
       const win = getWindow();
       if (win && !win.isDestroyed()) win.webContents.send('automation:command', command);
     },

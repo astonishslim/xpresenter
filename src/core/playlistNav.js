@@ -1,19 +1,29 @@
 // Navegação pelo culto feita no computador (pedido do controle remoto: "item X, slide N").
 // O celular não manda o conteúdo do slide: assim não injeta texto nem caminho de arquivo na projeção.
-const findItem = (playlist, itemId) => (Array.isArray(playlist) ? playlist.find((i) => i && i.id === itemId) : undefined);
+const { isValidAction } = require('./state');
 
+const findItem =(playlist, itemId) => (Array.isArray(playlist) ? playlist.find((i) => i && i.id === itemId) : undefined);
+
+// O culto vem de library.json (pode ter sido editado à mão): a ação só sai se passar na mesma validação do IPC.
 function slideActionFor(playlist, itemId, index) {
   const item = findItem(playlist, itemId);
   if (!item || !Array.isArray(item.slides) || !Number.isInteger(index) || index < 0 || index >= item.slides.length) return null;
   const slide = item.slides[index];
-  if (slide.media) return { type: 'showMedia', media: { ...slide.media } };
-  const next = item.slides[index + 1];
-  const { media: _media, index: _index, ...fields } = slide;
-  return {
-    type: 'showSlide',
-    slide: { ...fields, title: item.title, key: `${item.id}:${index}` },
-    next: next && !next.media ? { label: next.label, text: next.text } : null,
-  };
+  if (!slide || typeof slide !== 'object') return null;
+  const key = `${item.id}:${index}`;
+  let action;
+  if (slide.media) {
+    action = { type: 'showMedia', media: { ...slide.media, key } };
+  } else {
+    const next = item.slides[index + 1];
+    const { media: _media, index: _index, ...fields } = slide;
+    action = {
+      type: 'showSlide',
+      slide: { ...fields, title: item.title, key },
+      next: next && !next.media && typeof next.text === 'string' ? { label: next.label, text: next.text } : null,
+    };
+  }
+  return isValidAction(action) ? action : null;
 }
 
 // Tema automático do item (mesma regra do operador): versículo → padrão de versículos; música → tema próprio

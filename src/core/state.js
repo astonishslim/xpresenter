@@ -83,6 +83,8 @@ const HANDLERS = {
         value: a.media.value,
         title: (a.media.title || '').slice(0, MAX_SLIDE_META_CHARS),
         loop: Boolean(a.media.loop),
+        // Slide do culto de origem ("item:índice"): o remoto, o tema automático e o OSC sabem onde estão.
+        key: typeof a.media.key === 'string' ? a.media.key.slice(0, MAX_SLIDE_META_CHARS) : null,
         playing: true,
         seq: ((s.layers.media && s.layers.media.seq) || 0) + 1,
       },
@@ -145,7 +147,7 @@ const REQUIRED_FIELD = {
     && isOptionalText(a.slide.title) && isOptionalText(a.slide.label)
     && (a.slide.image == null || isValidBackground({ kind: 'image', value: a.slide.image }))
     && (a.next == null || typeof a.next.text === 'string'),
-  showMedia: (a) => a.media && isValidBackground(a.media) && isOptionalText(a.media.title)
+  showMedia: (a) => a.media && isValidBackground(a.media) && isOptionalText(a.media.title) && isOptionalText(a.media.key)
     && (a.media.loop == null || typeof a.media.loop === 'boolean'),
   mediaControl: (a) => MEDIA_COMMANDS.includes(a.command),
   timerSet: (a) => TIMER_MODES.includes(a.mode) && Number.isInteger(a.seconds) && a.seconds >= 0 && a.seconds <= TIMER_MAX_SECONDS,
@@ -162,9 +164,16 @@ function isValidAction(action) {
   return check ? Boolean(check(action)) : true;
 }
 
+// Chave do que está no ar ("item:índice"), seja slide ou mídia; null se nada veio do culto.
+function liveKeyOf(state) {
+  const { content, media } = state.layers;
+  if (media) return media.key || null;
+  return content.slide && typeof content.slide.key === 'string' ? content.slide.key : null;
+}
+
 function reduce(state, action) {
   const handler = action && Object.hasOwn(HANDLERS, action.type) ? HANDLERS[action.type] : null;
   return handler ? handler(state, action) : state;
 }
 
-module.exports = { initialState, reduce, isValidAction, isValidBackground, stampAction, DEFAULT_BACKGROUND };
+module.exports = { initialState, reduce, isValidAction, isValidBackground, stampAction, liveKeyOf, DEFAULT_BACKGROUND };

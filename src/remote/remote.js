@@ -78,7 +78,7 @@ function renderState(state) {
   if (Number.isFinite(state.serverTime)) clockOffsetMs = state.serverTime - Date.now();
   const { content, media } = state.layers;
   const slide = content.slide;
-  liveKey = slide ? slide.key || null : null;
+  liveKey = media ? media.key || null : (slide ? slide.key || null : null); // vídeo do culto também marca a posição
   $('live-label').textContent = media ? (media.kind === 'video' ? 'VÍDEO' : 'IMAGEM') : (slide ? slide.label || '' : '');
   $('live-text').textContent = media ? media.title || '—' : (slide ? slide.text || slide.label || '—' : '—');
   $('black').classList.toggle('on', state.blackout);

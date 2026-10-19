@@ -22,12 +22,23 @@ test('slideActionFor monta showSlide com título, chave do item e próximo slide
 
 test('slideActionFor: slide de mídia vira showMedia; item ou índice inexistente → null', () => {
   const a = slideActionFor(playlist, 'p3', 0);
-  assert.deepEqual(a, { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4', title: 'Vinheta' } });
+  assert.deepEqual(a, { type: 'showMedia', media: { kind: 'video', value: 'file:///C:/v.mp4', title: 'Vinheta', key: 'p3:0' } });
   assert.equal(isValidAction(a), true);
   assert.equal(slideActionFor(playlist, 'nada', 0), null);
   assert.equal(slideActionFor(playlist, 'p1', 5), null);
   assert.equal(slideActionFor(playlist, 'p1', -1), null);
   assert.equal(slideActionFor(playlist, 'p1', 1.5), null);
+});
+
+test('slideActionFor recusa slide adulterado no library.json (imagem/mídia em compartilhamento de rede, campos inválidos)', () => {
+  const bad = [
+    { id: 'a', title: 'x', slides: [{ text: '', image: 'file://servidor/share/x.png' }] },
+    { id: 'b', title: 'x', slides: [{ text: '', image: 'file:////host/x.png' }] },
+    { id: 'c', title: 'x', slides: [{ text: 'v', media: { kind: 'video', value: 'file:////host/v.mp4' } }] },
+    { id: 'd', title: 'x', slides: [{ text: 5 }] },
+    { id: 'e', title: 'x', slides: [null] },
+  ];
+  for (const item of bad) assert.equal(slideActionFor(bad, item.id, 0), null, item.id);
 });
 
 test('themeNameFor: versículo usa o padrão; música usa o próprio tema existente ou o padrão', () => {

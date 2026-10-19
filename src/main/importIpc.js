@@ -7,12 +7,18 @@ const MAX_PDF_BYTES = 100 * 1024 * 1024;
 
 // Importar apresentação: PDF vira páginas-imagem (renderizadas no operador com pdf.js e gravadas aqui);
 // PPTX vira slides de texto. Páginas de importações que saíram do culto são apagadas.
-function registerImportIpc({ imports, library, getWindow }) {
+const IMPORT_ID_IN_URL = /\/imports\/([0-9a-f-]{36})\//;
+
+// Só no "remover do culto" (ação explícita do operador), nunca na abertura: se o library.json não carregar,
+// o culto viria vazio e todas as páginas seriam apagadas. Páginas no ar também ficam.
+function registerImportIpc({ imports, library, store, getWindow }) {
   const pruneUnused = () => {
     const inUse = new Set(library.getPlaylist().map((i) => i.importId).filter(Boolean));
+    const live = store.getState().layers.content.slide;
+    const liveId = live && typeof live.image === 'string' && live.image.match(IMPORT_ID_IN_URL);
+    if (liveId) inUse.add(liveId[1]);
     imports.prune(inUse);
   };
-  pruneUnused();
 
   ipcMain.handle('import:pick', async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog(getWindow(), {
@@ -48,7 +54,7 @@ function registerImportIpc({ imports, library, getWindow }) {
 
   ipcMain.handle('import:discard', (_e, importId) => imports.remove(importId));
 
-  return { pruneUnused };
+  return { pruneUnused, settle: (importId) => imports.settle(importId) };
 }
 
 module.exports = { registerImportIpc };
