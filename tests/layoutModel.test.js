@@ -89,3 +89,39 @@ test('moveSection ignora seção ou bloco inexistente', () => {
   assert.deepEqual(m.moveSection(DEF, 'zz', 't2', null, false), DEF);
   assert.deepEqual(m.moveSection(DEF, 's1', 'zz', null, false), DEF);
 });
+
+test('snapToFull: perto do tamanho máximo, encaixa no tamanho cheio', () => {
+  assert.equal(m.snapToFull(12), 12);
+  assert.equal(m.snapToFull(11), 12);
+  assert.equal(m.snapToFull(10), 10);
+  assert.equal(m.snapToFull(2), 2);
+});
+
+test('toggleFull: vai ao tamanho cheio no eixo e guarda o anterior; de novo, volta', () => {
+  const full = m.toggleFull({ c: 4, r: 5 }, 'c', undefined);
+  assert.deepEqual(full.size, { c: 12, r: 5 });
+  assert.equal(full.before, 4);
+  const back = m.toggleFull(full.size, 'c', full.before);
+  assert.deepEqual(back.size, { c: 4, r: 5 });
+  assert.equal(back.before, undefined);
+});
+
+test('toggleFull: no eixo vertical só muda a altura; sem anterior guardado volta à metade', () => {
+  const full = m.toggleFull({ c: 3, r: 4 }, 'r', undefined);
+  assert.deepEqual(full.size, { c: 3, r: 12 });
+  const half = m.toggleFull({ c: 12, r: 12 }, 'c', undefined);
+  assert.deepEqual(half.size, { c: 6, r: 12 });
+});
+
+test('toggleFull: anterior inválido (cheio ou fora da faixa) não é usado; eixo desconhecido não muda nada', () => {
+  assert.deepEqual(m.toggleFull({ c: 12, r: 3 }, 'c', 12).size, { c: 6, r: 3 });
+  assert.deepEqual(m.toggleFull({ c: 12, r: 3 }, 'c', 'x').size, { c: 6, r: 3 });
+  assert.deepEqual(m.toggleFull({ c: 4, r: 3 }, 'z', undefined).size, { c: 4, r: 3 });
+});
+
+test('resizeAxis: muda só o eixo pedido; o canto muda os dois', () => {
+  assert.deepEqual(m.resizeAxis({ c: 4, r: 5 }, 'c', 8), { c: 8, r: 5 });
+  assert.deepEqual(m.resizeAxis({ c: 4, r: 5 }, 'r', 3), { c: 4, r: 3 });
+  assert.deepEqual(m.resizeAxis({ c: 4, r: 5 }, 'both', 7, 9), { c: 7, r: 9 });
+  assert.deepEqual(m.resizeAxis({ c: 4, r: 5 }, 'c', 99), { c: 12, r: 5 });
+});

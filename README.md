@@ -191,7 +191,9 @@ Um botão que **faz várias coisas de uma vez**. Seção **Macros** (no bloco "C
   Abre em tela cheia no monitor escolhido ou em janela. Também funciona em tablet/celular: botão **Remoto** mostra o link.
 - **Grade bento**: a tela do operador é uma grade de 12 colunas com blocos de tamanhos variados.
   - **Mover bloco**: arraste a alça ⠿ do bloco sobre outro (ele toma o lugar do alvo), ou foque a alça e use as setas.
-  - **Redimensionar**: arraste o canto ◢ (encaixa nas células da grade), ou foque o canto e use as setas; duplo clique restaura.
+  - **Redimensionar**: arraste a **borda direita** (só a largura), a **borda de baixo** (só a altura) ou o **canto** ◢ (as duas); tudo encaixa nas células da grade.
+    Perto do máximo o bloco **encaixa no tamanho cheio**. **Duplo clique** numa borda (ou **Home** com o foco nela) alterna entre largura/altura total e o tamanho anterior;
+    no canto, duplo clique restaura o padrão. Pelo teclado, foque a alça e use as setas.
   - **Mover seção**: cada seção (Músicas, Bíblia, Preview, Programa, Slides, Controles, Retorno, Culto) tem a alça ⋮⋮.
     Arraste para outro bloco, antes/depois de outra seção, ou para um bloco vazio. Pelo teclado: ↑ ↓ reordena dentro do
     bloco e ← → manda para o bloco anterior/seguinte. Seções também recolhem.

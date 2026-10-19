@@ -21,7 +21,14 @@ main#layout {
 body.editing-layout .tile-body:empty::before { content: 'Solte uma seção aqui'; display: block; padding: 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; }
 .resize-handle { position: absolute; right: 1px; bottom: 1px; width: 20px; height: 20px; border: none; background: none; color: var(--muted); cursor: nwse-resize; touch-action: none; }
 .resize-handle:hover, .resize-handle:focus-visible, .resize-handle.dragging { color: var(--accent); outline: none; background: none; }
-body.resizing, body.resizing * { cursor: nwse-resize !important; user-select: none; }
+.resize-edge { position: absolute; padding: 0; border: none; background: none; touch-action: none; z-index: 2; }
+.resize-edge.edge-e { top: 20px; right: 0; bottom: 22px; width: 7px; cursor: ew-resize; }
+.resize-edge.edge-s { left: 20px; right: 22px; bottom: 0; height: 7px; cursor: ns-resize; }
+.resize-edge:hover, .resize-edge:focus-visible, .resize-edge.dragging { background: rgba(79, 140, 255, .55); outline: none; border-radius: 4px; }
+body.resizing, body.resizing * { user-select: none; }
+body.resizing-both, body.resizing-both * { cursor: nwse-resize !important; }
+body.resizing-c, body.resizing-c * { cursor: ew-resize !important; }
+body.resizing-r, body.resizing-r * { cursor: ns-resize !important; }
 
 .grip { cursor: grab; width: auto; height: 18px; padding: 0 5px; background: none; border: 1px solid transparent; color: var(--muted); border-radius: 4px; }
 .grip:hover, .grip:focus-visible { color: var(--text); border-color: var(--accent); outline: none; background: none; }
@@ -174,6 +181,7 @@ button[aria-pressed="true"] { background: var(--accent); border-color: var(--acc
 /* ---------- Modo "editar painéis": alças só aparecem quando ligado ---------- */
 body:not(.editing-layout) .grip,
 body:not(.editing-layout) .resize-handle,
+body:not(.editing-layout) .resize-edge,
 body:not(.editing-layout) .panel-bar { display: none !important; }
 body.editing-layout .tile { outline: 1px dashed rgba(79, 140, 255, .55); outline-offset: 2px; }
 

@@ -188,18 +188,47 @@
   }
 
   // ---------- Redimensionar blocos ----------
+  // Três alças por bloco: borda direita (só a largura), borda de baixo (só a altura) e o canto (as duas).
+  // Perto do tamanho máximo o bloco encaixa no cheio; duplo clique numa borda alterna cheio/anterior naquele eixo.
+  const EDGES = [
+    { axis: 'c', name: 'edge-e', label: 'Redimensionar a largura do bloco', hint: 'Arraste para mudar a largura; duplo clique alterna a largura total (ou ← →, Home)' },
+    { axis: 'r', name: 'edge-s', label: 'Redimensionar a altura do bloco', hint: 'Arraste para mudar a altura; duplo clique alterna a altura total (ou ↑ ↓, Home)' },
+  ];
+  const ARROWS = { ArrowLeft: ['c', -1], ArrowRight: ['c', 1], ArrowUp: ['r', -1], ArrowDown: ['r', 1] };
+
   function bindResize(ctl) {
     const M = root.layoutModel;
     const main = $('layout');
+    const before = {}; // tamanho de antes de ir ao cheio, por bloco e eixo (não é salvo)
     const metrics = () => {
       const css = getComputedStyle(main);
       return { colW: parseFloat(css.gridTemplateColumns), rowH: parseFloat(css.gridTemplateRows), gap: parseFloat(css.columnGap) || 0 };
     };
-    const setSpan = (id, c, r) => ctl.set({ spans: { ...ctl.get().spans, [id]: { c, r } } });
+    const setSize = (id, size) => ctl.set({ spans: { ...ctl.get().spans, [id]: size } });
+    const fullToggle = (id, axis) => {
+      const memo = before[id] || (before[id] = {});
+      const res = M.toggleFull(ctl.get().spans[id], axis, memo[axis]);
+      memo[axis] = res.before;
+      setSize(id, res.size);
+    };
 
-    document.querySelectorAll('.resize-handle').forEach((handle) => {
+    // 'both' é o canto que já vem no HTML; as bordas são criadas aqui.
+    document.querySelectorAll('.tile').forEach((tile) => {
+      EDGES.forEach((edge) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = `resize-edge ${edge.name}`;
+        el.dataset.axis = edge.axis;
+        el.setAttribute('aria-label', edge.label);
+        el.title = edge.hint;
+        tile.append(el);
+      });
+    });
+
+    document.querySelectorAll('.resize-handle, .resize-edge').forEach((handle) => {
       const tile = handle.closest('.tile');
       const id = tile.dataset.tile;
+      const axis = handle.dataset.axis || 'both';
       let origin = null;
 
       handle.addEventListener('pointerdown', (e) => {
@@ -208,25 +237,41 @@
         const rect = tile.getBoundingClientRect();
         origin = { left: rect.left, top: rect.top };
         handle.classList.add('dragging');
-        document.body.classList.add('resizing');
+        document.body.classList.add('resizing', `resizing-${axis}`);
       });
       handle.addEventListener('pointermove', (e) => {
         if (!origin) return;
         const { colW, rowH, gap } = metrics();
-        setSpan(id, M.spanFromPixels(e.clientX - origin.left, colW, gap), M.spanFromPixels(e.clientY - origin.top, rowH, gap));
+        const wide = M.snapToFull(M.spanFromPixels(e.clientX - origin.left, colW, gap));
+        const high = M.snapToFull(M.spanFromPixels(e.clientY - origin.top, rowH, gap));
+        const size = M.resizeAxis(ctl.get().spans[id], axis, axis === 'r' ? high : wide, high);
+        const now = ctl.get().spans[id];
+        if (size.c !== now.c || size.r !== now.r) setSize(id, size);
       });
-      const stop = () => { origin = null; handle.classList.remove('dragging'); document.body.classList.remove('resizing'); };
+      const stop = () => {
+        origin = null;
+        handle.classList.remove('dragging');
+        document.body.classList.remove('resizing', 'resizing-c', 'resizing-r', 'resizing-both');
+      };
       handle.addEventListener('pointerup', stop);
       handle.addEventListener('pointercancel', stop);
-      handle.addEventListener('dblclick', () => isEditing() && setSpan(id, DEFAULT_SPANS[id].c, DEFAULT_SPANS[id].r));
+      handle.addEventListener('dblclick', () => {
+        if (!isEditing()) return;
+        if (axis === 'both') setSize(id, { ...DEFAULT_SPANS[id] });
+        else fullToggle(id, axis);
+      });
       handle.addEventListener('keydown', (e) => {
         if (!isEditing()) return;
-        const dc = { ArrowLeft: -1, ArrowRight: 1 }[e.key] || 0;
-        const dr = { ArrowUp: -1, ArrowDown: 1 }[e.key] || 0;
-        if (!dc && !dr) return;
+        if (e.key === 'Home' && axis !== 'both') {
+          e.preventDefault();
+          fullToggle(id, axis);
+          return;
+        }
+        const arrow = ARROWS[e.key];
+        if (!arrow || (axis !== 'both' && arrow[0] !== axis)) return;
         e.preventDefault();
-        const { c, r } = ctl.get().spans[id];
-        setSpan(id, M.clampSpan(c + dc), M.clampSpan(r + dr));
+        const size = ctl.get().spans[id];
+        setSize(id, { ...size, [arrow[0]]: M.clampSpan(size[arrow[0]] + arrow[1]) });
       });
     });
   }

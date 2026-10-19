@@ -16,6 +16,26 @@
   // pixels desde a borda do bloco -> quantas células (com vão) ele ocupa
   const spanFromPixels = (px, cell, gap, min = MIN_SPAN, max = MAX_SPAN) => clampSpan((px + gap) / (cell + gap), min, max);
 
+  // Perto do tamanho máximo o bloco encaixa no cheio (a última célula "gruda" na borda da grade).
+  const SNAP_CELLS = 1;
+  const snapToFull = (span, snap = SNAP_CELLS) => (span >= MAX_SPAN - snap ? MAX_SPAN : span);
+
+  // Alterna um eixo ('c' largura, 'r' altura) entre o tamanho cheio e o anterior. Sem anterior guardado, volta à metade.
+  function toggleFull(size, axis, before) {
+    if (axis !== 'c' && axis !== 'r') return { size: { ...size }, before };
+    if (size[axis] < MAX_SPAN) return { size: { ...size, [axis]: MAX_SPAN }, before: size[axis] };
+    const back = Number.isFinite(before) && before >= MIN_SPAN && before < MAX_SPAN ? before : MAX_SPAN / 2;
+    return { size: { ...size, [axis]: back }, before: undefined };
+  }
+
+  // Novo tamanho ao arrastar: 'c' só a largura, 'r' só a altura, 'both' (o canto) os dois.
+  function resizeAxis(size, axis, c, r = c) {
+    if (axis === 'both') return { c: clampSpan(c), r: clampSpan(r) };
+    if (axis === 'c') return { c: clampSpan(c), r: size.r };
+    if (axis === 'r') return { c: size.c, r: clampSpan(c) };
+    return { ...size };
+  }
+
   function isValidOrder(order, ids) {
     return Array.isArray(order) && order.length === ids.length
       && new Set(order).size === ids.length && order.every((id) => ids.includes(id));
@@ -77,5 +97,5 @@
     return next;
   }
 
-  return { MIN_SPAN, MAX_SPAN, clampSpan, spanFromPixels, isValidOrder, resolveOrder, moveTo, move, resolveSpans, resolveSections, moveSection };
+  return { MIN_SPAN, MAX_SPAN, SNAP_CELLS, snapToFull, toggleFull, resizeAxis, clampSpan, spanFromPixels, isValidOrder, resolveOrder, moveTo, move, resolveSpans, resolveSections, moveSection };
 }));
