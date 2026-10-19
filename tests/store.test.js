@@ -153,3 +153,14 @@ test('desfazer não traz de volta o aviso: o aviso atual é mantido e não vira 
   assert.equal(liveText(store), null);
   assert.equal(store.getState().layers.announcement.text, null);
 });
+
+test('definir o horário do cronômetro não entra no desfazer nem apaga o refazer', () => {
+  const { store, at } = clockedStore();
+  at(1000); store.dispatch(show('a'));
+  at(2000); store.dispatch(show('b'));
+  store.undo();
+  at(3000); store.dispatch({ type: 'timerUntil', time: '19:00', now: 3000 });
+  assert.deepEqual(store.history(), { canUndo: true, canRedo: true });
+  store.redo();
+  assert.equal(liveText(store), 'b');
+});

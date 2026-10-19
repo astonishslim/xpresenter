@@ -18,6 +18,8 @@ const { initialState, liveKeyOf, isValidAction } = require('../core/state');
 const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
 const { registerMessageIpc } = require('./messageIpc');
+const { registerUsageIpc } = require('./usageIpc');
+const { createUsageLog, createUsageTracker } = require('../core/usageLog');
 const { createMessageLibrary, createMessageRunner } = require('../core/messages');
 const { setupUpdater } = require('./updater');
 const { resolveUserDataDir } = require('./userDataDir');
@@ -138,6 +140,14 @@ function stepLive(ctx, delta) {
   return true;
 }
 
+// Música por trás do item ao vivo: da biblioteca ("lib-<id>") ou de um item do culto. Versículo e mídia não contam.
+function songOfLiveItem({ library }, itemId) {
+  const item = itemId.startsWith('lib-') ? null : findItem(library.getPlaylist(), itemId);
+  const songId = itemId.startsWith('lib-') ? itemId.slice('lib-'.length) : (item && item.kind === 'song' ? item.refId : null);
+  const song = songId && library.listSongs().find((s) => s.id === songId);
+  return song ? { songId: song.id, title: song.title, author: song.author, ccli: song.ccli } : null;
+}
+
 // A versão anterior guardava uma única Bíblia importada em userData/bible.json: passa a ser mais uma versão.
 function migrateLegacyBible(bibles, userDataDir) {
   const legacy = path.join(userDataDir, 'bible.json');
@@ -206,6 +216,11 @@ async function start() {
   });
   const messageRunner = createMessageRunner({ dispatch: store.dispatch, getState: store.getState });
   registerMessageIpc({ messages: createMessageLibrary(path.join(userDataDir, 'messages.json')), runner: messageRunner });
+  // Relatório de uso (CCLI): cada música que entra ao vivo é gravada uma vez por dia.
+  const usageLog = createUsageLog(path.join(userDataDir, 'usage.jsonl'));
+  registerUsageIpc({ log: usageLog, getWindow: () => operator });
+  const usageTracker = createUsageTracker({ log: usageLog, resolveSong: (itemId) => songOfLiveItem({ library }, itemId) });
+  store.subscribe(usageTracker.observe);
   setupUpdater({ getWindow: () => operator });
   operator = createOperatorWindow();
   operator.on('closed', () => app.quit());

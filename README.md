@@ -59,6 +59,23 @@ npm start
   Cronômetro, controle de vídeo, aviso e mensagem do palco não entram no desfazer e ficam como estão (um aviso que já saiu
   do ar não volta). Guarda os últimos 50 passos, só na memória.
 
+## Relatório de uso (CCLI)
+
+- Cada música que entra **ao vivo** é registrada **uma vez por dia** (título, autor, número CCLI, data e hora) em `usage.jsonl`
+  na pasta de dados. Versículos, mídia e PDF não contam. Passar de slide, voltar ao item ou desfazer não duplica.
+- Cadastre o **autor** e o **nº CCLI** no editor da música (o número só aceita dígitos).
+- O botão de planilha na seção **Culto** abre o relatório: escolha o período (começa no mês corrente), confira a lista e
+  **Exportar CSV…**. O arquivo usa `;` e abre direto no Excel em português; textos que começariam com `=`, `+`, `-` ou `@`
+  ganham um apóstrofo, para uma planilha nunca executá-los como fórmula.
+
+## Cronômetro até um horário e efeitos de texto
+
+- No **Cronômetro**, o tipo **Até o horário** conta até um horário do relógio do computador (hoje, ou amanhã se já passou):
+  ótimo antes do culto, com a legenda `Começa em {cronometro}`. Não pausa (só **Zerar**, que volta à regressiva de 5 min) e
+  fica vermelho e negativo depois do horário. O retorno de palco e o celular acompanham.
+- Em **Tema e texto**: **contorno** da letra (fino ou grosso), **caixa escura** atrás do texto (10–80%, para ler sobre vídeo
+  claro) e **desfoque** do fundo (imagem ou vídeo). Entram nos temas; temas antigos abrem sem efeitos.
+
 ## Preview, Programa e retorno de palco
 
 - **Preview** (azul) mostra o slide selecionado antes de ir ao ar; **Programa** (verde) espelha exatamente a saída.

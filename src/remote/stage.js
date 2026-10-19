@@ -54,8 +54,8 @@ function renderTimer() {
   if (!inUse) return;
   const ms = timerValueMs(timer, serverNow());
   $('timer-text').textContent = formatTimer(ms);
-  $('timer').classList.toggle('over', timer.mode === 'countdown' && ms <= 0);
-  $('timer').classList.toggle('warn', timer.mode === 'countdown' && ms > 0 && ms <= WARN_MS);
+  $('timer').classList.toggle('over', window.liveInfo.isCountdown(timer) && ms <= 0);
+  $('timer').classList.toggle('warn', window.liveInfo.isCountdown(timer) && ms > 0 && ms <= WARN_MS);
   $('timer').classList.toggle('paused', timer.startedAt == null);
 }
 

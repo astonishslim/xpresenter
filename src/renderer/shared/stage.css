@@ -61,3 +61,10 @@
 
 .stage .blackout { background: #000; opacity: 0; pointer-events: none; transition: opacity .2s; }
 .stage .blackout.visible { opacity: 1; }
+
+/* Efeitos do texto (tema): contorno, caixa atrás da letra e desfoque do fundo. */
+.stage[data-outline="thin"] .text { -webkit-text-stroke: .18cqh rgba(0, 0, 0, .9); paint-order: stroke fill; }
+.stage[data-outline="thick"] .text { -webkit-text-stroke: .45cqh rgba(0, 0, 0, .95); paint-order: stroke fill; }
+/* Só com caixa ligada o texto ganha fundo e respiro: sem ela, o encaixe dos temas existentes não muda. */
+.stage[data-box="on"] .text { box-sizing: border-box; background: rgba(0, 0, 0, var(--box, 0)); padding: 0 .35em; border-radius: .25em; }
+.stage[data-blur="on"] .bg { filter: blur(calc(var(--blur, 0) * 1cqh)); transform: scale(1.1); } /* a escala esconde a borda transparente do desfoque */

@@ -6,7 +6,7 @@
   const CONTENT_FILL = 0.8;
   const TICK_MS = 250;
   const GHOST_GRACE_MS = 80;
-  const { fillTemplate, formatTimer, timerValueMs, isTimerInUse } = root.liveInfo;
+  const { fillTemplate, formatTimer, timerValueMs, isTimerInUse, isCountdown } = root.liveInfo;
 
   function el(tag, className) {
     const node = document.createElement(tag);
@@ -48,6 +48,11 @@
     stage.dataset.align = style.align;
     stage.dataset.position = style.position;
     stage.dataset.caption = style.captionPosition;
+    stage.dataset.outline = style.outline;
+    stage.dataset.blur = style.blur > 0 ? 'on' : 'off';
+    stage.dataset.box = style.box > 0 ? 'on' : 'off';
+    stage.style.setProperty('--box', String(style.box / 100));
+    stage.style.setProperty('--blur', String(style.blur / 10)); // em cqh: escala com o tamanho do palco
     stage.style.setProperty('--text-color', style.color);
     stage.style.setProperty('--fade', style.transition === 'cut' ? '0ms' : `${style.transitionMs}ms`);
     stage.classList.toggle('upper', style.uppercase);
@@ -58,6 +63,7 @@
   const FALLBACK_STYLE = {
     font: 'sans', color: '#ffffff', size: 100, align: 'center', position: 'middle', uppercase: false, shadow: true,
     showLabel: true, transition: 'fade', transitionMs: 400, caption: '', captionPosition: 'top-right',
+    outline: 'none', box: 0, blur: 0,
   };
 
   const pad = (n) => String(n).padStart(2, '0');
@@ -156,7 +162,7 @@
       layers.timer.classList.toggle('visible', showTimer);
       if (!showTimer) return;
       timerText.textContent = formatTimer(timerMs);
-      layers.timer.classList.toggle('over', timer.mode === 'countdown' && timerMs <= 0 && isTimerInUse(timer));
+      layers.timer.classList.toggle('over', isCountdown(timer) && timerMs <= 0 && isTimerInUse(timer));
       // Com letra na tela, o cronômetro vai para o canto; sem letra, ocupa o centro (ex.: contagem antes do culto).
       const lyricsOnScreen = Boolean(slide) && !lastState.layers.content.hidden;
       layers.timer.classList.toggle('corner', lyricsOnScreen);

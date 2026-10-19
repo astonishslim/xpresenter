@@ -209,3 +209,9 @@ details.fold.file-over { outline: 2px dashed var(--accent); outline-offset: 2px;
 #ed-arr-add { margin-bottom: 8px; }
 .msg-preview:not(:empty) { padding: 4px 6px; background: #0e1014; border-radius: 5px; color: var(--text); white-space: pre-wrap; }
 #btn-msg-show { height: var(--ib); padding: 0 10px; }
+
+/* Relatório de uso e campo de horário do cronômetro */
+.usage-list { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+.usage-list li { flex-direction: column; align-items: flex-start; gap: 1px; cursor: default; }
+.usage-list li small { color: var(--muted); font-size: 11px; }
+.row input.clock { width: 92px; }

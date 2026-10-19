@@ -31,6 +31,8 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 const MAX_ARRANGEMENTS = 12;
 const MAX_ARRANGEMENT_NAME_CHARS = 40;
 const MAX_SLIDE_TEXT_CHARS = 2000;
+const MAX_AUTHOR_CHARS = 80;
+const CCLI_RE = /^\d{1,10}$/;
 
 // Arranjos da música: { name, order: ['V1', 'C', …] }. Nome único (sem diferenciar maiúsculas) e ordem não vazia.
 function sanitizeArrangements(raw) {
@@ -67,6 +69,11 @@ function createLibrary(file) {
       const song = { id: input.id || randomUUID(), title, text: String(input.text || '') };
       // Tema próprio da música (nome); aplicado quando ela vai ao ar. Inválido é descartado.
       if (theme && theme.length <= MAX_THEME_NAME_CHARS) song.theme = theme;
+      // Autor e número CCLI (opcionais) vão para o relatório de uso.
+      const author = typeof input.author === 'string' ? input.author.trim().slice(0, MAX_AUTHOR_CHARS) : '';
+      const ccli = typeof input.ccli === 'string' ? input.ccli.trim() : '';
+      if (author) song.author = author;
+      if (CCLI_RE.test(ccli)) song.ccli = ccli;
       const arrangements = sanitizeArrangements(input.arrangements);
       if (arrangements.length) song.arrangements = arrangements;
       const exists = data.songs.some((s) => s.id === song.id);

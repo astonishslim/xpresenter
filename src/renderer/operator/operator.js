@@ -424,6 +424,8 @@ function openEditor(song) {
     $('ed-theme').append(h('option', { value: editing.theme }, `${editing.theme} (excluído)`));
   }
   $('ed-theme').value = editing.theme || '';
+  $('ed-author').value = editing.author || '';
+  $('ed-ccli').value = editing.ccli || '';
   $('ed-delete').hidden = !(song && song.id); // letra vinda da internet ainda não existe na biblioteca
   $('editor').dataset.id = editing.id || '';
   $('ed-arrangements').replaceChildren(...(editing.arrangements || []).map(arrangementRow));
@@ -480,6 +482,8 @@ async function saveEditor() {
     title: $('ed-title').value,
     text: $('ed-text').value,
     theme: $('ed-theme').value,
+    author: $('ed-author').value,
+    ccli: $('ed-ccli').value,
     arrangements: readArrangements(),
   });
   await refreshSongs();
@@ -550,7 +554,7 @@ function renderTimerReadout() {
   if (!timer) return;
   const ms = window.liveInfo.timerValueMs(timer, Date.now());
   $('timer-readout').textContent = window.liveInfo.formatTimer(ms);
-  $('timer-readout').classList.toggle('over', timer.mode === 'countdown' && ms <= 0 && window.liveInfo.isTimerInUse(timer));
+  $('timer-readout').classList.toggle('over', window.liveInfo.isCountdown(timer) && ms <= 0 && window.liveInfo.isTimerInUse(timer));
 }
 
 function renderTimerControls(timer) {
@@ -562,6 +566,11 @@ function renderTimerControls(timer) {
   if (toggle.dataset.icon !== (running ? 'pause' : 'play')) window.icons.setIcon(toggle, running ? 'pause' : 'play');
   $('btn-timer-visible').setAttribute('aria-pressed', String(timer.visible));
   if (document.activeElement !== $('timer-mode')) $('timer-mode').value = timer.mode;
+  const until = timer.mode === 'until';
+  toggle.disabled = until; // até o horário não pausa: só zerar
+  $('timer-minutes').hidden = until;
+  $('timer-clock').hidden = !until;
+  if (until && document.activeElement !== $('timer-clock')) $('timer-clock').value = clockText(timer.targetAt);
   $('timer-minutes').disabled = timer.mode !== 'countdown';
   if (document.activeElement !== $('timer-minutes') && timer.mode === 'countdown') {
     $('timer-minutes').value = String(Math.round(timer.setMs / 1000 / SECONDS_PER_MINUTE));
@@ -569,8 +578,19 @@ function renderTimerControls(timer) {
   renderTimerReadout();
 }
 
+const clockText = (ms) => {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
 function setTimerFromInputs() {
   const mode = $('timer-mode').value;
+  if (mode === 'until') {
+    // Sem horário preenchido, não troca de modo (o campo de hora do navegador devolve vazio): o seletor volta ao estado real.
+    if (/^\d{2}:\d{2}$/.test($('timer-clock').value)) api.dispatch({ type: 'timerUntil', time: $('timer-clock').value });
+    else if (ui.state) $('timer-mode').value = ui.state.timer.mode;
+    return;
+  }
   const minutes = Math.max(0, Math.min(1440, Math.round(Number($('timer-minutes').value) || 0)));
   api.dispatch({ type: 'timerSet', mode, seconds: minutes * SECONDS_PER_MINUTE });
 }
@@ -578,6 +598,7 @@ function setTimerFromInputs() {
 function bindTimer() {
   $('timer-mode').addEventListener('change', setTimerFromInputs);
   $('timer-minutes').addEventListener('change', setTimerFromInputs);
+  $('timer-clock').addEventListener('change', setTimerFromInputs);
   $('timer-minutes').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); setTimerFromInputs(); } });
   $('btn-timer-toggle').addEventListener('click', () => api.dispatch({ type: 'timerToggle' }));
   $('btn-timer-reset').addEventListener('click', () => api.dispatch({ type: 'timerReset' }));
@@ -753,6 +774,7 @@ async function init() {
   window.initOutputsPanel({ api });
   window.initAutomationPanel({ api });
   messagesPanel = window.initMessagesPanel({ api });
+  window.initUsagePanel({ api });
   bindUpdate();
   // OSC: avançar/voltar precisam do contexto de slides daqui.
   api.automation.onCommand((command) => {

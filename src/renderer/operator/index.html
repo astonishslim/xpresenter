@@ -234,6 +234,16 @@
             </select>
           </div>
           <div class="row">
+            <span class="ico muted" data-icon="square-dashed" title="Efeitos do texto"></span>
+            <select id="style-outline" aria-label="Contorno da letra" title="Contorno da letra">
+              <option value="none">Sem contorno</option>
+              <option value="thin">Contorno fino</option>
+              <option value="thick">Contorno grosso</option>
+            </select>
+            <select id="style-box" aria-label="Caixa escura atrás do texto" title="Caixa escura atrás do texto (lê melhor sobre vídeo claro)"></select>
+            <select id="style-blur" aria-label="Desfoque do fundo" title="Desfocar o fundo (imagem ou vídeo)"></select>
+          </div>
+          <div class="row">
             <span class="ico muted" data-icon="captions" title="Legenda do tema"></span>
             <input id="style-caption" maxlength="80" autocomplete="off" placeholder="Legenda: {titulo} · {hora}" aria-label="Legenda do tema (use {titulo}, {rotulo}, {hora}, {data}, {cronometro})" title="Variáveis: {titulo} {rotulo} {hora} {data} {cronometro}. Enter aplica." />
             <select id="style-caption-pos" class="narrow" aria-label="Canto da legenda" title="Canto da legenda">
@@ -275,9 +285,11 @@
             <span id="timer-readout" class="timer-readout" role="timer" aria-live="off">05:00</span>
             <select id="timer-mode" aria-label="Tipo de cronômetro" title="Tipo">
               <option value="countdown">Regressiva</option>
+              <option value="until">Até o horário</option>
               <option value="stopwatch">Cronômetro</option>
             </select>
             <input id="timer-minutes" type="number" min="0" max="1440" step="1" value="5" aria-label="Minutos da contagem regressiva" title="Minutos (Enter aplica)" class="narrow" />
+            <input id="timer-clock" type="time" value="19:00" aria-label="Horário final da contagem" title="Conta até este horário (hoje, ou amanhã se já passou)" class="narrow clock" hidden />
           </div>
           <div class="row">
             <button id="btn-timer-toggle" class="ib primary" type="button" data-icon="play" title="Iniciar" aria-label="Iniciar cronômetro"></button>
@@ -294,7 +306,7 @@
       <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="playlist" open>
-          <summary><span class="fold-title"><span class="ico" data-icon="list-music"></span>Culto</span><button id="btn-import-presentation" class="ib" type="button" data-icon="presentation" title="Importar apresentação (PDF ou PowerPoint) para o culto" aria-label="Importar apresentação PDF ou PowerPoint"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="list-music"></span>Culto</span><button id="btn-usage" class="ib" type="button" data-icon="file-spreadsheet" title="Relatório de uso das músicas (CCLI)" aria-label="Relatório de uso das músicas"></button><button id="btn-import-presentation" class="ib" type="button" data-icon="presentation" title="Importar apresentação (PDF ou PowerPoint) para o culto" aria-label="Importar apresentação PDF ou PowerPoint"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <p id="import-msg" class="muted" role="status"></p>
           <ol id="playlist" class="list"></ol>
         </details>
@@ -308,6 +320,10 @@
       <h3>Música</h3>
       <input id="ed-title" placeholder="Título" required />
       <label class="field">Tema desta música <select id="ed-theme" aria-label="Tema desta música"></select></label>
+      <div class="row">
+        <input id="ed-author" placeholder="Autor (para o relatório de uso)" maxlength="80" autocomplete="off" aria-label="Autor da música" />
+        <input id="ed-ccli" class="narrow" inputmode="numeric" placeholder="Nº CCLI" maxlength="10" autocomplete="off" aria-label="Número CCLI da música" title="Número da música na licença CCLI (só dígitos)" />
+      </div>
       <textarea id="ed-text" rows="16" placeholder="[Verso 1]&#10;Linha 1&#10;Linha 2&#10;&#10;[Refrão]&#10;…"></textarea>
       <p class="muted">Use [Verso 1], [Refrão], [Ponte] para marcar seções. Linha em branco separa slides. Acordes como [Am] são ignorados na projeção.
         Escreva o refrão uma vez só: a repetição fica no arranjo.</p>
@@ -358,6 +374,25 @@
       <div class="row end">
         <button id="msg-ed-cancel" type="button">Cancelar</button>
         <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="usage-dialog" class="wide">
+    <form id="usage-form" method="dialog">
+      <h3>Relatório de uso das músicas</h3>
+      <p class="muted">Cada música que entra ao vivo é registrada uma vez por dia (pelo título, autor e número CCLI cadastrados no editor da música).
+        Exporte o período para planilha (CSV) e use no relatório da licença.</p>
+      <div class="row">
+        <label class="field">De <input id="usage-from" type="date" aria-label="Data inicial" /></label>
+        <label class="field">até <input id="usage-to" type="date" aria-label="Data final" /></label>
+      </div>
+      <p id="usage-summary" class="muted" role="status"></p>
+      <ul id="usage-list" class="list usage-list" aria-label="Músicas do período"></ul>
+      <p id="usage-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="usage-close" type="button">Fechar</button>
+        <button id="usage-export" type="button" class="primary" data-icon="file-spreadsheet">Exportar CSV…</button>
       </div>
     </form>
   </dialog>
@@ -492,6 +527,7 @@
   <script src="outputs-panel.js"></script>
   <script src="automation-panel.js"></script>
   <script src="messages-panel.js"></script>
+  <script src="usage-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>
 </body>

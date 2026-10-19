@@ -13,6 +13,11 @@ const TRANSITION_MAX_MS = 2000;
 const TRANSITION_STEP_MS = 100;
 const CAPTION_POSITIONS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 const MAX_CAPTION_CHARS = 80;
+const OUTLINES = ['none', 'thin', 'thick'];
+const BOX_MAX = 80;
+const BOX_STEP = 10;
+const BLUR_MAX = 20;
+const BLUR_STEP = 5;
 // Legenda é texto de uma linha (vai por textContent): sem quebras, controle nem marcas invisíveis de direção.
 // eslint-disable-next-line no-control-regex
 const CAPTION_FORBIDDEN = /[\u0000-\u001F\u007F-\u009F​-‏‪-‮⁠-⁩﻿]/;
@@ -31,6 +36,9 @@ const DEFAULT_TEXT_STYLE = Object.freeze({
   transitionMs: 400,
   caption: '',
   captionPosition: 'top-right',
+  outline: 'none', // contorno da letra
+  box: 0, // caixa escura atrás do texto, em % de opacidade (0 = sem caixa)
+  blur: 0, // desfoque do fundo, em passos de 5
 });
 
 const isBool = (v) => typeof v === 'boolean';
@@ -47,6 +55,9 @@ const FIELD_CHECKS = {
   transitionMs: (v) => inSteps(v, TRANSITION_MIN_MS, TRANSITION_MAX_MS, TRANSITION_STEP_MS),
   caption: (v) => typeof v === 'string' && v.length <= MAX_CAPTION_CHARS && !CAPTION_FORBIDDEN.test(v),
   captionPosition: (v) => CAPTION_POSITIONS.includes(v),
+  outline: (v) => OUTLINES.includes(v),
+  box: (v) => inSteps(v, 0, BOX_MAX, BOX_STEP),
+  blur: (v) => inSteps(v, 0, BLUR_MAX, BLUR_STEP),
 };
 
 const isPlainObject = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v)
@@ -74,5 +85,6 @@ function normalizeStyle(input) {
 
 module.exports = {
   DEFAULT_TEXT_STYLE, FONTS, ALIGNS, POSITIONS, SIZE_MIN, SIZE_MAX, SIZE_STEP, TRANSITIONS, CAPTION_POSITIONS, MAX_CAPTION_CHARS,
+  OUTLINES, BOX_MAX, BOX_STEP, BLUR_MAX, BLUR_STEP,
   isValidStylePatch, mergeStyle, normalizeStyle,
 };

@@ -14,12 +14,16 @@
   // Milissegundos no instante `now`: regressiva desconta desde o início; cronômetro soma.
   function timerValueMs(timer, now) {
     if (!timer) return 0;
+    if (timer.mode === 'until') return timer.targetAt - now; // "até as 19:00": o tempo que falta (negativo depois)
     if (timer.startedAt == null) return timer.baseMs;
     const elapsed = now - timer.startedAt;
     return timer.mode === 'countdown' ? timer.baseMs - elapsed : timer.baseMs + elapsed;
   }
 
-  const isTimerInUse = (timer) => Boolean(timer) && (timer.startedAt != null || timer.baseMs !== timer.setMs);
+  const isTimerInUse = (timer) => Boolean(timer) && (timer.mode === 'until' || timer.startedAt != null || timer.baseMs !== timer.setMs);
+
+  // Regressiva ou até um horário: os dois descem até zero (e ficam vermelhos ao estourar).
+  const isCountdown = (timer) => Boolean(timer) && (timer.mode === 'countdown' || timer.mode === 'until');
 
   const pad = (n) => String(n).padStart(2, '0');
 
@@ -52,5 +56,5 @@
     return loop ? 0 : -1;
   }
 
-  return { VARIABLES, timerValueMs, isTimerInUse, formatTimer, fillTemplate, nextAutoIndex };
+  return { VARIABLES, timerValueMs, isTimerInUse, isCountdown, formatTimer, fillTemplate, nextAutoIndex };
 }));

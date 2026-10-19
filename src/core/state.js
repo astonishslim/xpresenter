@@ -5,9 +5,19 @@ const TIMER_MODES = ['countdown', 'stopwatch'];
 const TIMER_MAX_SECONDS = 24 * 60 * 60;
 const DEFAULT_TIMER_SECONDS = 5 * 60;
 // Ações que dependem do relógio: quem despacha (IPC/remoto) carimba `now`, e o reducer continua puro.
-const TIMED_ACTIONS = new Set(['timerToggle']);
+const TIMED_ACTIONS = new Set(['timerToggle', 'timerUntil']);
+const CLOCK_TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-const timerAtStart = (mode, setMs) => ({ mode, setMs, baseMs: mode === 'countdown' ? setMs : 0, startedAt: null });
+const timerAtStart = (mode, setMs) => ({ mode, setMs, baseMs: mode === 'countdown' ? setMs : 0, startedAt: null, targetAt: null });
+
+// Próxima vez que o relógio local marca HH:MM (hoje, ou amanhã se já passou). Fica em ms para todos os aparelhos.
+function nextClockTime(time, now) {
+  const [, hours, minutes] = CLOCK_TIME_RE.exec(time);
+  const today = new Date(now);
+  const target = new Date(today.getFullYear(), today.getMonth(), today.getDate(), Number(hours), Number(minutes), 0, 0);
+  if (target.getTime() > now) return target.getTime();
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, Number(hours), Number(minutes), 0, 0).getTime();
+}
 
 function stampAction(action, now) {
   return action && TIMED_ACTIONS.has(action.type) ? { ...action, now } : action;
@@ -54,12 +64,18 @@ const clampSlideMeta = (slide) => ({
 const TIMER_HANDLERS = {
   timerSet: (s, a) => withTimer(s, timerAtStart(a.mode, a.mode === 'countdown' ? a.seconds * 1000 : 0)),
   // Liga/pausa: ao pausar, guarda o valor do instante; ao ligar, marca o início.
+  timerUntil: (s, a) => (Number.isFinite(a.now)
+    ? withTimer(s, { mode: 'until', setMs: 0, baseMs: 0, startedAt: null, targetAt: nextClockTime(a.time, a.now) })
+    : s),
   timerToggle: (s, a) => {
-    if (!Number.isFinite(a.now)) return s;
+    if (!Number.isFinite(a.now) || s.timer.mode === 'until') return s; // até o horário não pausa
     if (s.timer.startedAt == null) return withTimer(s, { startedAt: a.now });
     return withTimer(s, { baseMs: timerValueMs(s.timer, a.now), startedAt: null });
   },
-  timerReset: (s) => withTimer(s, timerAtStart(s.timer.mode, s.timer.setMs)),
+  // Zerar tira do modo "até o horário" e volta à regressiva padrão.
+  timerReset: (s) => withTimer(s, s.timer.mode === 'until'
+    ? timerAtStart('countdown', DEFAULT_TIMER_SECONDS * 1000)
+    : timerAtStart(s.timer.mode, s.timer.setMs)),
   timerVisible: (s) => withTimer(s, { visible: !s.timer.visible }),
 };
 
@@ -151,6 +167,7 @@ const REQUIRED_FIELD = {
     && (a.media.loop == null || typeof a.media.loop === 'boolean'),
   mediaControl: (a) => MEDIA_COMMANDS.includes(a.command),
   timerSet: (a) => TIMER_MODES.includes(a.mode) && Number.isInteger(a.seconds) && a.seconds >= 0 && a.seconds <= TIMER_MAX_SECONDS,
+  timerUntil: (a) => typeof a.time === 'string' && CLOCK_TIME_RE.test(a.time),
   setStageMessage: (a) => typeof a.text === 'string',
   setBackground: (a) => isValidBackground(a.background),
   setTextStyle: (a) => isValidStylePatch(a.style),

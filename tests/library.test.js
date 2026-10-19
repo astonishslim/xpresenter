@@ -166,3 +166,15 @@ test('refreshSongSlides tira dos itens o arranjo que não existe mais na música
   lib.refreshSongSlides('m', 'A', () => [], ['Culto']);
   assert.deepEqual(lib.getPlaylist().map((i) => i.arrangement), [undefined, 'Culto']);
 });
+
+test('saveSong guarda autor (até 80) e número CCLI (só dígitos); descarta o que não serve', () => {
+  const lib = createLibrary(tmpFile());
+  const ok = lib.saveSong({ title: 'A', text: 'x', author: '  Ana Silva ', ccli: ' 1234567 ' });
+  assert.equal(ok.author, 'Ana Silva');
+  assert.equal(ok.ccli, '1234567');
+  assert.equal('author' in lib.saveSong({ title: 'B', text: 'x', author: '' }), false);
+  assert.equal(lib.saveSong({ title: 'C', text: 'x', author: 'y'.repeat(200) }).author.length, 80);
+  assert.equal('ccli' in lib.saveSong({ title: 'D', text: 'x', ccli: 'abc' }), false);
+  assert.equal('ccli' in lib.saveSong({ title: 'E', text: 'x', ccli: '1'.repeat(11) }), false);
+  assert.equal('author' in lib.saveSong({ title: 'F', text: 'x', author: { a: 1 } }), false);
+});

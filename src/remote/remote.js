@@ -67,8 +67,9 @@ function renderTimer() {
   const { timerValueMs, formatTimer } = window.liveInfo;
   const ms = timerValueMs(timer, Date.now() + clockOffsetMs);
   $('timer-text').textContent = formatTimer(ms);
-  $('timer-text').classList.toggle('over', timer.mode === 'countdown' && ms <= 0 && timer.startedAt != null);
+  $('timer-text').classList.toggle('over', window.liveInfo.isCountdown(timer) && ms <= 0 && (timer.startedAt != null || timer.mode === 'until'));
   const running = timer.startedAt != null;
+  $('timer-toggle').disabled = timer.mode === 'until'; // até o horário não pausa: só zerar
   $('timer-toggle').querySelector('.label').textContent = running ? 'Pausar' : 'Iniciar';
   window.icons.setIcon($('timer-toggle'), running ? 'pause' : 'play', 22);
 }
