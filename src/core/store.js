@@ -4,15 +4,16 @@ const { initialState, reduce } = require('./state');
 const UNDO_LIMIT = 50;
 // Ações seguidas dentro desta janela são um passo só (tema automático + slide que entram juntos).
 const MERGE_MS = 150;
-// Fora do desfazer (e mantidos ao desfazer): cronômetro, controle do vídeo, aviso e mensagem do palco.
-// Aviso e mensagem têm tempo para sumir: desfazer um slide não pode trazer de volta um aviso que já saiu.
-const NOT_UNDOABLE = new Set(['timerSet', 'timerUntil', 'timerToggle', 'timerReset', 'timerVisible', 'mediaControl', 'setStageMessage', 'setAnnouncement']);
+// Fora do desfazer (e mantidos ao desfazer): cronômetro, controle do vídeo, aviso, mensagem do palco e props.
+// Aviso e mensagem têm tempo para sumir, e prop é ligado de propósito: desfazer um slide não os traz de volta nem os tira.
+const NOT_UNDOABLE = new Set(['timerSet', 'timerUntil', 'timerToggle', 'timerReset', 'timerVisible', 'mediaControl', 'setStageMessage', 'setAnnouncement',
+  'showProp', 'hideProp', 'clearProps']);
 
 const snapshotOf = (s) => ({ blackout: s.blackout, layers: s.layers, textStyle: s.textStyle, next: s.stage.next });
 const restore = (s, snap) => ({
   ...s,
   blackout: snap.blackout,
-  layers: { ...snap.layers, announcement: s.layers.announcement },
+  layers: { ...snap.layers, announcement: s.layers.announcement, props: s.layers.props },
   textStyle: snap.textStyle,
   stage: { ...s.stage, next: snap.next },
 });

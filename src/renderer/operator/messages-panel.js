@@ -142,6 +142,7 @@
         templates = await api.messages.list();
         renderSelect();
       },
+      names: () => templates.map((t) => t.name),
       // A mensagem saiu do ar (tempo esgotado, tirada à mão, trocada): apaga o "No ar…".
       render(state) {
         if (!shownText || state.layers.announcement.text === shownText || state.stage.message === shownText) return;

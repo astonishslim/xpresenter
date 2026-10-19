@@ -26,6 +26,8 @@ let themePanel = null;
 let lyricsPanel = null;
 let mediaPanel = null;
 let messagesPanel = null;
+let propsPanel = null;
+let macrosPanel = null;
 const DIM_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80];
 
 const slidesOf = () => (ui.current ? ui.current.slides : []);
@@ -515,6 +517,7 @@ function renderLive(state) {
   themePanel.render(state);
   mediaPanel.renderLive(state);
   messagesPanel.render(state);
+  propsPanel.render(state);
   if (state.layers.background.kind === 'color' && document.activeElement !== $('bg-color')) $('bg-color').value = state.layers.background.value;
   $('btn-black').classList.toggle('primary', state.blackout);
   $('btn-cover').classList.toggle('primary', state.layers.cover.visible);
@@ -741,6 +744,8 @@ function bindEvents() {
       if (e.key.toLowerCase() === 'y' || e.shiftKey) api.redo(); else api.undo();
       return;
     }
+    // Alt+1…9 executa o N-ésimo macro.
+    if (e.altKey && !e.ctrlKey && !e.metaKey && /^[1-9]$/.test(e.key)) { e.preventDefault(); macrosPanel.runAt(Number(e.key) - 1); return; }
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     if (e.key === 'F2') { e.preventDefault(); openQuickEdit(ui.selected); return; }
     // Teclas de seção (1–9, C, E, P, I, F): só quando o item aberto tem essa seção.
@@ -775,6 +780,8 @@ async function init() {
   window.initAutomationPanel({ api });
   messagesPanel = window.initMessagesPanel({ api });
   window.initUsagePanel({ api });
+  propsPanel = window.initPropsPanel({ api });
+  macrosPanel = window.initMacrosPanel({ api, sources: { themes: () => themePanel.names(), props: () => propsPanel.names(), messages: () => messagesPanel.names() } });
   bindUpdate();
   // OSC: avançar/voltar precisam do contexto de slides daqui.
   api.automation.onCommand((command) => {
@@ -793,7 +800,7 @@ async function init() {
   window.addEventListener('focus', syncOutputButtons);
   window.addEventListener('resize', () => ui.state && (programStage.update(ui.state), renderPreview()));
   renderLive(await api.getState());
-  await Promise.all([window.initBiblePanel({ api, showVerses }), themePanel.load(), messagesPanel.load(), mediaPanel.refresh(), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
+  await Promise.all([window.initBiblePanel({ api, showVerses }), themePanel.load(), messagesPanel.load(), propsPanel.load(), macrosPanel.load(), mediaPanel.refresh(), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
 }
 
 init();

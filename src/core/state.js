@@ -1,5 +1,6 @@
 const { DEFAULT_TEXT_STYLE, isValidStylePatch, mergeStyle } = require('./textStyle');
 const { timerValueMs } = require('../renderer/shared/liveInfo');
+const { isValidPropFields, itemOf, MAX_ACTIVE_PROPS } = require('./propModel');
 
 const TIMER_MODES = ['countdown', 'stopwatch'];
 const TIMER_MAX_SECONDS = 24 * 60 * 60;
@@ -44,6 +45,7 @@ function initialState(look = {}) {
       content: { slide: null },
       cover: { visible: false },
       announcement: { text: null },
+      props: { items: [] }, // logo, QR, faixa: ficam fixos sobre os slides até serem desligados
     },
     textStyle: { ...(look.style || DEFAULT_TEXT_STYLE) },
     stage: { next: null, message: null },
@@ -115,6 +117,17 @@ const HANDLERS = {
       : { ...media, playing: a.command === 'play' };
     return { ...s, layers: { ...s.layers, media: next } };
   },
+  // Prop do mesmo id troca no lugar; passando de MAX_ACTIVE_PROPS, o mais antigo sai.
+  showProp: (s, a) => {
+    const item = itemOf(a.prop);
+    const items = s.layers.props.items;
+    const next = items.some((i) => i.id === item.id) ? items.map((i) => (i.id === item.id ? item : i)) : [...items, item];
+    return { ...s, layers: { ...s.layers, props: { items: next.slice(-MAX_ACTIVE_PROPS) } } };
+  },
+  hideProp: (s, a) => (s.layers.props.items.some((i) => i.id === a.id)
+    ? { ...s, layers: { ...s.layers, props: { items: s.layers.props.items.filter((i) => i.id !== a.id) } } }
+    : s),
+  clearProps: (s) => (s.layers.props.items.length ? { ...s, layers: { ...s.layers, props: { items: [] } } } : s),
   setStageMessage: (s, a) => ({ ...s, stage: { ...s.stage, message: a.text || null } }),
   blackout: (s) => ({ ...s, blackout: !s.blackout }),
   toggleCover: (s) => ({ ...s, layers: { ...s.layers, cover: { visible: !s.layers.cover.visible } } }),
@@ -156,6 +169,8 @@ function isValidBackground(bg) {
 }
 
 const isOptionalText = (v) => v == null || typeof v === 'string';
+// Prop: campos fechados; a imagem precisa ser um arquivo local sem host (mesma regra do fundo).
+const isValidProp = (prop) => isValidPropFields(prop) && (prop.kind !== 'image' || isValidBackground({ kind: 'image', value: prop.value }));
 const MEDIA_COMMANDS = ['play', 'pause', 'restart'];
 
 const REQUIRED_FIELD = {
@@ -168,6 +183,8 @@ const REQUIRED_FIELD = {
   mediaControl: (a) => MEDIA_COMMANDS.includes(a.command),
   timerSet: (a) => TIMER_MODES.includes(a.mode) && Number.isInteger(a.seconds) && a.seconds >= 0 && a.seconds <= TIMER_MAX_SECONDS,
   timerUntil: (a) => typeof a.time === 'string' && CLOCK_TIME_RE.test(a.time),
+  showProp: (a) => isValidProp(a.prop),
+  hideProp: (a) => typeof a.id === 'string' && a.id.length > 0,
   setStageMessage: (a) => typeof a.text === 'string',
   setBackground: (a) => isValidBackground(a.background),
   setTextStyle: (a) => isValidStylePatch(a.style),
@@ -193,4 +210,4 @@ function reduce(state, action) {
   return handler ? handler(state, action) : state;
 }
 
-module.exports = { initialState, reduce, isValidAction, isValidBackground, stampAction, liveKeyOf, DEFAULT_BACKGROUND };
+module.exports = { initialState, reduce, isValidAction, isValidBackground, isValidProp, stampAction, liveKeyOf, DEFAULT_BACKGROUND };

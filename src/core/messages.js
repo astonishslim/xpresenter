@@ -98,6 +98,7 @@ function createMessageLibrary(file) {
   return {
     list: () => clone(templates),
     get: (id) => clone(templates.find((t) => t.id === id) || null),
+    findByName: (name) => clone(typeof name === 'string' ? templates.find((t) => t.name.toLowerCase() === name.trim().toLowerCase()) || null : null),
     save(input) {
       const template = sanitizeTemplate(input);
       if (!template) return result(false, `Dê um nome (até ${MAX_NAME_CHARS}) e um texto (até ${MAX_TEXT_CHARS} caracteres).`);

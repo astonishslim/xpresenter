@@ -89,3 +89,23 @@ test('porta ocupada: devolve erro legível em vez de derrubar', async (t) => {
   assert.equal(res.port, null);
   assert.match(res.error, /porta/i);
 });
+
+test('entrada OSC: /macro/N chama o executor de macros com o número', async (t) => {
+  const store = createStore();
+  const ran = [];
+  const svc = createAutomationService({ store, sendToOperator: () => {}, runMacro: (n) => ran.push(n) });
+  t.after(() => svc.stop());
+  const { port } = await svc.apply({ oscIn: { enabled: true, port: 0 }, rules: [] });
+  await sendTo(port, '/xpresenter/macro/2');
+  await sendTo(port, '/xpresenter/macro/0');
+  await wait(150);
+  assert.deepEqual(ran, [2]);
+});
+
+test('sem executor de macros, /macro/N é ignorado sem erro', async (t) => {
+  const svc = createAutomationService({ store: createStore(), sendToOperator: () => {} });
+  t.after(() => svc.stop());
+  const { port } = await svc.apply({ oscIn: { enabled: true, port: 0 }, rules: [] });
+  await sendTo(port, '/xpresenter/macro/1');
+  await wait(100);
+});

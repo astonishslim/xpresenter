@@ -19,7 +19,7 @@
     slides: ['slides'],
     controls: ['controls', 'messages', 'look'],
     stage: ['stage', 'timer'],
-    playlist: ['playlist'],
+    playlist: ['playlist', 'macros', 'props'],
   };
   const sp = (c, r) => ({ c, r });
   const layout = (order, spans) => ({ order, spans, sections: SECTIONS });

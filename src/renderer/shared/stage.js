@@ -109,14 +109,43 @@
     if (!media.playing && !video.paused) video.pause();
   }
 
+  // Props (logo, QR, faixa): o conjunto só é refeito quando muda. Imagem local por <img>, texto por textContent.
+  function propNode(item) {
+    const node = el('div', 'prop');
+    node.dataset.pos = item.position;
+    node.style.setProperty('--size', String(item.size));
+    if (item.kind === 'image') {
+      const img = document.createElement('img');
+      img.src = item.value;
+      img.alt = '';
+      img.addEventListener('error', () => node.remove()); // arquivo sumiu depois de ligado: melhor nada que imagem quebrada
+      node.appendChild(img);
+    } else {
+      const label = el('span', 'prop-text');
+      label.textContent = item.value;
+      node.appendChild(label);
+    }
+    return node;
+  }
+
+  function renderProps(layer, props, last) {
+    const items = props && Array.isArray(props.items) ? props.items : [];
+    const key = JSON.stringify(items);
+    if (key === last.key) return;
+    last.key = key;
+    layer.replaceChildren(...items.map(propNode));
+  }
+
   function createStage(container, { now = () => Date.now(), audio = false } = {}) {
     const stage = el('div', 'stage');
     const mediaState = { key: '' };
+    const propsState = { key: '' };
     const layers = {
       bg: el('div', 'layer bg'),
       media: el('div', 'layer media'),
       content: el('div', 'layer content hidden'),
       caption: el('div', 'layer caption'),
+      props: el('div', 'layer props'),
       cover: el('div', 'layer cover'),
       timer: el('div', 'layer timer'),
       announcement: el('div', 'layer announcement'),
@@ -181,6 +210,7 @@
         layers.bg.classList.toggle('off', Boolean(background.hidden));
         layers.bg.style.setProperty('--bg-dim', String((background.dim || 0) / 100));
         renderMedia(layers.media, state.layers.media || null, audio, mediaState);
+        renderProps(layers.props, state.layers.props, propsState);
 
         const style = state.textStyle || FALLBACK_STYLE;
         const styleKey = JSON.stringify(style);

@@ -184,3 +184,13 @@ test('pickValues fica só com os campos do modelo', () => {
   assert.deepEqual(pickValues('{a} {b}', { b: '2', c: '3', a: 1 }), { b: '2' });
   assert.deepEqual(pickValues('{a}', null), {});
 });
+
+test('findByName acha o modelo pelo nome, sem diferenciar maiúsculas e espaços nas pontas', () => {
+  const file = tmpFile();
+  fs.writeFileSync(file, '[]');
+  const lib = createMessageLibrary(file);
+  const { templates } = lib.save({ name: 'Berçário', text: 'x' });
+  assert.equal(lib.findByName('  berçário ').id, templates[0].id);
+  assert.equal(lib.findByName('nada'), null);
+  assert.equal(lib.findByName(42), null);
+});

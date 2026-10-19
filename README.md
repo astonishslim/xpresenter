@@ -59,6 +59,37 @@ npm start
   Cronômetro, controle de vídeo, aviso e mensagem do palco não entram no desfazer e ficam como estão (um aviso que já saiu
   do ar não volta). Guarda os últimos 50 passos, só na memória.
 
+## Props
+
+Elementos **fixos sobre a projeção** que você liga e desliga com um clique, enquanto os slides passam: logo da igreja, QR
+do Pix ou das ofertas, faixa com o nome do pregador. Seção **Props** (por padrão no bloco "Culto"; use **+** para criar).
+
+- Cada prop é **imagem** (arquivo local: PNG com fundo transparente funciona bem) ou **texto** de uma linha (até 80
+  caracteres), com **posição** (quatro cantos, centro ou faixa inferior) e **tamanho**. Até 30 props salvos em `props.json`
+  e até 6 no ar ao mesmo tempo (o mais antigo sai quando entra o sétimo).
+- O botão do prop fica aceso enquanto ele está no ar. Se a imagem foi movida ou apagada, o app avisa em vez de projetar vazio.
+  Editar um prop que está no ar atualiza o ao vivo.
+- Ficam acima da legenda e **abaixo da capa e da tela preta**; **não aparecem nas saídas "só letra"** (telas da banda).
+  Não entram no desfazer: `Ctrl+Z` volta o slide, não tira nem traz de volta um prop.
+- Imagem só de arquivo local, e texto só como texto (nunca HTML nem CSS), então um `props.json` editado à mão não injeta nada.
+
+## Macros
+
+Um botão que **faz várias coisas de uma vez**. Seção **Macros** (no bloco "Culto"; **+** cria). O app vem com dois exemplos
+(**Zerar a tela** e **Contagem para as 19h**).
+
+- **Passos** (lista fechada, na ordem em que você montar): aplicar tema; ligar ou desligar um prop (ou todos); mostrar uma
+  mensagem (modelo **sem campos**) ou tirá-la; capa e tela preta (ligar/desligar); limpar o conteúdo; cronômetro (regressiva
+  em minutos, até um horário, zerar, iniciar, pausar, mostrar ou esconder na tela). Até 20 passos por macro e 30 macros.
+- **Como executar**: clique no botão do macro, `Alt+1` a `Alt+9` (a ordem da lista) ou **OSC** `/xpresenter/macro/N` (N de 1 a 99,
+  a posição do macro na lista), para Companion, Stream Deck ou mesa de luz.
+- Passos que ligam/desligam (capa, preto, cronômetro) só agem se ainda não estiverem como pedido, então rodar o macro duas
+  vezes não inverte nada. Se um passo falha (tema ou prop que não existe mais, imagem sumida), os outros continuam e o app
+  diz **quais** falharam.
+- O macro inteiro é **um passo só no desfazer** (`Ctrl+Z` desfaz tudo o que ele fez, menos cronômetro, aviso e props, que ficam
+  fora do desfazer). Cada passo passa pela mesma validação do resto do app: um `macros.json` editado à mão não faz nada que
+  você não faria pela tela.
+
 ## Relatório de uso (CCLI)
 
 - Cada música que entra **ao vivo** é registrada **uma vez por dia** (título, autor, número CCLI, data e hora) em `usage.jsonl`

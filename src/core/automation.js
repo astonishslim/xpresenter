@@ -32,13 +32,16 @@ const INPUT_MAP = {
   'media/pause': { kind: 'action', action: { type: 'mediaControl', command: 'pause' } },
   'media/restart': { kind: 'action', action: { type: 'mediaControl', command: 'restart' } },
 };
-const INPUT_COMMANDS = Object.keys(INPUT_MAP).map((k) => `${PREFIX}/${k}`);
+const MACRO_RE = /^macro\/([1-9]\d?)$/; // /xpresenter/macro/N: o N-ésimo macro (1 a 99)
+const INPUT_COMMANDS = [...Object.keys(INPUT_MAP).map((k) => `${PREFIX}/${k}`), `${PREFIX}/macro/N (N = 1 a 99, a ordem dos macros)`];
 
 function commandFor(address) {
   if (typeof address !== 'string') return null;
   const prefix = PREFIXES.find((p) => address.startsWith(`${p}/`));
   if (!prefix) return null;
   const key = address.slice(prefix.length + 1);
+  const macro = key.match(MACRO_RE);
+  if (macro) return { kind: 'macro', index: Number(macro[1]) };
   if (!Object.hasOwn(INPUT_MAP, key)) return null;
   const hit = INPUT_MAP[key];
   return hit.kind === 'action' ? { kind: 'action', action: { ...hit.action } } : { ...hit };

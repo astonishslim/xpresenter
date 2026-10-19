@@ -20,6 +20,17 @@ contextBridge.exposeInMainWorld('apresentador', {
     search: (query) => invoke('songs:search', query),
     editSlide: (songId, label, oldText, newText) => invoke('songs:editSlide', { songId, label, oldText, newText }),
   },
+  props: {
+    list: () => invoke('props:list'),
+    save: (prop) => invoke('props:save', prop),
+    remove: (id) => invoke('props:remove', id),
+  },
+  macros: {
+    list: () => invoke('macros:list'),
+    save: (macro) => invoke('macros:save', macro),
+    remove: (id) => invoke('macros:remove', id),
+    run: (id) => invoke('macros:run', id),
+  },
   usage: {
     list: (period) => invoke('usage:list', period),
     export: (period) => invoke('usage:export', period),

@@ -18,6 +18,10 @@ const { initialState, liveKeyOf, isValidAction } = require('../core/state');
 const { registerIpc } = require('./ipc');
 const { registerAutomationIpc } = require('./automationIpc');
 const { registerMessageIpc } = require('./messageIpc');
+const { registerPropIpc } = require('./propIpc');
+const { registerMacroIpc } = require('./macroIpc');
+const { createPropLibrary } = require('../core/propLibrary');
+const { createMacroLibrary, createMacroRunner } = require('../core/macros');
 const { registerUsageIpc } = require('./usageIpc');
 const { createUsageLog, createUsageTracker } = require('../core/usageLog');
 const { createMessageLibrary, createMessageRunner } = require('../core/messages');
@@ -208,14 +212,38 @@ async function start() {
       return { url: `${base}/?t=${token}`, stageUrl: `${base}/stage.html?t=${token}`, liveUrl: `${base}/live.html?t=${token}` };
     },
   });
+  const messages = createMessageLibrary(path.join(userDataDir, 'messages.json'));
+  const messageRunner = createMessageRunner({ dispatch: store.dispatch, getState: store.getState });
+  registerMessageIpc({ messages, runner: messageRunner });
+
+  // Props (logo, QR, faixa) e macros (um botão que faz várias coisas).
+  const props = createPropLibrary(path.join(userDataDir, 'props.json'));
+  registerPropIpc({ props });
+  const macros = createMacroLibrary(path.join(userDataDir, 'macros.json'));
+  const macroRunner = createMacroRunner({
+    dispatch: store.dispatch,
+    getState: store.getState,
+    themeActions: (name) => {
+      const theme = themes.get(name);
+      return theme ? themeActions(theme) : null;
+    },
+    getProp: props.findByName,
+    getMessage: messages.findByName,
+    messages: messageRunner,
+  });
+  registerMacroIpc({ macros, runner: macroRunner });
+
   const automation = registerAutomationIpc({
     store,
     file: path.join(userDataDir, 'automation.json'),
     getWindow: () => operator,
     step: (delta) => stepLive({ store, library, themes }, delta),
+    // OSC /xpresenter/macro/N: o N-ésimo macro da lista.
+    runMacro: (n) => {
+      const macro = macros.list()[n - 1];
+      if (macro) macroRunner.run(macro);
+    },
   });
-  const messageRunner = createMessageRunner({ dispatch: store.dispatch, getState: store.getState });
-  registerMessageIpc({ messages: createMessageLibrary(path.join(userDataDir, 'messages.json')), runner: messageRunner });
   // Relatório de uso (CCLI): cada música que entra ao vivo é gravada uma vez por dia.
   const usageLog = createUsageLog(path.join(userDataDir, 'usage.jsonl'));
   registerUsageIpc({ log: usageLog, getWindow: () => operator });

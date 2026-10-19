@@ -310,6 +310,16 @@
           <p id="import-msg" class="muted" role="status"></p>
           <ol id="playlist" class="list"></ol>
         </details>
+        <details class="fold" data-key="macros" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="zap"></span>Macros</span><button id="btn-macro-new" class="ib" type="button" data-icon="plus" title="Novo macro" aria-label="Novo macro"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Macros" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <ul id="macro-list" class="list macro-list"></ul>
+          <p id="macro-status" class="muted" role="status"></p>
+        </details>
+        <details class="fold" data-key="props" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="picture-in-picture-2"></span>Props</span><button id="btn-prop-new" class="ib" type="button" data-icon="plus" title="Novo prop (logo, QR do Pix, faixa com o nome)" aria-label="Novo prop"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Props" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <div id="prop-list" class="row wrap prop-chips"></div>
+          <p id="prop-status" class="muted error-soft" role="status"></p>
+        </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
@@ -373,6 +383,51 @@
       <p id="msg-ed-error" class="error" role="alert"></p>
       <div class="row end">
         <button id="msg-ed-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="prop-dialog">
+    <form id="prop-form" method="dialog">
+      <h3>Prop</h3>
+      <input id="prop-name" placeholder="Nome (ex.: Logo, QR do Pix, Pregador)" maxlength="40" autocomplete="off" aria-label="Nome do prop" />
+      <div class="row">
+        <select id="prop-kind" aria-label="Tipo do prop">
+          <option value="image">Imagem</option>
+          <option value="text">Texto</option>
+        </select>
+        <input id="prop-text" maxlength="80" placeholder="Texto do prop (uma linha)" autocomplete="off" aria-label="Texto do prop" hidden />
+        <button id="prop-pick" type="button" data-icon="image">Escolher imagem…</button>
+      </div>
+      <p id="prop-file" class="muted"></p>
+      <div class="row">
+        <select id="prop-position" aria-label="Posição na tela"></select>
+        <select id="prop-size" aria-label="Tamanho"></select>
+      </div>
+      <p class="muted">O prop fica fixo sobre os slides até você desligar. Some com a tela preta e com a capa, e não aparece nas telas "só letra".</p>
+      <p id="prop-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="prop-delete" type="button" class="danger" hidden>Excluir</button>
+        <button id="prop-cancel" type="button">Cancelar</button>
+        <button class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="macro-dialog" class="wide">
+    <form id="macro-form" method="dialog">
+      <h3>Macro</h3>
+      <input id="macro-name" placeholder="Nome (ex.: Início do culto)" maxlength="40" autocomplete="off" aria-label="Nome do macro" />
+      <p class="muted">Os passos rodam na ordem, de uma vez só (um Ctrl+Z desfaz tudo). Se um passo falhar, os outros continuam e o app avisa qual falhou.
+        Execute pelo botão, por <b>Alt+1…9</b> (a ordem da lista) ou por OSC: <code class="inline">/xpresenter/macro/N</code>.
+        Atenção: criar ou excluir macros muda esses números para os macros seguintes (reveja os botões do Companion/Stream Deck).</p>
+      <div id="macro-steps"></div>
+      <button id="macro-step-add" type="button" data-icon="plus">Adicionar passo</button>
+      <p id="macro-error" class="error" role="alert"></p>
+      <div class="row end">
+        <button id="macro-delete" type="button" class="danger" hidden>Excluir</button>
+        <button id="macro-cancel" type="button">Cancelar</button>
         <button class="primary" type="submit">Salvar</button>
       </div>
     </form>
@@ -526,7 +581,10 @@
   <script src="media-panel.js"></script>
   <script src="outputs-panel.js"></script>
   <script src="automation-panel.js"></script>
+  <script src="../shared/macroSteps.js"></script>
   <script src="messages-panel.js"></script>
+  <script src="props-panel.js"></script>
+  <script src="macros-panel.js"></script>
   <script src="usage-panel.js"></script>
   <script type="module" src="import-panel.mjs"></script>
   <script src="operator.js"></script>

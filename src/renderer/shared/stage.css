@@ -68,3 +68,15 @@
 /* Só com caixa ligada o texto ganha fundo e respiro: sem ela, o encaixe dos temas existentes não muda. */
 .stage[data-box="on"] .text { box-sizing: border-box; background: rgba(0, 0, 0, var(--box, 0)); padding: 0 .35em; border-radius: .25em; }
 .stage[data-blur="on"] .bg { filter: blur(calc(var(--blur, 0) * 1cqh)); transform: scale(1.1); } /* a escala esconde a borda transparente do desfoque */
+
+/* Props: elementos fixos sobre os slides (logo, QR do Pix, faixa com o nome). Acima da legenda, abaixo da capa. */
+.stage .props { pointer-events: none; }
+.stage .prop { position: absolute; display: flex; align-items: center; justify-content: center; }
+.stage .prop[data-pos="top-left"] { top: 3cqh; left: 3cqw; }
+.stage .prop[data-pos="top-right"] { top: 3cqh; right: 3cqw; }
+.stage .prop[data-pos="bottom-left"] { bottom: 3cqh; left: 3cqw; }
+.stage .prop[data-pos="bottom-right"] { bottom: 3cqh; right: 3cqw; }
+.stage .prop[data-pos="center"] { inset: 0; }
+.stage .prop[data-pos="lower-third"] { left: 0; right: 0; bottom: 8cqh; }
+.stage .prop img { width: calc(var(--size, 20) * 1cqw); max-width: 90cqw; max-height: 85cqh; height: auto; object-fit: contain; }
+.stage .prop-text { max-width: 94cqw; padding: .25em .7em; border-radius: .25em; background: rgba(0, 0, 0, .6); color: #fff; font-size: calc(var(--size, 30) * .2cqh); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 .2cqh 1cqh rgba(0, 0, 0, .7); }

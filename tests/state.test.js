@@ -6,7 +6,7 @@ const slide = { label: 'Verso', text: 'Olá' };
 
 test('estado inicial tem as 5 camadas e não está em blackout', () => {
   const s = initialState();
-  assert.deepEqual(Object.keys(s.layers), ['background', 'media', 'content', 'cover', 'announcement']);
+  assert.deepEqual(Object.keys(s.layers), ['background', 'media', 'content', 'cover', 'announcement', 'props']);
   assert.equal(s.blackout, false);
 });
 
