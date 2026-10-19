@@ -9,6 +9,8 @@
   const isEditing = () => document.body.classList.contains('editing-layout');
   const KEY_DELTA = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
   const DRAG_MIME = 'application/x-apresentador-layout';
+  const MARKS = ['dragging', 'drop-target', 'drop-end', 'drop-before', 'drop-after', 'land-before', 'land-after'];
+  const clearDragMarks = () => document.querySelectorAll(MARKS.map((c) => `.${c}`).join(', ')).forEach((n) => n.classList.remove(...MARKS));
 
   const $ = (id) => document.getElementById(id);
   const tileEl = (id) => $(`tile-${id}`);
@@ -89,8 +91,7 @@
   function bindDrag(ctl) {
     const M = root.layoutModel;
     let drag = null; // { kind: 'tile' | 'section', id }
-    const clearMarks = () => document.querySelectorAll('.dragging, .drop-target, .drop-end, .drop-before, .drop-after')
-      .forEach((n) => n.classList.remove('dragging', 'drop-target', 'drop-end', 'drop-before', 'drop-after'));
+    const clearMarks = clearDragMarks;
     const start = (e, kind, id, el) => {
       drag = { kind, id };
       e.dataTransfer.setData(DRAG_MIME, `${kind}:${id}`);
@@ -112,7 +113,12 @@
         if (!drag || (drag.kind === 'tile' && drag.id === tileId)) return;
         e.preventDefault();
         clearMarks();
-        (drag.kind === 'tile' ? tile : tile.querySelector('.tile-body')).classList.add(drag.kind === 'tile' ? 'drop-target' : 'drop-end');
+        if (drag.kind === 'tile') {
+          // Linha suave na borda onde o bloco vai encaixar (antes ou depois do alvo).
+          tile.classList.add(`land-${M.dropSide(ctl.get().order, drag.id, tileId)}`);
+        } else {
+          tile.querySelector('.tile-body').classList.add('drop-end');
+        }
       });
       tile.addEventListener('drop', (e) => {
         if (!drag) return;
@@ -296,8 +302,7 @@
       btn.title = on ? 'Concluir a edição dos painéis' : 'Editar painéis: mostrar as alças de mover e redimensionar';
       btn.setAttribute('aria-label', on ? 'Concluir edição dos painéis' : 'Editar painéis');
       if (!on) {
-        document.querySelectorAll('.dragging, .drop-target, .drop-end, .drop-before, .drop-after')
-          .forEach((n) => n.classList.remove('dragging', 'drop-target', 'drop-end', 'drop-before', 'drop-after'));
+        clearDragMarks();
       }
     };
     btn.addEventListener('click', () => setEditing(!isEditing()));

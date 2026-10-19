@@ -190,7 +190,7 @@ Um botão que **faz várias coisas de uma vez**. Seção **Macros** (no bloco "C
 - **Retorno de palco** (para banda e pregador): slide atual, próximo, relógio, aviso de tela preta e mensagem livre.
   Abre em tela cheia no monitor escolhido ou em janela. Também funciona em tablet/celular: botão **Remoto** mostra o link.
 - **Grade bento**: a tela do operador é uma grade de 12 colunas com blocos de tamanhos variados.
-  - **Mover bloco**: arraste a alça ⠿ do bloco sobre outro (ele toma o lugar do alvo), ou foque a alça e use as setas.
+  - **Mover bloco**: arraste a alça ⠿ do bloco sobre outro (ele toma o lugar do alvo; uma **linha azul suave** na borda do alvo mostra onde ele vai encaixar: à esquerda, antes; à direita, depois), ou foque a alça e use as setas.
   - **Redimensionar**: arraste a **borda direita** (só a largura), a **borda de baixo** (só a altura) ou o **canto** ◢ (as duas); tudo encaixa nas células da grade.
     Perto do máximo o bloco **encaixa no tamanho cheio**. **Duplo clique** numa borda (ou **Home** com o foco nela) alterna entre largura/altura total e o tamanho anterior;
     no canto, duplo clique restaura o padrão. Pelo teclado, foque a alça e use as setas.

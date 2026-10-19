@@ -34,7 +34,10 @@ body.resizing-r, body.resizing-r * { cursor: ns-resize !important; }
 .grip:hover, .grip:focus-visible { color: var(--text); border-color: var(--accent); outline: none; background: none; }
 .grip:active { cursor: grabbing; }
 .tile.dragging, .fold.dragging { opacity: .5; }
-.tile.drop-target { outline: 2px dashed var(--accent); outline-offset: -2px; }
+/* Onde o bloco arrastado vai encaixar: uma linha suave na borda do bloco alvo (esquerda = antes, direita = depois). */
+.tile.land-before::after, .tile.land-after::after { content: ''; position: absolute; top: 6px; bottom: 6px; width: 4px; border-radius: 4px; background: var(--accent); box-shadow: 0 0 12px 3px rgba(79, 140, 255, .55); pointer-events: none; z-index: 3; }
+.tile.land-before::after { left: 3px; }
+.tile.land-after::after { right: 3px; }
 .tile-body.drop-end { box-shadow: inset 0 -3px 0 var(--accent); }
 .fold.drop-before { box-shadow: 0 -3px 0 var(--accent); }
 .fold.drop-after { box-shadow: 0 3px 0 var(--accent); }

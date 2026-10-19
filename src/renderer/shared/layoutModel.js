@@ -51,6 +51,14 @@
     return rest;
   }
 
+  // De que lado do alvo o bloco arrastado cai: indo para trás entra antes do alvo, indo para frente entra depois.
+  function dropSide(order, id, targetId) {
+    const from = order.indexOf(id);
+    const to = order.indexOf(targetId);
+    if (from < 0 || to < 0 || from === to) return null;
+    return from > to ? 'before' : 'after';
+  }
+
   function move(order, id, delta) {
     const i = order.indexOf(id);
     const j = i + delta;
@@ -97,5 +105,5 @@
     return next;
   }
 
-  return { MIN_SPAN, MAX_SPAN, SNAP_CELLS, snapToFull, toggleFull, resizeAxis, clampSpan, spanFromPixels, isValidOrder, resolveOrder, moveTo, move, resolveSpans, resolveSections, moveSection };
+  return { MIN_SPAN, MAX_SPAN, SNAP_CELLS, snapToFull, toggleFull, resizeAxis, clampSpan, spanFromPixels, isValidOrder, resolveOrder, moveTo, dropSide, move, resolveSpans, resolveSections, moveSection };
 }));

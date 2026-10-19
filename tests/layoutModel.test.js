@@ -125,3 +125,22 @@ test('resizeAxis: muda só o eixo pedido; o canto muda os dois', () => {
   assert.deepEqual(m.resizeAxis({ c: 4, r: 5 }, 'both', 7, 9), { c: 7, r: 9 });
   assert.deepEqual(m.resizeAxis({ c: 4, r: 5 }, 'c', 99), { c: 12, r: 5 });
 });
+
+test('dropSide: em que lado do alvo o bloco arrastado vai parar (o que moveTo faz)', () => {
+  const order = ['a', 'b', 'c', 'd'];
+  assert.equal(m.dropSide(order, 'a', 'c'), 'after');
+  assert.equal(m.dropSide(order, 'd', 'b'), 'before');
+  assert.equal(m.dropSide(order, 'b', 'b'), null);
+  assert.equal(m.dropSide(order, 'x', 'b'), null);
+  assert.equal(m.dropSide(order, 'a', 'z'), null);
+});
+
+test('dropSide combina com moveTo: "before" fica antes do alvo, "after" depois', () => {
+  const order = ['a', 'b', 'c', 'd'];
+  [['a', 'c'], ['d', 'b'], ['b', 'a'], ['c', 'd']].forEach(([id, target]) => {
+    const next = m.moveTo(order, id, target);
+    const side = m.dropSide(order, id, target);
+    const gap = next.indexOf(id) - next.indexOf(target);
+    assert.equal(gap, side === 'after' ? 1 : -1);
+  });
+});
