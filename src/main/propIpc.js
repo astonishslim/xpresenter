@@ -1,4 +1,4 @@
-﻿const { ipcMain } = require('electron');
+const { ipcMain } = require('electron');
 
 // Lista de props da biblioteca. Ligar e desligar no ar vai pelo state:dispatch (showProp/hideProp), que valida
 // a ação e confere se o arquivo da imagem ainda existe.

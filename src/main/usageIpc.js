@@ -1,4 +1,4 @@
-﻿const { ipcMain, dialog } = require('electron');
+const { ipcMain, dialog } = require('electron');
 const fs = require('node:fs');
 const { toCsv, isValidDate } = require('../core/usageLog');
 

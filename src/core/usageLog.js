@@ -1,4 +1,4 @@
-﻿// Registro de uso das músicas, para o relatório da licença (CCLI): cada música que entra ao vivo é gravada uma vez
+// Registro de uso das músicas, para o relatório da licença (CCLI): cada música que entra ao vivo é gravada uma vez
 // por dia. Um arquivo de linhas JSON (usage.jsonl), só de acréscimo; o relatório sai em CSV para planilha.
 const fs = require('node:fs');
 const path = require('node:path');

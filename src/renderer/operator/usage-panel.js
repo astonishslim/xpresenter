@@ -1,4 +1,4 @@
-﻿/* global window */
+/* global window */
 // Relatório de uso das músicas (CCLI): escolhe o período, confere a lista e exporta para planilha (CSV).
 // Os dados ficam no processo principal (usage.jsonl); aqui só se pede a lista e a exportação.
 (function exposeUsagePanel(root) {

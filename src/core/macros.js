@@ -1,4 +1,4 @@
-﻿// Macros: um botão que faz várias coisas (aplicar tema, ligar props, mostrar mensagem, capa, cronômetro…).
+// Macros: um botão que faz várias coisas (aplicar tema, ligar props, mostrar mensagem, capa, cronômetro…).
 // Os passos são uma lista fechada (macroSteps.js); cada um vira ações validadas do estado, então um macro
 // editado à mão no macros.json não faz nada que o operador não pudesse fazer pela tela.
 const fs = require('node:fs');

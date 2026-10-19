@@ -1,4 +1,4 @@
-﻿// Biblioteca de props (props.json): logo, QR do Pix, faixa com nome. Ligar e desligar no ar é feito
+// Biblioteca de props (props.json): logo, QR do Pix, faixa com nome. Ligar e desligar no ar é feito
 // pelas ações showProp/hideProp do estado; aqui só se guarda a lista, validada como o resto.
 const fs = require('node:fs');
 const path = require('node:path');

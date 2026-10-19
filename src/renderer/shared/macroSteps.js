@@ -1,4 +1,4 @@
-﻿// Passos que um macro pode ter (lista fechada): o núcleo valida e executa, o operador monta o editor com isto.
+// Passos que um macro pode ter (lista fechada): o núcleo valida e executa, o operador monta o editor com isto.
 // value: o que o passo recebe (name = nome de algo salvo; minutes; time = HH:MM; null = nada).
 // source: de onde vem a lista de nomes no editor (themes, props, messages).
 (function defineMacroSteps(root, factory) {

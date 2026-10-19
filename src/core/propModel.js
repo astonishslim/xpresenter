@@ -1,4 +1,4 @@
-﻿// Props: elementos fixos sobre a projeção (logo, QR do Pix, faixa com o nome do pregador).
+// Props: elementos fixos sobre a projeção (logo, QR do Pix, faixa com o nome do pregador).
 // Só valores fechados: o prop vai para a tela por atributos e textContent, nunca como HTML ou CSS livre.
 // A imagem (arquivo local) é validada por quem usa (state.js), junto com as regras de fundo.
 const KINDS = ['image', 'text'];
