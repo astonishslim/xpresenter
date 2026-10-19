@@ -15,8 +15,14 @@ npm start
    Acordes inline como `[Am]` são ignorados na projeção.
 2. **Projetar** abre a saída: em tela cheia no monitor externo, ou em janela se houver um só monitor.
 3. Clique num slide para colocá-lo ao vivo. Atalhos: `→`/`Espaço` próximo, `←` anterior, `B` preto, `Esc` limpar.
-4. **Bíblia**: digite `João 3:16-17`. Importe sua versão em JSON (`{ name, books: [{ name, abbrev, chapters: [[versos]] }] }`).
-   O app vem só com uma amostra mínima.
+4. **Bíblia**: escolha a versão e digite uma referência (`João 3:16-17`, `1 Co 13:4-7`, `Salmo 23`) **ou palavras**
+   (`amou o mundo`, `"assim amou Deus"` para frase exata). A busca ignora acentos e maiúsculas. Clique num resultado para
+   abrir a passagem; cada verso vira um slide com a versão no rótulo (`João 3:16 · TB`).
+   - **Incluídas** (livres): Tradução Brasileira (TB), Almeida 1911 (ALM1911) e Bíblia Livre (BLIVRE, CC BY 3.0 BR, com atribuição
+     obrigatória exibida no app). Fonte e licenças em `data/bibles/SOURCES.md`; para atualizar: `npm run bibles`.
+   - **Importar** outras versões: botão de importar ou **arraste o arquivo** para a seção Bíblia. Aceita JSON (lista de livros,
+     um arquivo por livro como o `damarals/biblias`, ou o formato do app) e **Zefania XML**. Versões importadas podem ser removidas.
+   - ARA, ARC, NVI, NAA, NTLH e outras são de editoras: **não vêm no app**. Importe somente arquivos que você tenha o direito de usar.
 5. **Culto** é a ordem do culto (músicas e versículos); reordene e remova.
 6. **Remoto** mostra um endereço para abrir no celular (mesma rede Wi-Fi). O endereço contém um token novo a cada execução.
 

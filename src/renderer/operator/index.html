@@ -54,11 +54,17 @@
         <details class="fold" data-key="bible" open>
           <summary><span class="fold-title"><span class="ico" data-icon="book-open"></span>Bíblia</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Bíblia" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
-            <input id="verse-ref" placeholder="Ex.: João 3:16-17" aria-label="Referência bíblica" />
-            <button id="btn-verse" class="ib" type="button" data-icon="search" title="Buscar versículo" aria-label="Buscar versículo"></button>
+            <select id="bible-version" aria-label="Versão da Bíblia"></select>
+            <button id="btn-bible-remove" class="ib danger" type="button" data-icon="trash" hidden title="Remover esta versão importada" aria-label="Remover versão importada"></button>
+            <button id="btn-import-bible" class="ib" type="button" data-icon="file-up" title="Importar uma versão (JSON ou Zefania XML). Você também pode soltar o arquivo aqui." aria-label="Importar versão da Bíblia"></button>
           </div>
-          <button id="btn-import-bible" class="link" type="button" data-icon="file-up" data-icon-size="12"><span class="label">Importar versão da Bíblia (JSON)</span></button>
-          <p id="verse-msg" class="muted"></p>
+          <p id="bible-license" class="muted"></p>
+          <div class="row">
+            <input id="verse-ref" placeholder="João 3:16-17  ou  palavras: amou o mundo" aria-label="Referência bíblica ou palavras a buscar" autocomplete="off" />
+            <button id="btn-verse" class="ib" type="button" data-icon="search" title="Buscar (referência ou palavras)" aria-label="Buscar versículo"></button>
+          </div>
+          <p id="verse-msg" class="muted" role="status"></p>
+          <ul id="bible-results" class="list results"></ul>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
@@ -196,6 +202,7 @@
   <script src="../shared/layoutPresets.js"></script>
   <script src="layout.js"></script>
   <script src="presets.js"></script>
+  <script src="bible-panel.js"></script>
   <script src="operator.js"></script>
 </body>
 </html>

@@ -138,13 +138,13 @@ async function removePlaylist(id) {
 }
 
 // ---------- Bíblia ----------
-async function searchVerse() {
-  const result = await api.bible.lookup($('verse-ref').value);
-  $('verse-msg').textContent = result ? `Versão: ${result.version}` : 'Referência não encontrada.';
-  if (!result) return;
+// Coloca uma passagem nos Slides: um slide por verso, com a versão no rótulo (ex.: "João 3:16 · TB").
+function showVerses(result) {
   const chapterRef = result.reference.slice(0, result.reference.lastIndexOf(':'));
-  const slides = result.verses.map((v, index) => ({ index, label: `${chapterRef}:${v.number}`, text: v.text }));
-  setCurrent({ title: result.reference, slides, songId: null, verse: true, key: `verse-${result.reference}` });
+  const suffix = result.code ? ` · ${result.code}` : '';
+  const slides = result.verses.map((v, index) => ({ index, label: `${chapterRef}:${v.number}${suffix}`, text: v.text }));
+  const title = `${result.reference}${suffix}`;
+  setCurrent({ title, slides, songId: null, verse: true, key: `verse-${title}` });
   $('btn-add-playlist').disabled = false;
 }
 
@@ -201,12 +201,6 @@ function bindEvents() {
   $('search').addEventListener('input', (e) => { ui.filter = e.target.value; renderSongs(); });
   $('btn-new').addEventListener('click', () => openEditor(null));
   $('btn-edit').addEventListener('click', () => ui.current && ui.current.song && openEditor(ui.current.song));
-  $('btn-verse').addEventListener('click', searchVerse);
-  $('verse-ref').addEventListener('keydown', (e) => e.key === 'Enter' && searchVerse());
-  $('btn-import-bible').addEventListener('click', async () => {
-    const r = await api.bible.import();
-    $('verse-msg').textContent = r.ok ? `Bíblia importada: ${r.name}` : `Importação: ${r.reason}`;
-  });
   $('btn-add-playlist').addEventListener('click', async () => {
     const cur = ui.current;
     if (!cur) return;
@@ -295,7 +289,7 @@ async function init() {
   window.addEventListener('focus', syncOutputButtons);
   window.addEventListener('resize', () => ui.state && (programStage.update(ui.state), renderPreview()));
   renderLive(await api.getState());
-  await Promise.all([refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
+  await Promise.all([window.initBiblePanel({ api, showVerses }), refreshSongs(), refreshPlaylist(), syncOutputButtons(), loadDisplays()]);
 }
 
 init();

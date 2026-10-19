@@ -1,4 +1,5 @@
 const { app, BrowserWindow } = require('electron');
+const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
@@ -6,10 +7,11 @@ const { createStore } = require('../core/store');
 const { createLibrary } = require('../core/library');
 const { createRemoteServer } = require('../core/remoteServer');
 const { createOperatorWindow, createOutputWindows, createStageWindow } = require('./windows');
+const { createBibleLibrary } = require('../core/bibleLibrary');
 const { registerIpc } = require('./ipc');
 
 const REMOTE_PORT = 5151;
-const SAMPLE_BIBLE = path.join(__dirname, '..', '..', 'data', 'bible-sample.json');
+const BUILTIN_BIBLES = path.join(__dirname, '..', '..', 'data', 'bibles');
 
 function lanAddress() {
   for (const list of Object.values(os.networkInterfaces())) {
@@ -56,10 +58,24 @@ function createStageManager() {
   };
 }
 
+// A versão anterior guardava uma única Bíblia importada em userData/bible.json: passa a ser mais uma versão.
+function migrateLegacyBible(bibles, userDataDir) {
+  const legacy = path.join(userDataDir, 'bible.json');
+  if (!fs.existsSync(legacy)) return;
+  try {
+    bibles.importText(fs.readFileSync(legacy, 'utf8'), 'importada-antes.json');
+    fs.renameSync(legacy, `${legacy}.migrada`);
+  } catch (err) {
+    console.error(`[bíblia] não foi possível migrar ${legacy}: ${err.message}`);
+  }
+}
+
 async function start() {
   const userDataDir = app.getPath('userData');
   const store = createStore();
   const library = createLibrary(path.join(userDataDir, 'library.json'));
+  const bibles = createBibleLibrary({ builtinDir: BUILTIN_BIBLES, userDir: path.join(userDataDir, 'bibles') });
+  migrateLegacyBible(bibles, userDataDir);
   const outputs = createOutputManager(store);
   const stageMonitor = createStageManager();
 
@@ -87,8 +103,7 @@ async function start() {
     library,
     outputs,
     stageMonitor,
-    userDataDir,
-    sampleBible: SAMPLE_BIBLE,
+    bibles,
     getWindow: () => operator,
     remoteInfo: () => {
       const base = `http://${lanAddress()}:${port}`;

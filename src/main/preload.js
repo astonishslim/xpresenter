@@ -23,8 +23,12 @@ contextBridge.exposeInMainWorld('apresentador', {
     move: (id, index) => invoke('playlist:move', { id, index }),
   },
   bible: {
-    lookup: (reference) => invoke('bible:lookup', reference),
+    versions: () => invoke('bible:versions'),
+    lookup: (version, reference) => invoke('bible:lookup', { version, reference }),
+    search: (version, query) => invoke('bible:search', { version, query }),
     import: () => invoke('bible:import'),
+    importText: (content, fileName) => invoke('bible:importText', { content, fileName }),
+    remove: (code) => invoke('bible:remove', code),
   },
   outputs: { toggle: () => invoke('outputs:toggle'), isOpen: () => invoke('outputs:isOpen') },
   remote: { info: () => invoke('remote:info') },

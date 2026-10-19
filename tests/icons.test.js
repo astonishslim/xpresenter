@@ -9,7 +9,7 @@ const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 const REMOTE = path.join(__dirname, '..', 'src', 'remote');
 const html = read('operator', 'index.html');
 const remoteHtml = ['index.html', 'stage.html'].map((f) => fs.readFileSync(path.join(REMOTE, f), 'utf8')).join('\n');
-const scripts = ['operator.js', 'presets.js', 'layout.js'].map((f) => read('operator', f)).join('\n');
+const scripts = ['operator.js', 'presets.js', 'layout.js', 'bible-panel.js'].map((f) => read('operator', f)).join('\n');
 
 const usedInHtml = [...(html + remoteHtml).matchAll(/data-icon="([a-z0-9-]+)"/g)].map((m) => m[1]);
 // Formas usadas no JS: icon('x'), miniButton('x', ...), setIcon(el, 'x') e setIcon(el, cond ? 'x' : 'y').
