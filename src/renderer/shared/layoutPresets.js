@@ -17,8 +17,8 @@
     preview: ['preview'],
     program: ['program'],
     slides: ['slides'],
-    controls: ['controls'],
-    stage: ['stage'],
+    controls: ['controls', 'look'],
+    stage: ['stage', 'timer'],
     playlist: ['playlist'],
   };
   const sp = (c, r) => ({ c, r });

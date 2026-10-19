@@ -50,18 +50,21 @@
 
   const flatten = (sections) => Object.values(sections).flat();
 
+  // Layout salvo numa versão anterior continua valendo: seções que não existem mais saem e as novas
+  // entram no fim do bloco onde ficam por padrão. Estrutura quebrada (bloco faltando, repetição) volta ao padrão.
   function resolveSections(saved, defaults) {
     const tileIds = Object.keys(defaults);
     const copy = (src) => Object.fromEntries(tileIds.map((t) => [t, [...src[t]]]));
-    const valid = saved && typeof saved === 'object'
+    const structureOk = saved && typeof saved === 'object'
       && Object.keys(saved).length === tileIds.length
       && tileIds.every((t) => Array.isArray(saved[t]))
-      && (() => {
-        const all = flatten(saved);
-        const expected = flatten(defaults);
-        return all.length === expected.length && new Set(all).size === all.length && expected.every((k) => all.includes(k));
-      })();
-    return copy(valid ? saved : defaults);
+      && new Set(flatten(saved)).size === flatten(saved).length;
+    if (!structureOk) return copy(defaults);
+    const known = new Set(flatten(defaults));
+    const kept = Object.fromEntries(tileIds.map((t) => [t, saved[t].filter((k) => known.has(k))]));
+    const present = new Set(flatten(kept));
+    tileIds.forEach((t) => defaults[t].forEach((k) => { if (!present.has(k)) kept[t].push(k); }));
+    return kept;
   }
 
   function moveSection(sections, key, toTile, refKey, after) {

@@ -121,7 +121,7 @@
       <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="controls" open>
-          <summary><span class="fold-title"><span class="ico" data-icon="sliders-horizontal"></span>Aviso, fundo e tema</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Aviso, fundo e tema" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="sliders-horizontal"></span>Aviso e fundo</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Aviso e fundo" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
             <input id="announce" placeholder="Aviso na parte inferior…" aria-label="Aviso na parte inferior" />
             <button id="btn-announce" class="ib" type="button" data-icon="megaphone" title="Enviar aviso" aria-label="Enviar aviso"></button>
@@ -135,6 +135,9 @@
               <select id="bg-dim" aria-label="Escurecer o fundo"></select>
             </label>
           </div>
+        </details>
+        <details class="fold" data-key="look" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="swatch-book"></span>Tema e texto</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Tema e texto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
             <label class="preset-box theme-box" title="Tema: fundo e estilo do texto salvos com um nome">
               <span class="ico" data-icon="swatch-book"></span>
@@ -212,6 +215,10 @@
             <button id="btn-stage-msg" class="ib" type="button" data-icon="send" title="Enviar mensagem" aria-label="Enviar mensagem"></button>
             <button id="btn-stage-clear" class="ib" type="button" data-icon="x" title="Limpar mensagem" aria-label="Limpar mensagem"></button>
           </div>
+          <p class="muted">Mostra agora, próximo, relógio, cronômetro e mensagem. Também abre em tablet/celular pelo botão de controle remoto.</p>
+        </details>
+        <details class="fold" data-key="timer" open>
+          <summary><span class="fold-title"><span class="ico" data-icon="timer"></span>Cronômetro</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Cronômetro" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row timer-row">
             <span id="timer-readout" class="timer-readout" role="timer" aria-live="off">05:00</span>
             <select id="timer-mode" aria-label="Tipo de cronômetro" title="Tipo">
@@ -226,7 +233,6 @@
             <button id="btn-timer-visible" class="ib" type="button" data-icon="tv" aria-pressed="false" title="Mostrar na projeção" aria-label="Mostrar cronômetro na projeção"></button>
             <span class="muted">No retorno aparece sempre que estiver em uso.</span>
           </div>
-          <p class="muted">Mostra agora, próximo, relógio, cronômetro e mensagem. Também abre em tablet/celular pelo botão de controle remoto.</p>
         </details>
       </div>
       <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>

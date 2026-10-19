@@ -60,9 +60,15 @@ test('resolveSpans mescla o salvo com o padrão e normaliza valores inválidos',
 
 const DEF = { t1: ['s1', 's2'], t2: ['s3'], t3: [] };
 
-test('resolveSections aceita o salvo só com exatamente as mesmas seções e blocos', () => {
+test('resolveSections migra layout salvo: seção nova entra no bloco padrão; seção extinta sai', () => {
+  // s2 é "nova" (não existia quando o layout foi salvo): vai para t1, onde fica por padrão, sem desfazer o resto
+  assert.deepEqual(m.resolveSections({ t1: [], t2: ['s3', 's1'], t3: [] }, DEF), { t1: ['s2'], t2: ['s3', 's1'], t3: [] });
+  // "velha" não existe mais: é descartada
+  assert.deepEqual(m.resolveSections({ t1: ['velha', 's2'], t2: ['s3', 's1'], t3: [] }, DEF), { t1: ['s2'], t2: ['s3', 's1'], t3: [] });
+});
+
+test('resolveSections aceita o salvo válido e recusa estrutura quebrada', () => {
   assert.deepEqual(m.resolveSections({ t1: ['s2'], t2: ['s3', 's1'], t3: [] }, DEF), { t1: ['s2'], t2: ['s3', 's1'], t3: [] });
-  assert.deepEqual(m.resolveSections({ t1: ['s1'], t2: ['s3'], t3: [] }, DEF), DEF); // falta s2
   assert.deepEqual(m.resolveSections({ t1: ['s1', 's1', 's2'], t2: ['s3'], t3: [] }, DEF), DEF); // duplicada
   assert.deepEqual(m.resolveSections({ t1: ['s1', 's2'], t2: ['s3'] }, DEF), DEF); // falta bloco
   assert.deepEqual(m.resolveSections('lixo', DEF), DEF);

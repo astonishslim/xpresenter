@@ -39,7 +39,8 @@ npm start
   - **Mover seção**: cada seção (Músicas, Bíblia, Preview, Programa, Slides, Controles, Retorno, Culto) tem a alça ⋮⋮.
     Arraste para outro bloco, antes/depois de outra seção, ou para um bloco vazio. Pelo teclado: ↑ ↓ reordena dentro do
     bloco e ← → manda para o bloco anterior/seguinte. Seções também recolhem.
-  - **Restaurar layout** volta a tudo ao padrão. O layout (blocos, tamanhos e seções) fica salvo.
+  - **Restaurar layout** volta a tudo ao padrão. O layout (blocos, tamanhos e seções) fica salvo. Seções novas de versões
+    futuras entram no bloco padrão sem desfazer o seu arranjo.
 - **Presets de layout** (seletor **Layout** no cabeçalho): troca o arranjo inteiro com um clique.
   - **Padrão**, **Culto** (monitores grandes no topo, slides e controles embaixo), **Ensaio** (biblioteca e slides em
     destaque) e **Operador de mídia** (monitores e controles em faixa, retorno e slides abaixo). Todos preenchem a grade
@@ -83,7 +84,7 @@ em `src/remote/icons.js`, usada pelo controle remoto do celular e pelo retorno d
 - No cabeçalho, o grupo **Camadas** oculta e mostra a **letra** (atalho `L`), o **fundo** e o **aviso** sem perder o
   conteúdo: a letra volta no mesmo slide, o aviso volta com o mesmo texto. Botão aceso = camada oculta.
 - Enviar outro slide ao vivo volta a mostrar a letra. Trocar o fundo mantém se ele está oculto.
-- **Escurecer** (em "Aviso, fundo e tema"): 10% a 80% de escurecimento sobre a imagem ou o vídeo, para a letra ler melhor.
+- **Escurecer** (em "Aviso e fundo"): 10% a 80% de escurecimento sobre a imagem ou o vídeo, para a letra ler melhor.
 - O retorno de palco mostra "LETRA OCULTA" enquanto a letra estiver escondida.
 
 ## Transmissão (OBS / vMix)
@@ -95,7 +96,7 @@ acrescente `&fundo=verde` e use chroma key. A faixa some com tela preta, letra o
 
 ## Fundo, estilo do texto e temas
 
-Na seção **Aviso, fundo e tema**:
+Nas seções **Aviso e fundo** (cor, imagem, vídeo) e **Tema e texto** (estilo, temas):
 
 - **Fundo**: cor, imagem ou **vídeo** (MP4, WebM, M4V, OGV; toca em loop e sem som). Só arquivos locais.
 - **Estilo do texto**: fonte (sem serifa, serifada, condensada, slab; só fontes do sistema, funciona sem internet), tamanho
@@ -110,7 +111,7 @@ Na seção **Aviso, fundo e tema**:
 
 ## Transições, legenda e tema automático
 
-- **Transição** (em "Aviso, fundo e tema"): corte seco ou fade (rápido, normal, lento, muito lento). No fade, o slide
+- **Transição** (em "Tema e texto"): corte seco ou fade (rápido, normal, lento, muito lento). No fade, o slide
   anterior some enquanto o novo aparece (crossfade). A transição faz parte do tema.
 - **Legenda**: uma linha num canto da tela, com variáveis: `{titulo}` (música ou passagem), `{rotulo}` (Verso, Refrão…),
   `{hora}`, `{data}` e `{cronometro}`. Ex.: `{titulo} · {hora}` ou `Faltam {cronometro}`. Variável vazia some junto com o
@@ -121,7 +122,7 @@ Na seção **Aviso, fundo e tema**:
 
 ## Cronômetro
 
-Na seção **Retorno de palco**: **regressiva** (minutos) ou **cronômetro** (conta para cima), com iniciar/pausar e zerar.
+Na seção **Cronômetro**: **regressiva** (minutos) ou **cronômetro** (conta para cima), com iniciar/pausar e zerar.
 - **No retorno** aparece no cabeçalho sempre que estiver em uso: amarelo no último minuto, vermelho e negativo quando estoura
   (ex.: `-01:20`, tempo da pregação). Em tablet, usa o relógio do computador do operador, não o do aparelho.
 - **Na projeção**, só se você ligar o botão de TV: grande no centro quando não há letra (contagem antes do culto, inclusive
