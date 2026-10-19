@@ -1,5 +1,11 @@
 const api = window.apresentador;
 const $ = (id) => document.getElementById(id);
+const icon = (name, size = 12) => window.icons.create(name, size);
+
+// Botão de ícone minúsculo para listas (sempre com title e aria-label).
+function miniButton(name, label, onclick) {
+  return h('button', { class: 'mini', title: label, 'aria-label': label, onclick }, icon(name));
+}
 
 function h(tag, props = {}, ...children) {
   const el = document.createElement(tag);
@@ -80,7 +86,7 @@ function renderSongs() {
   const items = ui.songs.filter((s) => s.title.toLowerCase().includes(term));
   $('songs').replaceChildren(...items.map((song) => h('li', { onclick: () => openSong(song) },
     h('span', {}, song.title),
-    h('button', { title: 'Adicionar ao culto', onclick: (e) => { e.stopPropagation(); addSongToPlaylist(song); } }, '+'))));
+    miniButton('plus', 'Adicionar ao culto', (e) => { e.stopPropagation(); addSongToPlaylist(song); }))));
 }
 
 async function openSong(song) {
@@ -106,8 +112,8 @@ function renderPlaylist() {
     }),
   },
   h('span', {}, item.title),
-  h('button', { title: 'Subir', onclick: (e) => { e.stopPropagation(); movePlaylist(item.id, i - 1); } }, '↑'),
-  h('button', { title: 'Remover', onclick: (e) => { e.stopPropagation(); removePlaylist(item.id); } }, '✕'))));
+  miniButton('arrow-up', 'Subir no culto', (e) => { e.stopPropagation(); movePlaylist(item.id, i - 1); }),
+  miniButton('x', 'Remover do culto', (e) => { e.stopPropagation(); removePlaylist(item.id); }))));
 }
 
 async function refreshPlaylist() {
@@ -171,8 +177,15 @@ function renderLive(state) {
 async function syncOutputButtons() {
   const [output, stage] = await Promise.all([api.outputs.isOpen(), api.stage.isOpen()]);
   $('btn-output').classList.toggle('on', output);
-  $('btn-output').textContent = output ? 'Parar projeção' : 'Projetar';
-  $('btn-stage').textContent = stage ? 'Fechar retorno' : 'Abrir retorno';
+  const outputBtn = $('btn-output');
+  outputBtn.querySelector('.label').textContent = output ? 'Parar projeção' : 'Projetar';
+  window.icons.setIcon(outputBtn, output ? 'monitor-off' : 'monitor-play');
+
+  const stageBtn = $('btn-stage');
+  const stageLabel = stage ? 'Fechar retorno' : 'Abrir retorno';
+  stageBtn.title = stageLabel;
+  stageBtn.setAttribute('aria-label', stageLabel);
+  window.icons.setIcon(stageBtn, stage ? 'monitor-off' : 'monitor-up');
 }
 
 async function loadDisplays() {
@@ -270,6 +283,7 @@ function bindEvents() {
 }
 
 async function init() {
+  window.icons.apply();
   window.initPresets(window.initLayout());
   previewStage = window.createStage($('mon-preview'));
   programStage = window.createStage($('mon-program'));

@@ -11,135 +11,136 @@
   <header>
     <h1>Apresentador</h1>
     <div class="spacer"></div>
-    <label class="preset-box" title="Troque o arranjo da tela com um clique">Layout
+    <label class="preset-box" title="Troque o arranjo da tela com um clique">
+      <span class="ico" data-icon="layout-grid"></span>
       <select id="preset-select" aria-label="Layout da tela"></select>
     </label>
-    <button id="btn-preset-save" title="Salvar o arranjo atual como um layout seu">Salvar layout…</button>
-    <button id="btn-preset-delete" class="danger" hidden title="Excluir o layout salvo selecionado">Excluir</button>
-    <button id="btn-reset-layout" title="Restaurar blocos, tamanhos e seções ao padrão">Restaurar layout</button>
-    <button id="btn-remote" title="Controle remoto e retorno pelo celular/tablet">Remoto</button>
-    <button id="btn-output" class="primary">Projetar</button>
+    <button id="btn-preset-save" class="ib" type="button" data-icon="save" title="Salvar o arranjo atual como um layout seu" aria-label="Salvar layout"></button>
+    <button id="btn-preset-delete" class="ib danger" type="button" data-icon="trash" hidden title="Excluir o layout salvo selecionado" aria-label="Excluir layout salvo"></button>
+    <button id="btn-reset-layout" class="ib" type="button" data-icon="rotate-ccw" title="Restaurar blocos, tamanhos e seções ao padrão" aria-label="Restaurar layout"></button>
+    <button id="btn-remote" class="ib" type="button" data-icon="smartphone" title="Controle remoto e retorno pelo celular/tablet" aria-label="Controle remoto"></button>
+    <button id="btn-output" class="primary" type="button" data-icon="monitor-play"><span class="label">Projetar</span></button>
   </header>
 
   <!-- Grade bento: cada bloco (.tile) é movível e redimensionável; cada seção (.fold) pode mudar de bloco. -->
   <main id="layout">
     <section class="panel tile" id="tile-library" data-tile="library">
-      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="songs" open>
-          <summary><span class="fold-title">Músicas</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Músicas" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="audio-lines"></span>Músicas</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Músicas" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
-            <input id="search" type="search" placeholder="Buscar música…" />
-            <button id="btn-new">+ Música</button>
+            <input id="search" type="search" placeholder="Buscar música…" aria-label="Buscar música" />
+            <button id="btn-new" class="ib" type="button" data-icon="plus" title="Nova música" aria-label="Nova música"></button>
           </div>
           <ul id="songs" class="list"></ul>
         </details>
         <details class="fold" data-key="bible" open>
-          <summary><span class="fold-title">Bíblia</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Bíblia" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="book-open"></span>Bíblia</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Bíblia" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
-            <input id="verse-ref" placeholder="Ex.: João 3:16-17" />
-            <button id="btn-verse">Buscar</button>
+            <input id="verse-ref" placeholder="Ex.: João 3:16-17" aria-label="Referência bíblica" />
+            <button id="btn-verse" class="ib" type="button" data-icon="search" title="Buscar versículo" aria-label="Buscar versículo"></button>
           </div>
-          <button id="btn-import-bible" class="link">Importar versão da Bíblia (JSON)</button>
+          <button id="btn-import-bible" class="link" type="button" data-icon="file-up" data-icon-size="12"><span class="label">Importar versão da Bíblia (JSON)</span></button>
           <p id="verse-msg" class="muted"></p>
         </details>
       </div>
-      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+      <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
 
     <section class="panel tile" id="tile-preview" data-tile="preview">
-      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="preview" open>
-          <summary><span class="fold-title">Preview</span><button id="btn-take" class="primary small" type="button" disabled>Ao vivo ▶ (Enter)</button><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Preview" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="eye"></span>Preview</span><button id="btn-take" class="ib primary" type="button" data-icon="circle-play" disabled title="Enviar ao vivo (Enter)" aria-label="Enviar ao vivo"></button><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Preview" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div id="mon-preview" class="monitor"></div>
         </details>
       </div>
-      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+      <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
 
     <section class="panel tile" id="tile-program" data-tile="program">
-      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="program" open>
-          <summary><span class="fold-title live-tag">Programa (ao vivo)</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Programa" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title live-tag"><span class="ico" data-icon="radio"></span>Programa (ao vivo)</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Programa" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div id="mon-program" class="monitor"></div>
         </details>
       </div>
-      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+      <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
 
     <section class="panel tile" id="tile-slides" data-tile="slides">
-      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="slides" open>
-          <summary><span class="fold-title">Slides</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Slides" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="layers"></span>Slides</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Slides" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <h2 id="slides-title">Slides</h2>
           <div class="row wrap">
-            <button id="btn-add-playlist" disabled>Adicionar ao culto</button>
-            <button id="btn-edit" disabled>Editar</button>
-            <label class="check"><input id="direct" type="checkbox" /> Clique envia direto ao vivo</label>
+            <button id="btn-add-playlist" class="ib" type="button" data-icon="list-plus" disabled title="Adicionar ao culto" aria-label="Adicionar ao culto"></button>
+            <button id="btn-edit" class="ib" type="button" data-icon="pencil" disabled title="Editar música" aria-label="Editar música"></button>
+            <label class="check" title="Clique envia direto ao vivo (sem passar pelo Preview)"><input id="direct" type="checkbox" aria-label="Clique envia direto ao vivo" /><span class="ico" data-icon="zap"></span>Direto</label>
           </div>
           <div id="slides" class="grid"></div>
         </details>
       </div>
-      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+      <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
 
     <section class="panel tile" id="tile-controls" data-tile="controls">
-      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="controls" open>
-          <summary><span class="fold-title">Controles</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Controles" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="sliders-horizontal"></span>Controles</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Controles" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row wrap">
-            <button id="btn-prev">◀ Anterior</button>
-            <button id="btn-next">Próximo ▶</button>
-            <button id="btn-clear">Limpar (Esc)</button>
-            <button id="btn-black">Preto (B)</button>
-            <button id="btn-cover">Capa</button>
+            <button id="btn-prev" class="ib" type="button" data-icon="skip-back" title="Slide anterior (←)" aria-label="Slide anterior"></button>
+            <button id="btn-next" class="ib" type="button" data-icon="skip-forward" title="Próximo slide (→ ou Espaço)" aria-label="Próximo slide"></button>
+            <button id="btn-clear" class="ib" type="button" data-icon="eraser" title="Limpar o conteúdo (Esc)" aria-label="Limpar conteúdo"></button>
+            <button id="btn-black" class="ib" type="button" data-icon="eye-off" title="Tela preta (B)" aria-label="Tela preta"></button>
+            <button id="btn-cover" class="ib" type="button" data-icon="layers" title="Capa" aria-label="Capa"></button>
           </div>
           <div class="row">
-            <input id="announce" placeholder="Aviso na parte inferior…" />
-            <button id="btn-announce">Enviar</button>
+            <input id="announce" placeholder="Aviso na parte inferior…" aria-label="Aviso na parte inferior" />
+            <button id="btn-announce" class="ib" type="button" data-icon="megaphone" title="Enviar aviso" aria-label="Enviar aviso"></button>
           </div>
           <div class="row wrap">
-            <label>Fundo <input id="bg-color" type="color" value="#000000" /></label>
-            <button id="btn-bg-image">Imagem…</button>
+            <label class="color-box" title="Cor de fundo"><span class="ico" data-icon="palette"></span><input id="bg-color" type="color" value="#000000" aria-label="Cor de fundo" /></label>
+            <button id="btn-bg-image" class="ib" type="button" data-icon="image" title="Imagem de fundo…" aria-label="Imagem de fundo"></button>
           </div>
         </details>
       </div>
-      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+      <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
 
     <section class="panel tile" id="tile-stage" data-tile="stage">
-      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="stage" open>
-          <summary><span class="fold-title">Retorno de palco</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Retorno de palco" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="monitor-speaker"></span>Retorno de palco</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Retorno de palco" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <div class="row">
             <select id="stage-display" aria-label="Monitor do retorno"></select>
-            <button id="btn-stage">Abrir retorno</button>
+            <button id="btn-stage" class="ib" type="button" data-icon="monitor-up" title="Abrir retorno" aria-label="Abrir retorno"></button>
           </div>
           <div class="row">
-            <input id="stage-msg" placeholder="Mensagem para o palco…" />
-            <button id="btn-stage-msg">Enviar</button>
-            <button id="btn-stage-clear" title="Limpar mensagem">✕</button>
+            <input id="stage-msg" placeholder="Mensagem para o palco…" aria-label="Mensagem para o palco" />
+            <button id="btn-stage-msg" class="ib" type="button" data-icon="send" title="Enviar mensagem" aria-label="Enviar mensagem"></button>
+            <button id="btn-stage-clear" class="ib" type="button" data-icon="x" title="Limpar mensagem" aria-label="Limpar mensagem"></button>
           </div>
-          <p class="muted">Mostra agora, próximo, relógio e mensagem. Também abre em tablet/celular pelo botão Remoto.</p>
+          <p class="muted">Mostra agora, próximo, relógio e mensagem. Também abre em tablet/celular pelo botão de controle remoto.</p>
         </details>
       </div>
-      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+      <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
 
     <section class="panel tile" id="tile-playlist" data-tile="playlist">
-      <div class="panel-bar"><button class="grip tile-grip" type="button" draggable="true" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)">⠿</button></div>
+      <div class="panel-bar"><button class="grip ib tile-grip" type="button" draggable="true" data-icon="grip" aria-label="Mover bloco" title="Arraste para mover o bloco (ou ← → com o foco aqui)"></button></div>
       <div class="tile-body">
         <details class="fold" data-key="playlist" open>
-          <summary><span class="fold-title">Culto</span><button class="grip fold-grip" type="button" draggable="true" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)">⋮⋮</button></summary>
+          <summary><span class="fold-title"><span class="ico" data-icon="list-music"></span>Culto</span><button class="grip ib fold-grip" type="button" draggable="true" data-icon="grip-vertical" aria-label="Mover seção Culto" title="Arraste a seção para outro bloco (ou ↑ ↓ ← →)"></button></summary>
           <ol id="playlist" class="list"></ol>
         </details>
       </div>
-      <button class="resize-handle" type="button" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)">◢</button>
+      <button class="resize-handle ib" type="button" data-icon="move-diagonal-2" data-icon-size="12" aria-label="Redimensionar bloco" title="Arraste para redimensionar (ou setas)"></button>
     </section>
   </main>
 
@@ -180,6 +181,7 @@
     <div class="row end"><button id="remote-close">Fechar</button></div>
   </dialog>
 
+  <script src="../shared/icons.js"></script>
   <script src="../shared/stage.js"></script>
   <script src="../shared/layoutModel.js"></script>
   <script src="../shared/layoutPresets.js"></script>

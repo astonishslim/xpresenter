@@ -109,14 +109,22 @@
 
     // ---- Excluir (dois cliques, para evitar perda acidental) ----
     let confirmTimer = null;
+    const setDeleteState = (confirming) => {
+      const btn = $('btn-preset-delete');
+      const label = confirming ? 'Clique de novo para confirmar a exclusão' : 'Excluir o layout salvo selecionado';
+      btn.classList.toggle('confirming', confirming);
+      btn.title = label;
+      btn.setAttribute('aria-label', confirming ? 'Confirmar exclusão do layout' : 'Excluir layout salvo');
+      root.icons.setIcon(btn, confirming ? 'check' : 'trash');
+    };
     function resetDeleteConfirm() {
       clearTimeout(confirmTimer);
       confirmTimer = null;
-      $('btn-preset-delete').textContent = 'Excluir';
+      setDeleteState(false);
     }
     $('btn-preset-delete').addEventListener('click', () => {
       if (!confirmTimer) {
-        $('btn-preset-delete').textContent = 'Confirmar?';
+        setDeleteState(true);
         confirmTimer = setTimeout(resetDeleteConfirm, CONFIRM_MS);
         return;
       }
